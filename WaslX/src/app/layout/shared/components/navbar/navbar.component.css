@@ -1,0 +1,225 @@
+:host {
+  display: block;
+}
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+  align-items: center;
+  gap: 20px;
+  padding: 16px 24px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(18px);
+}
+
+.navbar__brand,
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.navbar__menu,
+.navbar__action {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.navbar__menu:hover,
+.navbar__action:hover,
+.navbar__profile:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border-subtle));
+}
+
+.navbar__menu svg,
+.navbar__action svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.navbar__mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border-subtle));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--surface)) 0%, color-mix(in srgb, var(--accent) 12%, var(--surface)) 100%);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.navbar__mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.navbar__brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.navbar__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.navbar__subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.navbar__search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-soft);
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar__search svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
+}
+
+.navbar__search input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.navbar__search input::placeholder {
+  color: var(--text-muted);
+}
+
+.navbar__actions {
+  justify-content: end;
+}
+
+.navbar__profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  height: 48px;
+  padding: 0 14px 0 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.navbar__avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.navbar__profile-copy {
+  display: grid;
+  text-align: left;
+}
+
+.navbar__profile-copy strong {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.navbar__profile-copy span {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.navbar__menu {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .navbar {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  }
+
+  .navbar__search {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+
+@media (max-width: 760px) {
+  .navbar {
+    padding: 14px 16px;
+    grid-template-columns: minmax(0, auto) minmax(0, auto);
+  }
+
+  .navbar__menu {
+    display: inline-flex;
+  }
+
+  .navbar__brand-copy,
+  .navbar__profile-copy,
+  .navbar__action--theme {
+    display: none;
+  }
+
+  .navbar__mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .navbar__actions {
+    gap: 8px;
+  }
+
+  .navbar__search {
+    display: none;
+  }
+}

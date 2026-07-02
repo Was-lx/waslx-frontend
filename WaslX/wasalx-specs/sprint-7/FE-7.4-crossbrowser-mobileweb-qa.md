@@ -1,0 +1,47 @@
+# FE-7.4 — Cross-Browser & Mobile-Web QA
+
+> **Spec-Kit story spec.** Read [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) first for shared
+> architecture, actors, stack, and cross-cutting rules. This file is self-contained for implementation.
+
+| Field | Value |
+|---|---|
+| Story ID | `FE-7.4` |
+| Track | Frontend (Angular) |
+| Sprint | Sprint 7 — Hardening, NFRs & Launch |
+| Priority | Should (Normal) |
+| FR Traceability | NFR-COMPAT |
+| ClickUp | https://app.clickup.com/t/86cae0842 |
+| Status | Not started |
+
+## 1. User Story
+> **As a** team, **I want** the UI verified across browsers and mobile web, **so that** all users get a consistent experience.
+
+## 2. Context
+Part of **Sprint 7 — Hardening, NFRs & Launch**. Make the product production-ready. See `PROJECT-CONTEXT.md` for the system-wide picture; this story
+delivers one focused slice and must comply with every cross-cutting rule there.
+
+## 3. Functional Requirements (the build list)
+- [ ] Cross-browser testing (Chrome/Edge/Safari/Firefox)
+- [ ] Mobile-web responsive verification of core flows
+
+## 4. Acceptance Criteria (the test plan)
+- [ ] Core flows pass on target browsers and mobile-web viewports
+
+## 5. Out of Scope
+- Backend/API logic (covered by the linked `US-*` story).
+- Business rules beyond presentation/validation.
+
+## 6. Dependencies
+- `US-7.5`
+
+## 7. Technical Notes
+- Angular + TypeScript; use the shared design system, RTL/i18n, and toast service.
+- Call backend through the gateway; attach JWT via the HTTP interceptor.
+- Mirror server-side RBAC in the UI (defense in depth); never trust the client alone.
+
+## 9. Definition of Done
+- [ ] All Functional Requirements implemented.
+- [ ] All Acceptance Criteria verified (manual + automated where feasible).
+- [ ] Tenant-scoping and RBAC respected.
+- [ ] Arabic/English (RTL/LTR) correct where user-facing.
+- [ ] Code reviewed, merged via CI green.

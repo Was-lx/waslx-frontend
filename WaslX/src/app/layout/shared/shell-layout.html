@@ -1,0 +1,40 @@
+<div class="shell" [attr.dir]="languageService.getDirection()">
+  <app-sidebar
+    class="shell__sidebar"
+    [brandName]="brandName()"
+    [brandSubtitle]="sidebarSubtitle()"
+    [groups]="navigationGroups()"
+    [collapsed]="sidebarCollapsed()"
+    [mobileOpen]="mobileMenuOpen()"
+    (toggleCollapsed)="toggleSidebar()"
+    (closeMobile)="closeMobileMenu()"
+  />
+
+  <div class="shell__main" [class.shell__main--expanded]="sidebarCollapsed()">
+    <app-navbar
+      class="shell__navbar"
+      [brandName]="brandName()"
+      [brandSubtitle]="brandSubtitle()"
+      [searchPlaceholder]="searchPlaceholder()"
+      [notificationLabel]="notificationLabel()"
+      [profileLabel]="profileLabel()"
+      [themeLabel]="themeLabel()"
+      [languageLabel]="languageLabel()"
+      (menuTriggered)="toggleMobileMenu()"
+      (notificationTriggered)="handleNotifications()"
+      (profileTriggered)="handleProfile()"
+      (themeTriggered)="handleTheme()"
+      (languageTriggered)="handleLanguage()"
+    />
+
+    <main class="shell__content">
+      <ng-content />
+    </main>
+
+    <app-footer class="shell__footer" [footerLabel]="footerLabel()" />
+  </div>
+
+  @if (mobileMenuOpen()) {
+  <div class="shell__backdrop" (click)="closeMobileMenu()" aria-hidden="true"></div>
+  }
+</div>

@@ -1,0 +1,78 @@
+<section class="onboarding-page" [attr.dir]="direction()">
+  <div class="onboarding-container">
+    <div class="onboarding-header">
+      <img src="/logo.png" alt="WaslX" class="onboarding-logo" />
+      <h1>{{ t('onboardingTitle') }}</h1>
+      <p class="onboarding-lead">{{ t('onboardingLead') }}</p>
+    </div>
+
+    <div class="onboarding-progress">
+      <div class="step" [class.active]="currentStep() >= 1">1</div>
+      <div class="step-line" [class.active]="currentStep() >= 2"></div>
+      <div class="step" [class.active]="currentStep() >= 2">2</div>
+      <div class="step-line" [class.active]="currentStep() >= 3"></div>
+      <div class="step" [class.active]="currentStep() >= 3">3</div>
+    </div>
+
+    <!-- Step 1 -->
+    @if (currentStep() === 1) {
+      <div class="onboarding-step">
+        <h2>{{ t('onboardingStepOneTitle') }}</h2>
+        <p class="onboarding-lead">{{ t('onboardingStepOneLead') }}</p>
+        <form [formGroup]="step1Form" (ngSubmit)="nextStep()">
+          <div class="form-group">
+            <label for="workspaceName">{{ t('workspaceName') }}</label>
+            <input id="workspaceName" formControlName="workspaceName" class="form-control" placeholder="e.g. Acme Corp" />
+            <small>{{ t('workspaceNameHelp') }}</small>
+          </div>
+          <div class="form-actions right">
+            <button type="submit" class="btn btn-primary" [disabled]="step1Form.invalid">{{ t('stepForward') }}</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Step 2 -->
+    @if (currentStep() === 2) {
+      <div class="onboarding-step">
+        <h2>{{ t('onboardingStepTwoTitle') }}</h2>
+        <p class="onboarding-lead">{{ t('onboardingStepTwoLead') }}</p>
+        <form [formGroup]="step2Form" (ngSubmit)="nextStep()">
+          <div class="form-group">
+            <label for="inviteEmail">{{ t('adminEmail') }}</label>
+            <input id="inviteEmail" formControlName="inviteEmail" class="form-control" placeholder="colleague@company.com" />
+            <small>{{ t('adminEmailHelp') }}</small>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="prevStep()">{{ t('stepBack') }}</button>
+            <button type="submit" class="btn btn-primary">{{ t('stepForward') }}</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Step 3 -->
+    @if (currentStep() === 3) {
+      <div class="onboarding-step">
+        <h2>{{ t('onboardingStepThreeTitle') }}</h2>
+        <p class="onboarding-lead">{{ t('onboardingStepThreeLead') }}</p>
+        
+        <div class="whatsapp-placeholder">
+          <!-- Placeholder for QR code or OAuth button -->
+          <p>{{ t('whatsappNumberHelp') }}</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="prevStep()">{{ t('stepBack') }}</button>
+          <button type="button" class="btn btn-primary" (click)="finishOnboarding()" [disabled]="loading()">
+            @if (loading()) {
+              Loading...
+            } @else {
+              {{ t('finishSetup') }}
+            }
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</section>
