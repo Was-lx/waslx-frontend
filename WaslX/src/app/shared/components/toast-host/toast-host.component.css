@@ -1,0 +1,79 @@
+:host {
+  position: fixed;
+  top: 16px;
+  inset-inline-end: 16px;
+  z-index: 200;
+  display: block;
+  width: min(100vw - 32px, 380px);
+  pointer-events: none;
+}
+
+.toast-host {
+  display: grid;
+  gap: 12px;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 92%, white);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+}
+
+.toast__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.toast__copy strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.toast__copy p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.toast__dismiss {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.toast--success {
+  border-color: color-mix(in srgb, #138a61 24%, var(--border-subtle));
+}
+
+.toast--error {
+  border-color: color-mix(in srgb, #c2415b 26%, var(--border-subtle));
+}
+
+.toast--info {
+  border-color: color-mix(in srgb, var(--primary) 22%, var(--border-subtle));
+}
+
+.toast--warning {
+  border-color: color-mix(in srgb, #d28b1e 26%, var(--border-subtle));
+}
+
+@media (max-width: 760px) {
+  :host {
+    top: 12px;
+    inset-inline-end: 12px;
+    width: calc(100vw - 24px);
+  }
+}

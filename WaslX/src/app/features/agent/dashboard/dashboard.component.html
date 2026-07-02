@@ -1,0 +1,48 @@
+<section class="dashboard" [attr.dir]="direction()">
+  <header class="dashboard__header">
+    <div>
+      <span class="dashboard__eyebrow">{{ t('dashboard') }}</span>
+      <h1>{{ t('dashboardWelcome') }}, {{ userName() }}</h1>
+      <p class="dashboard__role-badge">{{ userRole() }}</p>
+    </div>
+  </header>
+
+  <div class="dashboard__grid">
+    <article class="dashboard__card dashboard__card--metric">
+      <div class="dashboard__card-icon dashboard__card-icon--primary">
+        <svg viewBox="0 0 24 24"><path d="M4 5h16v10H7l-3 3z" /></svg>
+      </div>
+      <div class="dashboard__card-body">
+        <span class="dashboard__card-label">{{ t('totalConversations') }}</span>
+        <strong class="dashboard__card-value">—</strong>
+      </div>
+    </article>
+
+    <article class="dashboard__card dashboard__card--metric">
+      <div class="dashboard__card-icon dashboard__card-icon--warning">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+      </div>
+      <div class="dashboard__card-body">
+        <span class="dashboard__card-label">{{ t('avgResponseTime') }}</span>
+        <strong class="dashboard__card-value">—</strong>
+      </div>
+    </article>
+
+    <article class="dashboard__card dashboard__card--metric">
+      <div class="dashboard__card-icon dashboard__card-icon--accent">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="M22 4 12 14.01l-3-3" /></svg>
+      </div>
+      <div class="dashboard__card-body">
+        <span class="dashboard__card-label">{{ t('resolvedToday') }}</span>
+        <strong class="dashboard__card-value">—</strong>
+      </div>
+    </article>
+  </div>
+
+  <div class="dashboard__section">
+    <h2>{{ t('myConversations') }}</h2>
+    <div class="dashboard__empty-state">
+      <p>{{ t('noData') }}</p>
+    </div>
+  </div>
+</section>

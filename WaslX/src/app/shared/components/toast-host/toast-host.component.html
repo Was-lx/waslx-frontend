@@ -1,0 +1,19 @@
+<div class="toast-host" aria-live="polite" aria-relevant="additions removals">
+  @for (toast of toastService.toasts(); track toast.id) {
+  <article class="toast toast--{{ toast.tone }}" role="status">
+    <div class="toast__copy">
+      <strong>{{ toast.title }}</strong>
+      <p>{{ toast.message }}</p>
+    </div>
+
+    <button
+      type="button"
+      class="toast__dismiss"
+      (click)="toastService.dismiss(toast.id)"
+      [attr.aria-label]="'Dismiss ' + toast.title"
+    >
+      X
+    </button>
+  </article>
+  }
+</div>

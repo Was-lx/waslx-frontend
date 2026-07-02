@@ -1,0 +1,185 @@
+<div class="landing" [attr.dir]="direction()">
+  <!-- Navigation -->
+  <header class="landing__nav">
+    <a class="landing__brand" href="/">
+      <img src="/logo.png" alt="WaslX" class="landing__logo" />
+      <span class="landing__brand-name">WaslX</span>
+    </a>
+
+    <div class="landing__nav-actions">
+      <button type="button" class="landing__nav-btn" (click)="toggleLanguage()">
+        {{ languageLabel() }}
+      </button>
+      <button type="button" class="landing__nav-btn" (click)="toggleTheme()" [attr.aria-label]="t('toggleTheme')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" /></svg>
+      </button>
+      <a routerLink="/login" class="landing__nav-signin">{{ t('signIn') }}</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="landing__hero">
+    <div class="landing__hero-glow"></div>
+    <div class="landing__hero-content">
+      <div class="landing__hero-badge">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z" /></svg>
+        {{ t('landingTrustTitle') }}
+      </div>
+      <h1 class="landing__hero-title">{{ t('landingHeroTitle') }}</h1>
+      <p class="landing__hero-subtitle">{{ t('landingHeroSubtitle') }}</p>
+      <div class="landing__hero-actions">
+        <a routerLink="/login" class="landing__cta-primary">
+          {{ t('landingCta') }}
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+        </a>
+        <a href="#features" class="landing__cta-secondary">{{ t('landingCtaSecondary') }}</a>
+      </div>
+
+      <div class="landing__hero-stats">
+        <div class="landing__stat">
+          <strong>10K+</strong>
+          <span>{{ t('totalConversations') }}</span>
+        </div>
+        <div class="landing__stat-divider"></div>
+        <div class="landing__stat">
+          <strong>&lt; 2s</strong>
+          <span>AI Pipeline</span>
+        </div>
+        <div class="landing__stat-divider"></div>
+        <div class="landing__stat">
+          <strong>99.9%</strong>
+          <span>Uptime</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="landing__features" id="features">
+    <div class="landing__section-header">
+      <span class="landing__section-eyebrow">Features</span>
+      <h2>Everything your team needs</h2>
+    </div>
+
+    <div class="landing__features-grid">
+      <article class="landing__feature-card">
+        <div class="landing__feature-icon landing__feature-icon--ai">
+          <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 0-4 4v1H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z" /><path d="M10 13h4M10 16h2" /></svg>
+        </div>
+        <h3>{{ t('landingFeature1Title') }}</h3>
+        <p>{{ t('landingFeature1Desc') }}</p>
+      </article>
+
+      <article class="landing__feature-card">
+        <div class="landing__feature-icon landing__feature-icon--collab">
+          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><path d="M20 8v6M23 11h-6" /></svg>
+        </div>
+        <h3>{{ t('landingFeature2Title') }}</h3>
+        <p>{{ t('landingFeature2Desc') }}</p>
+      </article>
+
+      <article class="landing__feature-card">
+        <div class="landing__feature-icon landing__feature-icon--routing">
+          <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /><path d="M3 12h13" /><path d="M21 5v14" /></svg>
+        </div>
+        <h3>{{ t('landingFeature3Title') }}</h3>
+        <p>{{ t('landingFeature3Desc') }}</p>
+      </article>
+
+      <article class="landing__feature-card">
+        <div class="landing__feature-icon landing__feature-icon--analytics">
+          <svg viewBox="0 0 24 24"><path d="M4 19V5" /><path d="M4 19h16" /><path d="M8 15v-4" /><path d="M12 15V9" /><path d="M16 15v-7" /></svg>
+        </div>
+        <h3>{{ t('landingFeature4Title') }}</h3>
+        <p>{{ t('landingFeature4Desc') }}</p>
+      </article>
+
+      <article class="landing__feature-card">
+        <div class="landing__feature-icon landing__feature-icon--whatsapp">
+          <svg viewBox="0 0 24 24"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" /><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1zM14 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1z" /></svg>
+        </div>
+        <h3>{{ t('landingFeature5Title') }}</h3>
+        <p>{{ t('landingFeature5Desc') }}</p>
+      </article>
+
+      <article class="landing__feature-card">
+        <div class="landing__feature-icon landing__feature-icon--arabic">
+          <svg viewBox="0 0 24 24"><path d="M4 5h9" /><path d="M9 3v2c0 4-1.5 7-5 10" /><path d="M6 9c1.5 3 4 5 7 6" /><path d="M12 19h8" /><path d="M15 5h5" /><path d="M16 5c.5 4 2.5 7.5 4 10" /></svg>
+        </div>
+        <h3>{{ t('landingFeature6Title') }}</h3>
+        <p>{{ t('landingFeature6Desc') }}</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="landing__how">
+    <div class="landing__section-header">
+      <span class="landing__section-eyebrow">{{ t('landingHowTitle') }}</span>
+      <h2>Three steps to get started</h2>
+    </div>
+
+    <div class="landing__steps">
+      <div class="landing__step">
+        <div class="landing__step-number">1</div>
+        <h3>{{ t('landingStep1Title') }}</h3>
+        <p>{{ t('landingStep1Desc') }}</p>
+      </div>
+      <div class="landing__step-connector"></div>
+      <div class="landing__step">
+        <div class="landing__step-number">2</div>
+        <h3>{{ t('landingStep2Title') }}</h3>
+        <p>{{ t('landingStep2Desc') }}</p>
+      </div>
+      <div class="landing__step-connector"></div>
+      <div class="landing__step">
+        <div class="landing__step-number">3</div>
+        <h3>{{ t('landingStep3Title') }}</h3>
+        <p>{{ t('landingStep3Desc') }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust -->
+  <section class="landing__trust">
+    <div class="landing__trust-grid">
+      <div class="landing__trust-item">
+        <svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z" /></svg>
+        <span>{{ t('landingTrust1') }}</span>
+      </div>
+      <div class="landing__trust-item">
+        <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" /></svg>
+        <span>{{ t('landingTrust2') }}</span>
+      </div>
+      <div class="landing__trust-item">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><path d="M12 3 19 6v5c0 5-3.5 8.5-7 10" /></svg>
+        <span>{{ t('landingTrust3') }}</span>
+      </div>
+      <div class="landing__trust-item">
+        <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
+        <span>{{ t('landingTrust4') }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="landing__final-cta">
+    <h2>Ready to transform your WhatsApp workflow?</h2>
+    <p>Join teams that handle thousands of conversations daily with AI assistance.</p>
+    <a routerLink="/login" class="landing__cta-primary landing__cta-primary--large">
+      {{ t('landingCta') }}
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing__footer">
+    <div class="landing__footer-content">
+      <div class="landing__footer-brand">
+        <img src="/logo.png" alt="WaslX" class="landing__footer-logo" />
+        <span>WaslX</span>
+      </div>
+      <p class="landing__footer-copy">{{ t('landingFooterCopy') }}</p>
+    </div>
+  </footer>
+</div>

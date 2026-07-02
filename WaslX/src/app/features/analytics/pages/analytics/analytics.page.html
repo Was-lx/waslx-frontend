@@ -1,0 +1,14 @@
+<section class="feature-page" [attr.dir]="direction()">
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow">{{ t('analytics') }}</span>
+      <h1>{{ t('analyticsOverview') }}</h1>
+    </div>
+  </header>
+
+  <div class="feature-page__empty">
+    <svg viewBox="0 0 24 24"><path d="M4 19V5" /><path d="M4 19h16" /><path d="M8 15v-4" /><path d="M12 15V9" /><path d="M16 15v-7" /></svg>
+    <h3>{{ t('noData') }}</h3>
+    <p>{{ t('featureComingSoonDesc') }}</p>
+  </div>
+</section>

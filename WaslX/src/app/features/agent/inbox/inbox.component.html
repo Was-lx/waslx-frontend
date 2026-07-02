@@ -1,0 +1,25 @@
+<section class="feature-page" [attr.dir]="direction()">
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow">{{ t('inbox') }}</span>
+      <h1>{{ t('assignedToMe') }}</h1>
+    </div>
+    <div class="feature-page__actions">
+      <div class="feature-page__search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
+        <input type="search" [placeholder]="t('searchConversations')" />
+      </div>
+    </div>
+  </header>
+
+  <div class="feature-page__tabs">
+    <button class="feature-page__tab feature-page__tab--active">{{ t('assignedToMe') }}</button>
+    <button class="feature-page__tab">{{ t('unassigned') }}</button>
+  </div>
+
+  <div class="feature-page__empty">
+    <svg viewBox="0 0 24 24"><path d="M4 5h16v10H7l-3 3z" /></svg>
+    <h3>{{ t('noData') }}</h3>
+    <p>{{ t('featureComingSoonDesc') }}</p>
+  </div>
+</section>

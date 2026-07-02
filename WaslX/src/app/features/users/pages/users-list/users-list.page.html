@@ -1,0 +1,78 @@
+<section class="feature-page" [attr.dir]="direction()">
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow">{{ t('users') }}</span>
+      <h1>{{ t('userManagement') }}</h1>
+    </div>
+    <div class="feature-page__actions">
+      <a routerLink="create" class="feature-page__btn">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+        {{ t('inviteUser') }}
+      </a>
+    </div>
+  </header>
+
+  <div class="feature-page__tabs">
+    <button class="feature-page__tab feature-page__tab--active">{{ t('activeUsers') }}</button>
+    <button class="feature-page__tab">{{ t('deactivatedUsers') }}</button>
+  </div>
+
+  @if (loading()) {
+    <div class="feature-page__empty">
+      <p>{{ t('loading') }}</p>
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <p>{{ t('error') }}</p>
+      <button class="feature-page__btn" (click)="loadUsers()">{{ t('retry') }}</button>
+    </div>
+  } @else if (users().length === 0) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><path d="M20 8v6M23 11h-6" /></svg>
+      <h3>{{ t('noData') }}</h3>
+    </div>
+  } @else {
+    <div class="feature-page__table-container">
+      <table class="feature-page__table">
+        <thead>
+          <tr>
+            <th>{{ t('userName') }}</th>
+            <th>{{ t('userRole') }}</th>
+            <th>{{ t('userStatus') }}</th>
+            <th>{{ t('userJoined') }}</th>
+            <th>{{ t('userActions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>
+                <div style="font-weight: 500;">{{ user.name }}</div>
+                <div style="font-size: 0.85em; color: var(--text-secondary);">{{ user.email }}</div>
+              </td>
+              <td>
+                <select [value]="user.role" (change)="changeRole(user, $any($event.target).value)" style="padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-surface);">
+                  <option value="Admin">Admin</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Agent">Agent</option>
+                  <option value="Viewer">Viewer</option>
+                </select>
+              </td>
+              <td>
+                <span [style.color]="user.isActive ? 'var(--success-color)' : 'var(--error-color)'">
+                  {{ user.isActive ? t('active') : t('inactive') }}
+                </span>
+              </td>
+              <td>{{ user.createdAt | date:'shortDate' }}</td>
+              <td>
+                <button (click)="toggleStatus(user)" style="padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-surface); cursor: pointer;">
+                  {{ user.isActive ? t('deactivateUser') : t('activateUser') }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

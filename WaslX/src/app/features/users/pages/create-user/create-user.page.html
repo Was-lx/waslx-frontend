@@ -1,0 +1,50 @@
+<section class="feature-page" [attr.dir]="direction()">
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow">{{ t('users') }}</span>
+      <h1>{{ t('inviteUserTitle') }}</h1>
+      <p style="color: var(--text-secondary); margin-top: 0.5rem;">{{ t('inviteUserLead') }}</p>
+    </div>
+  </header>
+
+  <div class="form-container">
+    <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()" class="invite-form">
+      
+      <div class="form-group">
+        <label for="email">{{ t('emailAddress') }}</label>
+        <input 
+          id="email" 
+          type="email" 
+          formControlName="email" 
+          class="form-control" 
+          [placeholder]="'name@company.com'"
+        />
+        @if (inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched) {
+          <div class="error-message">{{ t('emailInvalid') }}</div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="role">{{ t('userRole') }}</label>
+        <select id="role" formControlName="role" class="form-control">
+          <option value="Admin">Admin</option>
+          <option value="Manager">Manager</option>
+          <option value="Agent">Agent</option>
+          <option value="Viewer">Viewer</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="../" class="btn btn-secondary">{{ t('cancel') }}</a>
+        <button type="submit" class="btn btn-primary" [disabled]="inviteForm.invalid || loading()">
+          @if (loading()) {
+            {{ t('loading') }}
+          } @else {
+            {{ t('invite') }}
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</section>

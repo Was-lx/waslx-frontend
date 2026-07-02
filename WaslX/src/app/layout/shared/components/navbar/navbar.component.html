@@ -1,0 +1,85 @@
+<header class="navbar">
+  <div class="navbar__brand">
+    <button
+      class="navbar__menu"
+      type="button"
+      (click)="menuTriggered.emit()"
+      aria-label="Open navigation"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </svg>
+    </button>
+
+    <div class="navbar__mark" aria-hidden="true">
+      <img src="/logo.png" alt="" />
+    </div>
+
+    <div class="navbar__brand-copy">
+      <span class="navbar__title">{{ brandName() }}</span>
+      <span class="navbar__subtitle">{{ brandSubtitle() }}</span>
+    </div>
+  </div>
+
+  <label class="navbar__search" aria-label="Search workspace">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4.5 4.5" />
+    </svg>
+    <input type="search" [placeholder]="searchPlaceholder()" />
+  </label>
+
+  <div class="navbar__actions" aria-label="Top navigation actions">
+    <button
+      class="navbar__action"
+      type="button"
+      (click)="notificationTriggered.emit()"
+      [attr.aria-label]="notificationLabel()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 7 3 7H3s3 0 3-7" />
+        <path d="M10 19a2 2 0 0 0 4 0" />
+      </svg>
+    </button>
+
+    <button
+      class="navbar__action navbar__action--theme"
+      type="button"
+      (click)="themeTriggered.emit()"
+      [attr.aria-label]="themeLabel()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
+      </svg>
+    </button>
+
+    <button
+      class="navbar__action navbar__action--language"
+      type="button"
+      (click)="languageTriggered.emit()"
+      [attr.aria-label]="languageLabel()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 5h9" />
+        <path d="M9 3v2c0 4-1.5 7-5 10" />
+        <path d="M6 9c1.5 3 4 5 7 6" />
+        <path d="M12 19h8" />
+        <path d="M15 5h5" />
+        <path d="M16 5c.5 4 2.5 7.5 4 10" />
+      </svg>
+    </button>
+
+    <button
+      class="navbar__profile"
+      type="button"
+      (click)="profileTriggered.emit()"
+      [attr.aria-label]="profileLabel()"
+    >
+      <span class="navbar__avatar" aria-hidden="true">WX</span>
+      <span class="navbar__profile-copy">
+        <strong>{{ userName() }}</strong>
+        <span>{{ userRole() }}</span>
+      </span>
+    </button>
+  </div>
+</header>
