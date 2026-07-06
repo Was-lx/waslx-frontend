@@ -1,68 +1,241 @@
-<section class="dashboard" [attr.dir]="direction()">
-  <header class="dashboard__header">
-    <div>
+<section class="dashboard dash" [attr.dir]="direction()">
+  <!-- ── Greeting header + live-ops status strip ── -->
+  <header class="dashboard__header dash__header">
+    <div class="dash__intro">
       <span class="dashboard__eyebrow">{{ t('dashboard') }}</span>
       <h1>{{ t('dashboardWelcome') }}, {{ userName() }}</h1>
+      <p class="dash__lead">{{ t('dashboardLead') }}</p>
       <p class="dashboard__role-badge">{{ userRole() }}</p>
+    </div>
+    <div class="dash__status" role="status">
+      <span class="dash__status-pulse" aria-hidden="true"></span>
+      <span class="dash__status-text">
+        <strong>{{ t('liveOps') }}</strong>
+        <em>{{ t('systemHealthy') }}</em>
+      </span>
     </div>
   </header>
 
-  <div class="dashboard__grid">
-    <article class="dashboard__card dashboard__card--metric">
-      <div class="dashboard__card-icon dashboard__card-icon--primary">
+  <!-- ── Quick actions strip ── -->
+  <nav class="dash__actions" aria-label="{{ t('quickActions') }}">
+    <span class="dash__actions-label">{{ t('quickActions') }}</span>
+    <button type="button" class="dash__action">
+      <span class="dash__action-ico dash__action-ico--primary">
         <svg viewBox="0 0 24 24"><path d="M4 5h16v10H7l-3 3z" /></svg>
+      </span>
+      {{ t('openInbox') }}
+    </button>
+    <button type="button" class="dash__action">
+      <span class="dash__action-ico dash__action-ico--accent">
+        <svg viewBox="0 0 24 24"><path d="M8 12h8M12 8v8" /><circle cx="12" cy="12" r="9" /></svg>
+      </span>
+      {{ t('assignChats') }}
+    </button>
+    <button type="button" class="dash__action">
+      <span class="dash__action-ico dash__action-ico--success">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle cx="9.5" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>
+      </span>
+      {{ t('inviteTeammate') }}
+    </button>
+    <button type="button" class="dash__action">
+      <span class="dash__action-ico dash__action-ico--warning">
+        <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+      </span>
+      {{ t('viewReports') }}
+    </button>
+  </nav>
+
+  <!-- ── KPI cards ── -->
+  <div class="dashboard__grid dash__grid">
+    <article class="dashboard__card dashboard__card--metric dash__kpi">
+      <div class="dash__kpi-top">
+        <div class="dashboard__card-icon dashboard__card-icon--primary">
+          <svg viewBox="0 0 24 24"><path d="M4 5h16v10H7l-3 3z" /></svg>
+        </div>
+        <span class="ui-trend ui-trend--up">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+          12%
+        </span>
       </div>
       <div class="dashboard__card-body">
         <span class="dashboard__card-label">{{ t('totalConversations') }}</span>
         <strong class="dashboard__card-value">—</strong>
       </div>
+      <svg class="dash__spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="sp-m1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--primary)" stop-opacity="0.28" />
+            <stop offset="1" stop-color="var(--primary)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="dash__spark-fill" d="M0 24 L15 20 L30 22 L45 14 L60 17 L75 9 L90 12 L105 6 L120 8 V32 H0 Z" fill="url(#sp-m1)" />
+        <path class="dash__spark-line" d="M0 24 L15 20 L30 22 L45 14 L60 17 L75 9 L90 12 L105 6 L120 8" fill="none" stroke="var(--primary)" />
+      </svg>
     </article>
 
-    <article class="dashboard__card dashboard__card--metric">
-      <div class="dashboard__card-icon dashboard__card-icon--success">
-        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /></svg>
+    <article class="dashboard__card dashboard__card--metric dash__kpi">
+      <div class="dash__kpi-top">
+        <div class="dashboard__card-icon dashboard__card-icon--success">
+          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /></svg>
+        </div>
+        <span class="ui-trend ui-trend--up">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+          4
+        </span>
       </div>
       <div class="dashboard__card-body">
         <span class="dashboard__card-label">{{ t('activeAgents') }}</span>
         <strong class="dashboard__card-value">—</strong>
       </div>
+      <svg class="dash__spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="sp-m2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--success)" stop-opacity="0.26" />
+            <stop offset="1" stop-color="var(--success)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="dash__spark-fill" d="M0 18 L15 19 L30 15 L45 16 L60 12 L75 13 L90 10 L105 11 L120 9 V32 H0 Z" fill="url(#sp-m2)" />
+        <path class="dash__spark-line" d="M0 18 L15 19 L30 15 L45 16 L60 12 L75 13 L90 10 L105 11 L120 9" fill="none" stroke="var(--success)" />
+      </svg>
     </article>
 
-    <article class="dashboard__card dashboard__card--metric">
-      <div class="dashboard__card-icon dashboard__card-icon--warning">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6ll4 2" /></svg>
+    <article class="dashboard__card dashboard__card--metric dash__kpi">
+      <div class="dash__kpi-top">
+        <div class="dashboard__card-icon dashboard__card-icon--warning">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+        </div>
+        <span class="ui-trend ui-trend--down">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7 7 17M15 17H7V9" /></svg>
+          8%
+        </span>
       </div>
       <div class="dashboard__card-body">
         <span class="dashboard__card-label">{{ t('avgResponseTime') }}</span>
         <strong class="dashboard__card-value">—</strong>
       </div>
+      <svg class="dash__spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="sp-m3" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--warning)" stop-opacity="0.28" />
+            <stop offset="1" stop-color="var(--warning)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="dash__spark-fill" d="M0 10 L15 12 L30 11 L45 16 L60 14 L75 19 L90 18 L105 22 L120 21 V32 H0 Z" fill="url(#sp-m3)" />
+        <path class="dash__spark-line" d="M0 10 L15 12 L30 11 L45 16 L60 14 L75 19 L90 18 L105 22 L120 21" fill="none" stroke="var(--warning)" />
+      </svg>
     </article>
 
-    <article class="dashboard__card dashboard__card--metric">
-      <div class="dashboard__card-icon dashboard__card-icon--accent">
-        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="M22 4 12 14.01l-3-3" /></svg>
+    <article class="dashboard__card dashboard__card--metric dash__kpi">
+      <div class="dash__kpi-top">
+        <div class="dashboard__card-icon dashboard__card-icon--accent">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="M22 4 12 14.01l-3-3" /></svg>
+        </div>
+        <span class="ui-trend ui-trend--up">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+          18%
+        </span>
       </div>
       <div class="dashboard__card-body">
         <span class="dashboard__card-label">{{ t('resolvedToday') }}</span>
         <strong class="dashboard__card-value">—</strong>
       </div>
+      <svg class="dash__spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="sp-m4" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--accent)" stop-opacity="0.3" />
+            <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="dash__spark-fill" d="M0 22 L15 18 L30 20 L45 15 L60 16 L75 10 L90 13 L105 7 L120 5 V32 H0 Z" fill="url(#sp-m4)" />
+        <path class="dash__spark-line" d="M0 22 L15 18 L30 20 L45 15 L60 16 L75 10 L90 13 L105 7 L120 5" fill="none" stroke="var(--accent)" />
+      </svg>
     </article>
   </div>
 
-  <div class="dashboard__section-grid">
-    <div class="dashboard__section">
-      <h2>{{ t('teamPerformance') }}</h2>
-      <div class="dashboard__empty-state">
-        <p>{{ t('noData') }}</p>
+  <!-- ── Team performance (volume chart) + AI routing preview ── -->
+  <div class="dashboard__section-grid dash__section-grid">
+    <div class="dashboard__section dash__panel dash__panel--wide">
+      <div class="dash__panel-head">
+        <h2>{{ t('teamPerformance') }}</h2>
+        <span class="ui-pill ui-pill--info ui-pill--dot">{{ t('lastSevenDays') }}</span>
+      </div>
+
+      <figure class="dash__chart" aria-hidden="true">
+        <div class="dash__chart-grid">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="dash__bars">
+          <span class="dash__bar" style="--h: 46%"></span>
+          <span class="dash__bar" style="--h: 62%"></span>
+          <span class="dash__bar" style="--h: 38%"></span>
+          <span class="dash__bar" style="--h: 74%"></span>
+          <span class="dash__bar dash__bar--peak" style="--h: 90%"></span>
+          <span class="dash__bar" style="--h: 58%"></span>
+          <span class="dash__bar" style="--h: 70%"></span>
+        </div>
+      </figure>
+
+      <div class="dash__mini-stats">
+        <div class="dash__mini">
+          <span class="dash__mini-label">{{ t('resolutionRate') }}</span>
+          <strong class="dash__mini-value">—</strong>
+        </div>
+        <div class="dash__mini">
+          <span class="dash__mini-label">{{ t('slaOnTime') }}</span>
+          <strong class="dash__mini-value">—</strong>
+        </div>
+        <div class="dash__mini">
+          <span class="dash__mini-label">{{ t('newToday') }}</span>
+          <strong class="dash__mini-value">—</strong>
+        </div>
       </div>
     </div>
 
-    <div class="dashboard__section">
-      <h2>{{ t('aiSuggestions') }}</h2>
-      <div class="dashboard__empty-state">
-        <svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 0-4 4v1H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z" /></svg>
-        <p>{{ t('noData') }}</p>
+    <div class="dashboard__section dash__panel dash__panel--ai">
+      <div class="dash__panel-head">
+        <h2>{{ t('aiSuggestions') }}</h2>
+        <span class="ui-pill dash__ai-pill">AI</span>
       </div>
+
+      <div class="dash__ai-preview">
+        <div class="dash__ai-route">
+          <span class="dash__ai-avatar" aria-hidden="true">م</span>
+          <div class="dash__ai-route-body">
+            <span class="dash__ai-route-name">{{ t('aiRoutingPreview') }}</span>
+            <span class="dash__ai-route-hint">{{ t('aiRoutingHint') }}</span>
+          </div>
+        </div>
+        <div class="dash__ai-reply">
+          <span class="dash__ai-reply-tag">{{ t('suggestedReply') }}</span>
+          <span class="dash__ai-line" style="--w: 92%"></span>
+          <span class="dash__ai-line" style="--w: 78%"></span>
+          <span class="dash__ai-line" style="--w: 60%"></span>
+          <div class="dash__ai-conf">
+            <span class="dash__ai-conf-label">{{ t('confidence') }}</span>
+            <span class="dash__ai-conf-track"><span class="dash__ai-conf-fill"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Pending assignments (avatar rows + skeleton shimmer placeholder) ── -->
+  <div class="dashboard__section dash__panel">
+    <div class="dash__panel-head">
+      <h2>{{ t('pendingAssignments') }}</h2>
+      <button type="button" class="dash__link">{{ t('viewAll') }}</button>
+    </div>
+
+    <ul class="dash__feed" aria-hidden="true">
+      <li class="dash__feed-row"><span class="dash__sk dash__sk-avatar"></span><span class="dash__sk dash__sk-line" style="--w: 64%"></span><span class="dash__sk dash__sk-chip"></span></li>
+      <li class="dash__feed-row"><span class="dash__sk dash__sk-avatar"></span><span class="dash__sk dash__sk-line" style="--w: 48%"></span><span class="dash__sk dash__sk-chip"></span></li>
+      <li class="dash__feed-row"><span class="dash__sk dash__sk-avatar"></span><span class="dash__sk dash__sk-line" style="--w: 72%"></span><span class="dash__sk dash__sk-chip"></span></li>
+    </ul>
+
+    <div class="dashboard__empty-state dash__empty">
+      <svg viewBox="0 0 24 24"><path d="M12 8v4l3 2" /><circle cx="12" cy="12" r="9" /></svg>
+      <h3>{{ t('noActivityYet') }}</h3>
+      <p>{{ t('noActivityDesc') }}</p>
     </div>
   </div>
 </section>

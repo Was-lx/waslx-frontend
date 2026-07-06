@@ -1,0 +1,530 @@
+/* ============================================================================
+   SuperAdmin — Tenants page ("operations cockpit").
+   Builds bespoke character on top of the shared app-ui primitives (.ui-*,
+   .feature-page): KPI stat cards with gradient tiles + sparklines, gradient
+   tenant avatars, a refined directory table, skeleton shimmer, and a premium
+   provisioning modal. Token-driven, light/dark aware, RTL-safe (logical props).
+   ========================================================================== */
+
+.tenants-page {
+  animation: tenants-rise var(--mo-quick, 280ms) var(--ease-out, ease) both;
+}
+
+@keyframes tenants-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tenants-page__nav {
+  align-self: flex-start;
+}
+
+/* ── Header ── */
+.tenants-page__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.tenants-page__eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
+  animation: tenants-pulse 2.4s ease-in-out infinite;
+}
+@keyframes tenants-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent); }
+  50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--primary) 3%, transparent); }
+}
+
+.tenants-page__subtitle {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  max-width: 48ch;
+}
+
+/* ══ Stat strip (KPI cockpit) ════════════════════════════════════════════ */
+.tenants-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+  gap: 16px;
+}
+
+.tenants-stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 18px 18px 0;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform var(--mo-fast, 180ms) ease, box-shadow var(--mo-fast, 180ms) ease,
+    border-color var(--mo-fast, 180ms) ease;
+}
+
+/* A faint accent wash pooling from the top-inline-start corner. */
+.tenants-stat::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(120% 90% at 0% 0%,
+      color-mix(in srgb, var(--stat-accent, var(--primary)) 9%, transparent), transparent 62%);
+  opacity: 0.9;
+  transition: opacity var(--mo-quick, 280ms) ease;
+}
+.tenants-stat:hover::before { opacity: 1; }
+
+/* Top accent hairline reveals on hover (cockpit signature). */
+.tenants-stat::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--stat-accent, var(--primary)), color-mix(in srgb, var(--stat-accent, var(--primary)) 45%, var(--accent)));
+  opacity: 0;
+  transition: opacity var(--mo-quick, 280ms) ease;
+}
+.tenants-stat:hover::after { opacity: 1; }
+
+.tenants-stat--total   { --stat-accent: var(--primary); }
+.tenants-stat--success { --stat-accent: var(--success); }
+.tenants-stat--warning { --stat-accent: var(--warning); }
+.tenants-stat--danger  { --stat-accent: var(--danger); }
+
+.tenants-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--stat-accent, var(--primary)) 26%, var(--border-subtle));
+}
+
+.tenants-stat__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Gradient-tinted icon tile. */
+.tenants-stat__tile {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--stat-accent, var(--primary));
+  background: linear-gradient(140deg,
+      color-mix(in srgb, var(--stat-accent, var(--primary)) 20%, var(--surface)),
+      color-mix(in srgb, var(--stat-accent, var(--primary)) 8%, var(--surface)));
+  border: 1px solid color-mix(in srgb, var(--stat-accent, var(--primary)) 22%, transparent);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--stat-accent, var(--primary)) 16%, transparent);
+  transition: transform var(--mo-quick, 280ms) var(--ease-spring, ease);
+}
+.tenants-stat:hover .tenants-stat__tile {
+  transform: translateY(-2px) rotate(-4deg) scale(1.05);
+}
+.tenants-stat__tile app-icon { display: inline-flex; }
+.tenants-stat__tile svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tenants-stat__trend {
+  gap: 4px;
+}
+.tenants-stat__trend app-icon { display: inline-flex; }
+.tenants-stat__trend svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tenants-stat__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}
+
+.tenants-stat__value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inline sparkline sitting flush to the card's bottom edge. */
+.tenants-spark {
+  display: block;
+  width: calc(100% + 36px);
+  height: 30px;
+  margin: 6px -18px 0;
+}
+.tenants-spark__line {
+  stroke: var(--stat-accent, var(--primary));
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+/* ══ Table ═══════════════════════════════════════════════════════════════ */
+/* Card clips its corners; the inner scroll wrapper owns the horizontal scroll. */
+.tenants-directory {
+  padding: 0;
+  overflow: hidden;
+}
+.tenants-directory__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 3%, var(--surface)), var(--surface));
+}
+.tenants-table-wrap__count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The one horizontal-scroll region — reveals the right-hand columns. */
+.tenants-directory__scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+.tenants-directory__scroll::-webkit-scrollbar { height: 10px; }
+.tenants-directory__scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-muted) 34%, transparent);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+.tenants-directory__scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--text-muted) 52%, transparent);
+  background-clip: padding-box;
+}
+
+.tenants-directory__foot {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.tenants-directory .tenants-table {
+  border-collapse: separate;
+}
+
+.tenants-table {
+  min-width: 960px;
+}
+
+.tenants-table__num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.tenants-table__end {
+  text-align: end;
+}
+
+.tenants-table__muted {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Row hover lift + inline-start accent bloom. */
+.tenants-table tbody tr {
+  position: relative;
+}
+.tenants-table tbody td:first-child {
+  position: relative;
+}
+.tenants-table tbody td:first-child::before {
+  content: '';
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(var(--primary), var(--accent));
+  opacity: 0;
+  transform: scaleY(0.4);
+  transform-origin: center;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+[dir='rtl'] .tenants-table tbody td:first-child::before {
+  border-radius: 3px 0 0 3px;
+}
+.tenants-table tbody tr:hover td:first-child::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.tenants-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tenants-cell__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.tenants-cell__name {
+  font-weight: 650;
+  color: var(--text-primary);
+}
+.tenants-cell__sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gradient avatar — deterministic per-tenant hue bucket. */
+.tenants-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 26%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.28);
+  transition: transform var(--mo-fast, 180ms) var(--ease-spring, ease);
+}
+.tenants-table tbody tr:hover .tenants-avatar {
+  transform: scale(1.06) rotate(-3deg);
+}
+.tenants-avatar[data-hue='0'] { background: linear-gradient(135deg, #2563eb, #6d5cf6); box-shadow: 0 5px 14px rgb(37 99 235 / 0.3), inset 0 1px 0 rgb(255 255 255 / 0.28); }
+.tenants-avatar[data-hue='1'] { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 5px 14px rgb(139 92 246 / 0.32), inset 0 1px 0 rgb(255 255 255 / 0.28); }
+.tenants-avatar[data-hue='2'] { background: linear-gradient(135deg, #06b6d4, #2563eb); box-shadow: 0 5px 14px rgb(6 182 212 / 0.3), inset 0 1px 0 rgb(255 255 255 / 0.28); }
+.tenants-avatar[data-hue='3'] { background: linear-gradient(135deg, #0ea5e9, #6366f1); box-shadow: 0 5px 14px rgb(14 165 233 / 0.3), inset 0 1px 0 rgb(255 255 255 / 0.28); }
+.tenants-avatar[data-hue='4'] { background: linear-gradient(135deg, #7c3aed, #db2777); box-shadow: 0 5px 14px rgb(124 58 237 / 0.3), inset 0 1px 0 rgb(255 255 255 / 0.28); }
+.tenants-avatar[data-hue='5'] { background: linear-gradient(135deg, #4f46e5, #0891b2); box-shadow: 0 5px 14px rgb(79 70 229 / 0.3), inset 0 1px 0 rgb(255 255 255 / 0.28); }
+
+/* User count chip. */
+.tenants-users {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+.tenants-users app-icon { color: var(--text-muted); display: inline-flex; }
+.tenants-users svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Row action button — keep icon + spinner tidy. */
+.tenants-table__end .ui-btn { gap: 6px; }
+.tenants-table__end .ui-btn .ui-spinner {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+/* ══ Skeleton shimmer (loading) ══════════════════════════════════════════ */
+.tenants-skeleton {
+  padding: 8px 0;
+}
+.tenants-skeleton__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.tenants-skeleton__row:last-child { border-bottom: 0; }
+.tenants-skeleton__avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  flex-shrink: 0;
+}
+.tenants-skeleton__bar {
+  height: 11px;
+  border-radius: 999px;
+}
+.tenants-skeleton__bar--end { margin-inline-start: auto; }
+
+.shimmer {
+  background: linear-gradient(100deg,
+      var(--surface-soft) 30%,
+      color-mix(in srgb, var(--primary) 7%, var(--surface-soft)) 50%,
+      var(--surface-soft) 70%);
+  background-size: 200% 100%;
+  animation: tenants-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes tenants-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* ══ Empty state accent ══════════════════════════════════════════════════ */
+.tenants-empty .ui-btn { margin-top: 6px; }
+
+/* ══ Modal ═══════════════════════════════════════════════════════════════ */
+.tenants-modal__head {
+  padding-block-start: 24px;
+  padding-block-end: 18px;
+  margin-block-end: 0;
+  border-block-end: 1px solid var(--border-subtle);
+  background:
+    radial-gradient(120% 160% at 0% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 58%),
+    var(--surface);
+  border-start-start-radius: 20px;
+  border-start-end-radius: 20px;
+}
+.tenants-modal__headline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.tenants-modal__glyph {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+.tenants-modal__glyph svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tenants-modal__section {
+  display: block;
+  margin-block: 4px 12px;
+}
+.tenants-modal__section:not(:first-child) {
+  margin-block-start: 22px;
+}
+
+/* ── Modal form grid ── */
+.tenant-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tenant-form__span-2 {
+  grid-column: 1 / -1;
+}
+
+.tenant-form__opt {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ── Start-trial toggle (matches plans flag card) ── */
+.tenant-form__flag {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 20px;
+  padding: 13px 15px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 13px;
+  background: var(--surface-soft);
+  transition: border-color var(--mo-fast, 180ms) ease, background var(--mo-fast, 180ms) ease;
+}
+.tenant-form__flag.is-on {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border-subtle));
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+}
+
+.tenant-form__flag-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.tenant-form__flag-title {
+  font-size: 0.84rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+.tenant-form__flag-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* The modal save button re-uses .ui-spinner; keep it inline-sized there. */
+.ui-modal__foot .ui-btn--primary .ui-spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  border-color: color-mix(in srgb, #fff 45%, transparent);
+  border-top-color: #fff;
+}
+
+/* ── Responsive ── */
+@media (max-width: 720px) {
+  .tenant-form__grid {
+    grid-template-columns: 1fr;
+  }
+  .tenants-page__nav {
+    width: 100%;
+  }
+  .tenants-page__nav .ui-seg__btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tenants-page {
+    animation: none;
+  }
+  .tenants-stat:hover,
+  .tenants-table tbody tr:hover .tenants-avatar,
+  .tenants-stat:hover .tenants-stat__tile {
+    transform: none;
+  }
+  .tenants-page__eyebrow-dot,
+  .shimmer {
+    animation: none;
+  }
+}

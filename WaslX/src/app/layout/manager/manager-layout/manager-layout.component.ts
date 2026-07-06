@@ -43,7 +43,8 @@ export class ManagerLayoutComponent {
         items: [
           { id: 'dashboard', label: t('dashboard'), description: t('dashboardDesc'), icon: 'grid', routerLink: '/app/dashboard' },
           { id: 'inbox', label: t('inbox'), description: t('inboxDesc'), icon: 'message', routerLink: '/app/inbox', badge: t('live') },
-          { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' }
+          { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' },
+          { id: 'whatsapp', label: t('whatsapp'), description: t('whatsappDesc'), icon: 'phone', routerLink: '/app/channels' }
         ]
       },
       {
@@ -52,6 +53,13 @@ export class ManagerLayoutComponent {
         items: [
           { id: 'teams', label: t('teams'), description: t('teamsDesc'), icon: 'shield', routerLink: '/app/teams' },
           { id: 'analytics', label: t('analytics'), description: t('analyticsDesc'), icon: 'chart', routerLink: '/app/analytics' }
+        ]
+      },
+      {
+        id: 'system',
+        label: t('system'),
+        items: [
+          { id: 'settings', label: t('settings'), description: t('settingsDesc'), icon: 'sliders', routerLink: '/app/settings' }
         ]
       }
     ];

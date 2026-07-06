@@ -1,0 +1,111 @@
+<!-- Page hero (split) -->
+<section class="phx phx--about">
+  <span class="phx__grid" aria-hidden="true"></span>
+  <span class="phx__seam" aria-hidden="true"></span>
+  <div class="lp-container phx__inner">
+    <div class="phx__copy">
+      <span class="phx__rule" aria-hidden="true"></span>
+      <span class="lp-badge phx__badge" appReveal="fade"><span class="lp-badge__dot"></span> {{ c().aboutPage.badge }}</span>
+      <h1 class="phx__title" appReveal [revealDelay]="80">{{ c().aboutPage.title }}</h1>
+      <p class="phx__sub" appReveal [revealDelay]="160">{{ c().aboutPage.subtitle }}</p>
+    </div>
+
+    <aside class="phx__visual phx-about" appReveal="scale" [revealDelay]="220">
+      <div class="phx__tilt" appTilt>
+        <div class="phx-about__plate lp-card">
+          <span class="lp-eyebrow"><app-icon name="sparkles" [size]="13" /> {{ c().aboutPage.missionTitle }}</span>
+          <p class="phx-about__quote">{{ c().aboutPage.subtitle }}</p>
+        </div>
+        <div class="phx-about__mosaic" appStagger [staggerStep]="90">
+          @for (s of c().stats.slice(0, 2); track s.label) {
+            <div class="phx-about__tile lp-card">
+              <b class="phx-about__num"><span [appCountUp]="s.value" [countDecimals]="s.decimals" [countPrefix]="s.prefix" [countSuffix]="s.suffix">{{ s.prefix }}0{{ s.suffix }}</span></b>
+              <span class="phx-about__lbl">{{ s.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- Mission -->
+<section class="lp-section lp-section--tight lp-band--paper">
+  <div class="lp-container">
+    <div class="ab__mission lp-card" appReveal="up">
+      <span class="ab__missionGlow" aria-hidden="true"></span>
+      <span class="lp-eyebrow"><app-icon name="sparkles" [size]="15" /> {{ c().aboutPage.missionTitle }}</span>
+      <p class="ab__missionText" appReveal="up" [revealDelay]="120">{{ c().aboutPage.mission }}</p>
+      <div class="ab__stats" appStagger [staggerStep]="90">
+        @for (s of c().stats; track s.label) {
+          <div class="ab__stat">
+            <b class="ab__statNum"><span [appCountUp]="s.value" [countDecimals]="s.decimals" [countPrefix]="s.prefix" [countSuffix]="s.suffix">{{ s.prefix }}0{{ s.suffix }}</span></b>
+            <span class="ab__statLabel">{{ s.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Values -->
+<section class="lp-section lp-band--sunken">
+  <div class="lp-container">
+    <div class="lp-head">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="shield" [size]="15" /> {{ c().aboutPage.valuesTitle }}</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().aboutPage.valuesTitle }}</h2>
+    </div>
+    <div class="ab__values lp-tiles-multi" appStagger [staggerStep]="90">
+      @for (v of c().aboutPage.values; track v.title) {
+        <article class="ab__value lp-card">
+          <div class="lp-icon-tile" [class.lp-icon-tile--ai]="v.icon === 'languages'">
+            <app-icon [name]="v.icon" [size]="22" />
+          </div>
+          <h3>{{ v.title }}</h3>
+          <p>{{ v.desc }}</p>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- What makes WaslX different -->
+<section class="lp-section lp-band--paper">
+  <div class="lp-container">
+    <div class="lp-head">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="sparkles" [size]="15" /> {{ c().aboutPage.approachTitle }}</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().aboutPage.approachTitle }}</h2>
+      <p class="lp-lead" appReveal="up" [revealDelay]="160">{{ c().aboutPage.approachSubtitle }}</p>
+    </div>
+    <div class="ab__approach lp-tiles-multi" appStagger [staggerStep]="90">
+      @for (a of c().aboutPage.approach; track a.title) {
+        <article class="ab__diff lp-card lp-card--spot" appSpotlight>
+          <div class="lp-icon-tile" [class.lp-icon-tile--ai]="a.icon !== 'shield'" [class.lp-icon-tile--soft]="a.icon === 'shield'">
+            <app-icon [name]="a.icon" [size]="22" />
+          </div>
+          <h3>{{ a.title }}</h3>
+          <p>{{ a.desc }}</p>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Impact band (dark) -->
+<section class="lp-section lp-section--band ab__impact" appReveal="fade">
+  <span class="ab__impactGlow" aria-hidden="true"></span>
+  <div class="lp-container">
+    <div class="lp-head">
+      <span class="lp-eyebrow ab__impactEyebrow" appReveal="up"><app-icon name="zap" [size]="15" /> {{ c().aboutPage.impactTitle }}</span>
+      <h2 class="lp-h2 ab__impactTitle" appReveal="up" [revealDelay]="80">{{ c().aboutPage.impactTitle }}</h2>
+    </div>
+    <div class="ab__impactRow" appStagger [staggerStep]="120">
+      @for (s of c().aboutPage.impact; track s.label) {
+        <div class="ab__figure">
+          <span class="ab__figureNum"><span [appCountUp]="s.value" [countDecimals]="s.decimals" [countPrefix]="s.prefix" [countSuffix]="s.suffix">{{ s.prefix }}0{{ s.suffix }}</span></span>
+          <span class="ab__figureLabel">{{ s.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</section>

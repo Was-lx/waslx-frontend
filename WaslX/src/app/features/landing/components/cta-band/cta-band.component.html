@@ -1,0 +1,18 @@
+<section class="cta lp-section--band" appReveal="fade">
+  <div class="cta__aurora" aria-hidden="true"></div>
+  <div class="cta__grid-bg" aria-hidden="true"></div>
+  <div class="lp-container cta__inner">
+    <span class="cta__eyebrow" appReveal="up" [revealDelay]="60">
+      <span class="cta__dot"></span>{{ c().ctaEyebrow }}
+    </span>
+    <h2 class="cta__title" appReveal="up" [revealDelay]="120">{{ c().ctaTitle }}</h2>
+    <p class="cta__sub" appReveal="up" [revealDelay]="200">{{ c().ctaSubtitle }}</p>
+    <div class="cta__btns" appReveal="up" [revealDelay]="280">
+      <a class="lp-btn lp-btn--primary" appMagnetic routerLink="/signup">
+        {{ c().ctaPrimary }} <app-icon name="arrow-right" [size]="18" />
+      </a>
+      <a class="cta__ghost" routerLink="/login">{{ c().ctaSecondary }}</a>
+    </div>
+    <p class="cta__note" appReveal="up" [revealDelay]="340">{{ c().ctaNote }}</p>
+  </div>
+</section>

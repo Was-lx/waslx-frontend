@@ -1,0 +1,174 @@
+/* ============================================================================
+   WaslX — Sign-up page. Uses <app-auth-shell> + global `.auth-*` form styles
+   (src/styles/auth.css). Only the 2-step chrome lives here: step indicator,
+   the company grid + select, and the customer-type option chips.
+   RTL comes free via logical properties.
+   ========================================================================== */
+
+/* ── Step indicator ───────────────────────────────────────────────────── */
+.su-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.su-step__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--border-subtle);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.su-step__dot.is-on {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+.su-step__bar {
+  width: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--border-subtle);
+  transition: background 0.25s ease;
+}
+.su-step__bar.is-on {
+  background: var(--primary);
+}
+.su-step__label {
+  margin-inline-start: 4px;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}
+
+/* ── Optional-field tag next to a label ───────────────────────────────── */
+.su-opt {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ── Company grid (website + phone side by side) ──────────────────────── */
+.su-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 480px) {
+  .su-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Native select styled to match .auth-input ────────────────────────── */
+.su-selectWrap {
+  position: relative;
+  display: block;
+}
+.su-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-inline-end: 42px;
+  cursor: pointer;
+}
+.su-selectChevron {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 12px;
+  margin: auto;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ── Customer-type option chips ───────────────────────────────────────── */
+.su-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+.su-legend {
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+.su-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.su-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 13px 14px;
+  padding-inline-end: 34px;
+  text-align: start;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.su-option:hover {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border-subtle));
+  transform: translateY(-1px);
+}
+.su-option:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--focus-ring);
+}
+.su-option.is-selected {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface-soft));
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.su-option__label {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+.su-option__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.su-option__mark {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--primary);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.su-option.is-selected .su-option__mark {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Footer nav (back link + trial reassurance) ───────────────────────── */
+.su-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: -2px;
+}
+.su-back {
+  font-size: 13.5px;
+}
+.su-trial {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}

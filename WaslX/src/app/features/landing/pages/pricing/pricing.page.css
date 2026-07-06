@@ -1,0 +1,343 @@
+/* ============ PAGE HERO — price-preview visual ============ */
+.phx-price__card { position: relative; padding: 24px 24px 22px; width: min(360px, 100%); }
+.phx-price__tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 650; color: var(--primary-deep); background: color-mix(in srgb, var(--primary) 8%, transparent); }
+.phx-price__amt { display: flex; align-items: baseline; gap: 3px; margin: 16px 0 4px; font-variant-numeric: tabular-nums; }
+.phx-price__cur { font-size: 22px; font-weight: 600; color: var(--text-secondary); }
+.phx-price__num { font-size: clamp(46px, 6vw, 60px); font-weight: 600; letter-spacing: -0.03em; background: var(--lp-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.phx-price__per { font-size: 14px; color: var(--text-muted); }
+.phx-price__bar { height: 6px; border-radius: 999px; background: var(--surface-sunken); overflow: hidden; margin: 8px 0 16px; }
+.phx-price__bar > span { display: block; height: 100%; width: 62%; border-radius: 999px; background: var(--lp-grad-soft); transition: width 0.5s var(--ease-spring); }
+.phx-price__bar.is-year > span { width: 88%; }
+.phx-price__feat { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.phx-price__feat li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-secondary); }
+.phx-price__feat app-icon { color: var(--success); }
+.phx-price__chip { inset-block-end: -14px; inset-inline-end: -16px; animation-delay: -2s; }
+
+/* ============ BILLING TOGGLE ============ */
+.pr__toggle {
+  display: inline-flex;
+  gap: 4px;
+  margin-top: 30px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+.pr__seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: color 0.25s var(--ease-out), background 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+}
+.pr__seg.is-on {
+  color: #fff;
+  background: var(--lp-grad);
+  box-shadow: 0 8px 20px rgb(37 99 235 / 0.3);
+}
+.pr__save {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.22);
+}
+.pr__seg:not(.is-on) .pr__save {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+}
+
+/* ============ PLANS ============ */
+.pr__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.pr__plan {
+  position: relative;
+  padding: 30px 26px;
+  display: flex;
+  flex-direction: column;
+}
+.pr__plan--pop {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    var(--lp-grad) border-box;
+  border: 1.5px solid transparent;
+  box-shadow: 0 24px 60px rgb(37 99 235 / 0.18);
+  transform: translateY(-8px) scale(1.02);
+}
+.pr__plan--pop:hover {
+  transform: translateY(-12px) scale(1.02);
+}
+.pr__tag {
+  position: absolute;
+  top: -13px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--lp-grad);
+  box-shadow: 0 8px 18px rgb(37 99 235 / 0.35);
+  white-space: nowrap;
+}
+[dir='rtl'] .pr__tag {
+  transform: translateX(50%);
+}
+.pr__planHead {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+.pr__name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.pr__tagline {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.pr__price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin: 22px 0;
+}
+.pr__currency {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  align-self: flex-start;
+  margin-top: 6px;
+}
+.pr__amount {
+  font-size: 48px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+.pr__per {
+  font-size: 15px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.pr__cta {
+  width: 100%;
+  margin-bottom: 24px;
+}
+.pr__features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 13px;
+}
+.pr__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+.pr__features app-icon {
+  color: var(--success);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ============ COMPARISON TABLE ============ */
+.pr__cmpCard {
+  padding: 0;
+  overflow: hidden;
+}
+.pr__cmp {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  text-align: start;
+}
+.pr__cmp th,
+.pr__cmp td {
+  padding: 15px 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 14.5px;
+  color: var(--text-primary);
+}
+.pr__cmp thead th {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  border-bottom: 1.5px solid var(--border-subtle);
+}
+.pr__cmpFeature {
+  text-align: start;
+  font-weight: 650;
+  color: var(--text-primary);
+  position: sticky;
+  inset-inline-start: 0;
+  background: var(--surface);
+  z-index: 1;
+}
+.pr__cmp tbody tr:last-child th,
+.pr__cmp tbody tr:last-child td {
+  border-bottom: 0;
+}
+.pr__cmp tbody tr {
+  transition: background 0.2s var(--ease-out);
+}
+.pr__cmp tbody tr:hover th,
+.pr__cmp tbody tr:hover td {
+  background: var(--surface-sunken);
+}
+.pr__cmpMid {
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
+}
+.pr__cmp tbody tr:hover .pr__cmpMid {
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface-sunken));
+}
+.pr__yes {
+  color: var(--success);
+  display: inline-flex;
+  vertical-align: middle;
+}
+.pr__no {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.pr__cmpVal {
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+/* ============ ASSURANCE ============ */
+.pr__assure {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  align-items: stretch;
+}
+.pr__assureCard {
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.pr__assureTitle {
+  margin: 18px 0 8px;
+  font-size: 18px;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+.pr__assureDesc {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ============ FAQ ============ */
+.faq__wrap {
+  max-width: 800px;
+}
+.faq__list {
+  display: grid;
+  gap: 12px;
+}
+.faq__item {
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+}
+.faq__item.is-open {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border-subtle));
+  box-shadow: var(--shadow-sm);
+}
+.faq__q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.faq__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: transform 0.3s var(--ease-out-quint), color 0.3s var(--ease-out);
+}
+.faq__item.is-open .faq__chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+.faq__a {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.32s var(--ease-out-quint);
+}
+.faq__item.is-open .faq__a {
+  grid-template-rows: 1fr;
+}
+.faq__a p {
+  overflow: hidden;
+  margin: 0;
+  padding: 0 22px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+.faq__item.is-open .faq__a p {
+  padding-bottom: 22px;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 940px) {
+  .pr__grid {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    margin-inline: auto;
+  }
+  .pr__plan--pop {
+    transform: none;
+  }
+  .pr__plan--pop:hover {
+    transform: translateY(-5px);
+  }
+  .pr__assure {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    margin-inline: auto;
+  }
+}

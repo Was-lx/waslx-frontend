@@ -40,6 +40,8 @@ export class ThemeService {
       return 'light';
     }
 
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Default to light for first-time visitors (ignore OS dark preference);
+    // an explicit user toggle is remembered above.
+    return 'light';
   }
 }

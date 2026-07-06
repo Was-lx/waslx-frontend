@@ -1,7 +1,7 @@
-<section class="feature-page" [attr.dir]="direction()">
+<section class="feature-page teams-page" [attr.dir]="direction()">
   <header class="feature-page__header">
     <div>
-      <span class="feature-page__eyebrow">{{ t('teams') }}</span>
+      <span class="feature-page__eyebrow">{{ t('teamsEyebrow') }}</span>
       <h1>{{ t('teamManagement') }}</h1>
     </div>
     <div class="feature-page__actions">
@@ -12,9 +12,73 @@
     </div>
   </header>
 
-  <div class="feature-page__empty">
-    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><path d="M20 8v6M23 11h-6" /></svg>
-    <h3>{{ t('noData') }}</h3>
-    <p>{{ t('featureComingSoonDesc') }}</p>
+  <div class="showcase">
+    <div class="showcase__grid" aria-hidden="true"></div>
+    <span class="showcase__orb showcase__orb--a"></span>
+    <span class="showcase__orb showcase__orb--b"></span>
+
+    <div class="showcase__inner">
+      <!-- Illustration: a stage-handoff pipeline (Sales → Support → Billing) -->
+      <div class="showcase__art showcase__art--flow" aria-hidden="true">
+        <span class="showcase__halo"></span>
+        <div class="flow">
+          <div class="flow__node flow__node--a">
+            <span class="flow__dot"></span>
+            <span class="flow__label">{{ t('teamsFlowSales') }}</span>
+          </div>
+          <span class="flow__link"><i></i></span>
+          <div class="flow__node flow__node--b">
+            <span class="flow__dot"></span>
+            <span class="flow__label">{{ t('teamsFlowSupport') }}</span>
+          </div>
+          <span class="flow__link"><i></i></span>
+          <div class="flow__node flow__node--c">
+            <span class="flow__dot"></span>
+            <span class="flow__label">{{ t('teamsFlowBilling') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="showcase__title">{{ t('teamsEmptyTitle') }}</h2>
+      <p class="showcase__desc">{{ t('teamsEmptyDesc') }}</p>
+
+      <div class="showcase__actions">
+        <button type="button" class="ui-btn ui-btn--primary">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+          {{ t('createTeam') }}
+        </button>
+      </div>
+
+      <!-- Capability chips -->
+      <div class="showcase__feats">
+        <div class="showcase__feat">
+          <span class="showcase__feat-ico showcase__feat-ico--primary">
+            <svg viewBox="0 0 24 24"><path d="M4 6h6M4 12h10M4 18h7" /><circle cx="18" cy="6" r="2" /><circle cx="20" cy="12" r="2" /><circle cx="16" cy="18" r="2" /></svg>
+          </span>
+          <div>
+            <span class="showcase__feat-title">{{ t('teamsFeatStages') }}</span>
+            <span class="showcase__feat-desc">{{ t('teamsFeatStagesDesc') }}</span>
+          </div>
+        </div>
+        <div class="showcase__feat">
+          <span class="showcase__feat-ico showcase__feat-ico--accent">
+            <svg viewBox="0 0 24 24"><path d="M17 8l4 4-4 4" /><path d="M3 12h18" /><path d="M7 16l-4-4 4-4" /></svg>
+          </span>
+          <div>
+            <span class="showcase__feat-title">{{ t('teamsFeatHandoff') }}</span>
+            <span class="showcase__feat-desc">{{ t('teamsFeatHandoffDesc') }}</span>
+          </div>
+        </div>
+        <div class="showcase__feat">
+          <span class="showcase__feat-ico showcase__feat-ico--success">
+            <svg viewBox="0 0 24 24"><path d="M12 3v4m0 10v4M3 12h4m10 0h4" /><circle cx="12" cy="12" r="3.2" /></svg>
+          </span>
+          <div>
+            <span class="showcase__feat-title">{{ t('teamsFeatRouting') }}</span>
+            <span class="showcase__feat-desc">{{ t('teamsFeatRoutingDesc') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

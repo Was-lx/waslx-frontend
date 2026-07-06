@@ -1,14 +1,117 @@
-<section class="feature-page" [attr.dir]="direction()">
+<section class="feature-page analytics-page" [attr.dir]="direction()">
   <header class="feature-page__header">
     <div>
-      <span class="feature-page__eyebrow">{{ t('analytics') }}</span>
+      <span class="feature-page__eyebrow">{{ t('analyticsEyebrow') }}</span>
       <h1>{{ t('analyticsOverview') }}</h1>
+    </div>
+    <div class="feature-page__actions">
+      <span class="ui-pill an-previewpill">
+        <span class="an-previewpill__dot"></span>
+        {{ t('analyticsPreviewNote') }}
+      </span>
     </div>
   </header>
 
-  <div class="feature-page__empty">
-    <svg viewBox="0 0 24 24"><path d="M4 19V5" /><path d="M4 19h16" /><path d="M8 15v-4" /><path d="M12 15V9" /><path d="M16 15v-7" /></svg>
-    <h3>{{ t('noData') }}</h3>
-    <p>{{ t('featureComingSoonDesc') }}</p>
+  <!-- ── Preview surface: sample KPIs + chart behind a soft connect prompt ── -->
+  <div class="an-stage">
+    <div class="an-stage__preview" aria-hidden="true">
+      <!-- KPI row -->
+      <div class="an-kpis">
+        <article class="an-kpi ui-card">
+          <div class="an-kpi__top">
+            <span class="an-kpi__tile an-kpi__tile--primary">
+              <svg viewBox="0 0 24 24"><path d="M4 5h16v10H7l-3 3z" /></svg>
+            </span>
+            <span class="ui-trend ui-trend--up">▲ 12%</span>
+          </div>
+          <span class="an-kpi__value">2,481</span>
+          <span class="an-kpi__label">{{ t('analyticsKpiConversations') }}</span>
+          <svg class="an-spark" viewBox="0 0 120 32" preserveAspectRatio="none">
+            <polyline points="0,26 15,22 30,24 45,16 60,18 75,11 90,13 105,6 120,8" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </article>
+
+        <article class="an-kpi ui-card">
+          <div class="an-kpi__top">
+            <span class="an-kpi__tile an-kpi__tile--cyan">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></svg>
+            </span>
+            <span class="ui-trend ui-trend--down">▼ 8%</span>
+          </div>
+          <span class="an-kpi__value">1m 42s</span>
+          <span class="an-kpi__label">{{ t('analyticsKpiResponse') }}</span>
+          <svg class="an-spark" viewBox="0 0 120 32" preserveAspectRatio="none">
+            <polyline points="0,10 15,14 30,12 45,18 60,16 75,20 90,19 105,24 120,22" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </article>
+
+        <article class="an-kpi ui-card">
+          <div class="an-kpi__top">
+            <span class="an-kpi__tile an-kpi__tile--success">
+              <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></svg>
+            </span>
+            <span class="ui-trend ui-trend--up">▲ 5%</span>
+          </div>
+          <span class="an-kpi__value">92%</span>
+          <span class="an-kpi__label">{{ t('analyticsKpiResolution') }}</span>
+          <svg class="an-spark" viewBox="0 0 120 32" preserveAspectRatio="none">
+            <polyline points="0,24 15,20 30,21 45,15 60,14 75,12 90,9 105,10 120,5" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </article>
+
+        <article class="an-kpi ui-card">
+          <div class="an-kpi__top">
+            <span class="an-kpi__tile an-kpi__tile--accent">
+              <svg viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9z" /></svg>
+            </span>
+            <span class="ui-trend ui-trend--up">▲ 3%</span>
+          </div>
+          <span class="an-kpi__value">4.8</span>
+          <span class="an-kpi__label">{{ t('analyticsKpiCsat') }}</span>
+          <svg class="an-spark" viewBox="0 0 120 32" preserveAspectRatio="none">
+            <polyline points="0,20 15,18 30,19 45,14 60,15 75,12 90,10 105,11 120,7" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </article>
+      </div>
+
+      <!-- Chart panel -->
+      <div class="an-chart ui-card">
+        <div class="an-chart__head">
+          <div>
+            <span class="an-chart__title">{{ t('analyticsChartTitle') }}</span>
+            <span class="an-chart__caption">{{ t('analyticsChartCaption') }}</span>
+          </div>
+          <span class="ui-pill ui-pill--info">
+            <svg viewBox="0 0 24 24" class="an-ai-ico"><path d="M12 3v4m0 10v4M3 12h4m10 0h4" /><circle cx="12" cy="12" r="3.2" /></svg>
+            {{ t('performanceMetrics') }}
+          </span>
+        </div>
+        <div class="an-chart__bars">
+          <span class="an-bar" style="--h: 46%"></span>
+          <span class="an-bar" style="--h: 62%"></span>
+          <span class="an-bar" style="--h: 40%"></span>
+          <span class="an-bar" style="--h: 78%"></span>
+          <span class="an-bar" style="--h: 55%"></span>
+          <span class="an-bar an-bar--peak" style="--h: 92%"></span>
+          <span class="an-bar" style="--h: 70%"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Soft connect prompt -->
+    <div class="an-stage__overlay">
+      <div class="an-connect ui-card">
+        <span class="an-connect__orb"></span>
+        <span class="an-connect__ico">
+          <svg viewBox="0 0 24 24"><path d="M4 19V5" /><path d="M4 19h16" /><path d="M8 15v-4" /><path d="M12 15V9" /><path d="M16 15v-7" /></svg>
+        </span>
+        <h3 class="an-connect__title">{{ t('analyticsEmptyTitle') }}</h3>
+        <p class="an-connect__desc">{{ t('analyticsEmptyDesc') }}</p>
+        <button type="button" class="ui-btn ui-btn--primary an-connect__cta">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+          {{ t('analyticsExploreCta') }}
+        </button>
+      </div>
+    </div>
   </div>
 </section>

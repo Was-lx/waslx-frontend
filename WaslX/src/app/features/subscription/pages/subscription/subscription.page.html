@@ -1,0 +1,428 @@
+<section class="feature-page subscription-page" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow">{{ c()['eyebrow'] }}</span>
+      <div class="subscription-page__title-row">
+        <h1>{{ c()['title'] }}</h1>
+        @if (!loading() && !error()) {
+          <span class="ui-pill ui-pill--dot ui-pill--{{ statusPillVariant() }}">
+            {{ statusLabel() }}
+          </span>
+        }
+      </div>
+      <p class="subscription-page__sub">{{ c()['subtitle'] }}</p>
+    </div>
+  </header>
+
+  <!-- ── Loading ── -->
+  @if (loading()) {
+    <div class="ui-loading">
+      <span class="ui-spinner" aria-hidden="true"></span>
+      <p>{{ c()['loading'] }}</p>
+    </div>
+  }
+
+  <!-- ── Error ── -->
+  @else if (error()) {
+    <div class="feature-page__empty">
+      <app-icon name="shield" [size]="30" />
+      <h3>{{ c()['errorTitle'] }}</h3>
+      <p>{{ error() }}</p>
+      <button type="button" class="ui-btn ui-btn--primary" (click)="load()">
+        <app-icon name="zap" [size]="16" />{{ c()['retry'] }}
+      </button>
+    </div>
+  }
+
+  <!-- ── Loaded ── -->
+  @else if (subscription(); as sub) {
+    <div class="subscription-grid">
+      <!-- Current plan (hero) -->
+      <article
+        class="ui-card subscription-panel subscription-panel--hero subscription-hero"
+        [class.subscription-hero--trial]="isTrial()"
+        [class.subscription-hero--active]="isActive()"
+        [class.subscription-hero--pastdue]="statusKey() === 'PastDue'"
+        [class.subscription-hero--cancelled]="statusKey() === 'Cancelled'"
+      >
+        <span class="subscription-hero__grid" aria-hidden="true"></span>
+        <span class="subscription-hero__glow" aria-hidden="true"></span>
+
+        <div class="subscription-panel__head">
+          <span class="ui-sectiontitle">{{ c()['currentPlan'] }}</span>
+          <span class="subscription-tile subscription-tile--primary"><app-icon name="layers" [size]="18" /></span>
+        </div>
+
+        <div class="subscription-plan__name">{{ sub.planName }}</div>
+
+        <div class="subscription-plan__price">
+          <span class="subscription-plan__amount tnum">{{ sub.price | number: '1.0-2' }}</span>
+          <span class="subscription-plan__cycle">{{ cycleSuffix() }}</span>
+        </div>
+
+        <div class="subscription-plan__meta">
+          @if (isTrial()) {
+            <span class="ui-pill ui-pill--warning subscription-plan__chip">
+              <app-icon name="clock" [size]="15" />{{ trialText() }}
+            </span>
+          } @else if (statusKey() === 'Cancelled') {
+            <span class="ui-pill subscription-plan__chip">
+              <app-icon name="clock" [size]="15" />
+              @if (sub.currentPeriodEnd) {
+                {{ fmt('renewsOn', { date: (sub.currentPeriodEnd | date: 'mediumDate' : '' : locale()) || '' }) }}
+              } @else {
+                {{ c()['noRenewal'] }}
+              }
+            </span>
+          } @else {
+            <span class="ui-pill subscription-plan__chip">
+              <app-icon name="clock" [size]="15" />
+              @if (sub.currentPeriodEnd) {
+                {{ fmt('renewsOn', { date: (sub.currentPeriodEnd | date: 'mediumDate' : '' : locale()) || '' }) }}
+              } @else {
+                {{ c()['noRenewal'] }}
+              }
+            </span>
+          }
+        </div>
+
+        <div class="subscription-panel__actions">
+          <button type="button" class="ui-btn ui-btn--primary" (click)="openPlans()">
+            <app-icon name="sparkles" [size]="16" />{{ c()['changePlan'] }}
+          </button>
+          @if (isActive()) {
+            <button type="button" class="ui-btn ui-btn--ghost" (click)="requestCancel()">
+              {{ c()['cancelSub'] }}
+            </button>
+          }
+        </div>
+      </article>
+
+      <!-- Usage -->
+      <article class="ui-card subscription-panel">
+        <div class="subscription-panel__head">
+          <span class="ui-sectiontitle">{{ c()['usage'] }}</span>
+          <span class="subscription-tile subscription-tile--cyan"><app-icon name="chart" [size]="18" /></span>
+        </div>
+
+        <div class="subscription-meters">
+          <!-- Agents -->
+          <div class="subscription-meter subscription-meter--agents">
+            <div class="subscription-meter__top">
+              <span class="subscription-meter__name">
+                <span class="subscription-meter__dot" aria-hidden="true"></span>{{ c()['agents'] }}
+              </span>
+              <span class="subscription-meter__val tnum">
+                {{ sub.usage.agentsUsed | number }} <small>/ {{ sub.usage.maxAgents | number }}</small>
+              </span>
+            </div>
+            <div class="subscription-bar">
+              <span [style.width.%]="pct(sub.usage.agentsUsed, sub.usage.maxAgents)"></span>
+            </div>
+          </div>
+
+          <!-- Numbers -->
+          <div class="subscription-meter subscription-meter--numbers">
+            <div class="subscription-meter__top">
+              <span class="subscription-meter__name">
+                <span class="subscription-meter__dot" aria-hidden="true"></span>{{ c()['numbers'] }}
+              </span>
+              <span class="subscription-meter__val tnum">
+                {{ sub.usage.numbersUsed | number }} <small>/ {{ sub.usage.maxNumbers | number }}</small>
+              </span>
+            </div>
+            <div class="subscription-bar">
+              <span [style.width.%]="pct(sub.usage.numbersUsed, sub.usage.maxNumbers)"></span>
+            </div>
+          </div>
+
+          <!-- Messages quota -->
+          <div class="subscription-meter subscription-meter--quota">
+            <div class="subscription-meter__top">
+              <span class="subscription-meter__name">
+                <span class="subscription-meter__dot" aria-hidden="true"></span>{{ c()['messages'] }}
+              </span>
+              <span class="subscription-meter__val subscription-meter__val--muted tnum">
+                {{ sub.usage.msgQuota | number }} <small>{{ c()['monthlyQuota'] }}</small>
+              </span>
+            </div>
+            <div class="subscription-bar subscription-bar--soft"><span style="width: 100%"></span></div>
+          </div>
+
+          <!-- AI quota -->
+          <div class="subscription-meter subscription-meter--quota">
+            <div class="subscription-meter__top">
+              <span class="subscription-meter__name">
+                <span class="subscription-meter__dot" aria-hidden="true"></span>{{ c()['aiOps'] }}
+              </span>
+              <span class="subscription-meter__val subscription-meter__val--muted tnum">
+                {{ sub.usage.aiQuota | number }} <small>{{ c()['monthlyQuota'] }}</small>
+              </span>
+            </div>
+            <div class="subscription-bar subscription-bar--soft"><span style="width: 100%"></span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Payment method -->
+      <article class="ui-card subscription-panel">
+        <div class="subscription-panel__head">
+          <span class="ui-sectiontitle">{{ c()['payment'] }}</span>
+          <span class="ui-pill ui-pill--info subscription-testchip">
+            <app-icon name="shield" [size]="13" />{{ c()['testMode'] }}
+          </span>
+        </div>
+
+        @if (!cardFormOpen()) {
+          @if (sub.paymentMethod; as pm) {
+            <div class="subscription-pmcard">
+              <span class="subscription-pmcard__sheen" aria-hidden="true"></span>
+              <div class="subscription-pmcard__row">
+                <span class="subscription-pmcard__chip" aria-hidden="true"></span>
+                <span class="subscription-pmcard__wave" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                </span>
+              </div>
+              <div class="subscription-pmcard__num tnum">
+                <span>••••</span><span>••••</span><span>••••</span><span>{{ pm.last4 }}</span>
+              </div>
+              <div class="subscription-pmcard__foot">
+                <div class="subscription-pmcard__holder">
+                  <span class="subscription-pmcard__cap">{{ c()['cardName'] }}</span>
+                  <span class="subscription-pmcard__name">{{ pm.holderName || '—' }}</span>
+                </div>
+                <div class="subscription-pmcard__exp">
+                  <span class="subscription-pmcard__cap">{{ c()['expMonth'] }}/{{ c()['expYear'] }}</span>
+                  <span class="tnum">{{ fmt('expires', { mm: pm.expMonth, yy: pm.expYear }) }}</span>
+                </div>
+                <span class="subscription-pmcard__mark" aria-hidden="true">
+                  <span></span><span></span>
+                </span>
+              </div>
+              <div class="subscription-pmcard__brand">{{ pm.brand }}</div>
+            </div>
+            <button type="button" class="ui-btn ui-btn--ghost ui-btn--block" (click)="openCardForm()">
+              <app-icon name="credit-card" [size]="15" />{{ c()['changeCard'] }}
+            </button>
+          } @else {
+            <div class="subscription-nocard">
+              <span class="subscription-nocard__icon"><app-icon name="credit-card" [size]="20" /></span>
+              <div>
+                <strong>{{ c()['noCard'] }}</strong>
+                <p>{{ c()['noCardHint'] }}</p>
+              </div>
+            </div>
+            <button type="button" class="ui-btn ui-btn--primary ui-btn--block" (click)="openCardForm()">
+              <app-icon name="credit-card" [size]="15" />{{ c()['addCard'] }}
+            </button>
+          }
+        } @else {
+          <!-- Inline mock card form -->
+          <form class="subscription-cardform" (ngSubmit)="saveCard()">
+            <div class="ui-field">
+              <label class="ui-label">{{ c()['cardNumber'] }}</label>
+              <input
+                class="ui-input"
+                type="text"
+                inputmode="numeric"
+                autocomplete="cc-number"
+                placeholder="4242 4242 4242 4242"
+                maxlength="23"
+                [value]="cardForm().number"
+                (input)="updateCard('number', $any($event.target).value)"
+              />
+            </div>
+            <div class="subscription-cardform__row">
+              <div class="ui-field ui-field--sm">
+                <label class="ui-label">{{ c()['expMonth'] }}</label>
+                <input
+                  class="ui-input"
+                  type="text" inputmode="numeric" placeholder="12" maxlength="2"
+                  [value]="cardForm().expMonth"
+                  (input)="updateCard('expMonth', $any($event.target).value)"
+                />
+              </div>
+              <div class="ui-field ui-field--sm">
+                <label class="ui-label">{{ c()['expYear'] }}</label>
+                <input
+                  class="ui-input"
+                  type="text" inputmode="numeric" placeholder="28" maxlength="2"
+                  [value]="cardForm().expYear"
+                  (input)="updateCard('expYear', $any($event.target).value)"
+                />
+              </div>
+            </div>
+            <div class="ui-field">
+              <label class="ui-label">{{ c()['cardName'] }}</label>
+              <input
+                class="ui-input"
+                type="text" autocomplete="cc-name" placeholder="—"
+                [value]="cardForm().holderName"
+                (input)="updateCard('holderName', $any($event.target).value)"
+              />
+            </div>
+            <p class="subscription-cardform__note">
+              <app-icon name="shield" [size]="13" />{{ c()['simulatedNote'] }}
+            </p>
+            <div class="subscription-panel__actions">
+              <button type="submit" class="ui-btn ui-btn--primary" [disabled]="!cardValid || savingCard()">
+                @if (savingCard()) { <span class="ui-spinner" aria-hidden="true"></span> }
+                {{ c()['saveCard'] }}
+              </button>
+              <button type="button" class="ui-btn ui-btn--ghost" (click)="closeCardForm()">
+                {{ c()['cancel'] }}
+              </button>
+            </div>
+          </form>
+        }
+      </article>
+    </div>
+
+    <!-- ── Plans chooser ── -->
+    @if (plansOpen()) {
+      <section id="plans-section" class="ui-card subscription-plans">
+        <div class="subscription-plans__head">
+          <div>
+            <h2>{{ c()['choosePlan'] }}</h2>
+            <p>{{ c()['plansSubtitle'] }}</p>
+          </div>
+          <div class="subscription-plans__head-actions">
+            <div class="ui-seg" role="tablist">
+              <button
+                type="button" role="tab"
+                class="ui-seg__btn" [class.is-active]="chooserCycle() === 'Monthly'"
+                (click)="setCycle('Monthly')"
+              >{{ c()['monthly'] }}</button>
+              <button
+                type="button" role="tab"
+                class="ui-seg__btn" [class.is-active]="chooserCycle() === 'Yearly'"
+                (click)="setCycle('Yearly')"
+              >{{ c()['annual'] }}</button>
+            </div>
+            <button type="button" class="ui-modal__close" (click)="closePlans()" [attr.aria-label]="c()['close']">
+              <app-icon name="x" [size]="18" />
+            </button>
+          </div>
+        </div>
+
+        @if (plansLoading()) {
+          <div class="ui-loading">
+            <span class="ui-spinner" aria-hidden="true"></span>
+          </div>
+        } @else {
+          <div class="subscription-plans__grid">
+            @for (plan of plans(); track plan.id) {
+              <article
+                class="ui-card plan-card"
+                [class.is-current]="isCurrentPlan(plan)"
+                [class.is-featured]="plan.code === 'pro' || plan.sortOrder === 2"
+              >
+                @if (plan.code === 'pro' || plan.sortOrder === 2) {
+                  <span class="plan-card__glow" aria-hidden="true"></span>
+                  <span class="plan-card__flag">
+                    <app-icon name="star" [size]="12" />{{ c()['mostPopular'] }}
+                  </span>
+                }
+                <div class="plan-card__name">{{ plan.name }}</div>
+                @if (plan.tagline) { <p class="plan-card__tag">{{ plan.tagline }}</p> }
+
+                <div class="plan-card__price">
+                  <span class="plan-card__amount tnum">{{ planPrice(plan) | number: '1.0-2' }}</span>
+                  <span class="plan-card__cycle">{{ planCycleSuffix() }}</span>
+                </div>
+
+                <ul class="plan-card__features">
+                  @for (feat of plan.features; track feat) {
+                    <li><app-icon name="check-circle" [size]="16" />{{ feat }}</li>
+                  }
+                </ul>
+
+                @if (isCurrentPlan(plan)) {
+                  <button type="button" class="ui-btn ui-btn--block plan-card__current-btn" disabled>
+                    <app-icon name="check" [size]="16" />{{ c()['currentBadge'] }}
+                  </button>
+                } @else {
+                  <button
+                    type="button" class="ui-btn ui-btn--primary ui-btn--block"
+                    [disabled]="upgradingPlanId() === plan.id"
+                    (click)="choose(plan)"
+                  >
+                    @if (upgradingPlanId() === plan.id) { <span class="ui-spinner" aria-hidden="true"></span> }
+                    {{ fmt('choose', { plan: plan.name }) }}
+                  </button>
+                }
+              </article>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ── Invoices ── -->
+    <section class="ui-card subscription-invoices">
+      <div class="subscription-invoices__head">
+        <span class="ui-sectiontitle">{{ c()['invoices'] }}</span>
+        <span class="subscription-tile subscription-tile--violet"><app-icon name="receipt" [size]="18" /></span>
+      </div>
+
+      @if (sub.invoices && sub.invoices.length > 0) {
+        <div class="feature-page__table-container">
+          <table class="feature-page__table">
+            <thead>
+              <tr>
+                <th>{{ c()['invDate'] }}</th>
+                <th>{{ c()['invStatus'] }}</th>
+                <th class="subscription-invoices__num">{{ c()['invAmount'] }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (inv of sub.invoices; track inv.id) {
+                <tr>
+                  <td>{{ inv.issuedAt | date: 'mediumDate' : '' : locale() }}</td>
+                  <td>
+                    <span class="ui-pill ui-pill--{{ invoicePillVariant(inv.status) }}">
+                      {{ inv.status }}
+                    </span>
+                  </td>
+                  <td class="subscription-invoices__num tnum">{{ inv.amount | number: '1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="feature-page__empty">
+          <app-icon name="receipt" [size]="30" />
+          <h3>{{ c()['noInvoices'] }}</h3>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ── Cancel confirm dialog ── -->
+  @if (confirmCancelOpen()) {
+    <div class="ui-overlay" (click)="dismissCancel()">
+      <div
+        class="ui-modal ui-confirm subscription-cancel"
+        role="dialog"
+        aria-modal="true"
+        [attr.dir]="direction()"
+        (click)="$event.stopPropagation()"
+      >
+        <span class="ui-confirm__icon subscription-cancel__icon"><app-icon name="clock" [size]="24" /></span>
+        <h3>{{ c()['confirmCancelTitle'] }}</h3>
+        <p>{{ c()['confirmCancelBody'] }}</p>
+        <div class="ui-confirm__actions">
+          <button type="button" class="ui-btn ui-btn--danger" [disabled]="cancelling()" (click)="confirmCancel()">
+            @if (cancelling()) { <span class="ui-spinner" aria-hidden="true"></span> }
+            {{ c()['confirmCancelYes'] }}
+          </button>
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="dismissCancel()">
+            {{ c()['confirmCancelNo'] }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

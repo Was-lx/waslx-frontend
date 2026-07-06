@@ -1,0 +1,76 @@
+<div class="auth" [attr.dir]="direction()">
+  <!-- Brand panel -->
+  <aside class="auth__brand">
+    <span class="auth__orb auth__orb--1" aria-hidden="true"></span>
+    <span class="auth__orb auth__orb--2" aria-hidden="true"></span>
+    <span class="auth__gridbg" aria-hidden="true"></span>
+    <span class="lp-noise auth__noise" aria-hidden="true"></span>
+
+    <div class="auth__brandInner">
+      <a routerLink="/" class="auth__logo">
+        <img src="logo.png" alt="" width="40" height="40" />
+        <span>Wasl<span class="auth__x">X</span></span>
+      </a>
+
+      <h2 class="auth__heading">{{ c().heading }}</h2>
+
+      <ul class="auth__bullets">
+        @for (b of c().bullets; track b) {
+          <li>
+            <span class="auth__check"><app-icon name="check" [size]="13" /></span>
+            {{ b }}
+          </li>
+        }
+      </ul>
+
+      <div class="auth__metrics">
+        @for (m of c().metrics; track m.l) {
+          <div class="auth__metric">
+            <b>{{ m.v }}</b>
+            <span>{{ m.l }}</span>
+          </div>
+        }
+      </div>
+
+      <figure class="auth__quote">
+        <span class="auth__quoteMark"><app-icon name="quote" [size]="20" /></span>
+        <blockquote>{{ c().quote }}</blockquote>
+        <figcaption>{{ c().quoteBy }}</figcaption>
+      </figure>
+    </div>
+  </aside>
+
+  <!-- Form panel -->
+  <div class="auth__main">
+    <span class="auth__mainOrb" aria-hidden="true"></span>
+    <header class="auth__bar">
+      <a routerLink="/" class="auth__back">
+        <app-icon name="arrow-right" [size]="16" />
+        <span>{{ c().backHome }}</span>
+      </a>
+      <div class="auth__tools">
+        <button type="button" class="auth__tool" (click)="toggleLanguage()">
+          <app-icon name="globe" [size]="16" /> {{ c().langLabel }}
+        </button>
+        <button
+          type="button"
+          class="auth__tool auth__tool--round"
+          (click)="toggleTheme()"
+          aria-label="Toggle theme"
+        >
+          <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" [size]="16" />
+        </button>
+      </div>
+    </header>
+
+    <main class="auth__content">
+      <div class="auth__card">
+        <a routerLink="/" class="auth__mobileLogo">
+          <img src="logo.png" alt="" width="32" height="32" />
+          <span>Wasl<span class="auth__x">X</span></span>
+        </a>
+        <ng-content />
+      </div>
+    </main>
+  </div>
+</div>

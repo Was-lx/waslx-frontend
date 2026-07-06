@@ -16,6 +16,7 @@ export interface LoginResponse {
 }
 
 export interface RefreshTokenRequest {
+  readonly token: string;
   readonly refreshToken: string;
 }
 
@@ -39,6 +40,7 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  readonly token: string;
-  readonly password: string;
+  readonly email: string;
+  readonly code: string;
+  readonly newPassword: string;
 }

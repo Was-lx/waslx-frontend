@@ -1,0 +1,154 @@
+/* ---------- Page hero: mission / impact mosaic visual ---------- */
+.phx-about__plate { position: relative; padding: 22px 22px 20px; }
+.phx-about__quote { margin: 12px 0 0; font-size: 15px; line-height: 1.6; color: var(--text-secondary); }
+.phx-about__mosaic { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.phx-about__tile { padding: 18px 18px 16px; }
+.phx-about__tile:nth-child(2) { transform: translateY(18px); }
+.phx-about__num { display: block; font-size: clamp(26px, 3.4vw, 34px); font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.phx-about__num > span { background: var(--lp-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.phx-about__lbl { display: block; margin-top: 4px; font-size: 12.5px; color: var(--text-muted); }
+@media (max-width: 620px) {
+  .phx-about__tile:nth-child(2) { transform: none; }
+}
+
+/* ---------- Mission ---------- */
+.ab__mission {
+  position: relative;
+  max-width: 860px;
+  margin-inline: auto;
+  text-align: center;
+  padding: clamp(36px, 5vw, 56px) clamp(24px, 5vw, 56px);
+  overflow: hidden;
+}
+.ab__missionGlow {
+  position: absolute;
+  top: -50%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 400px;
+  background: radial-gradient(closest-side, rgb(139 92 246 / 0.14), transparent 70%);
+  pointer-events: none;
+}
+[dir='rtl'] .ab__missionGlow { transform: translateX(50%); }
+.ab__mission .lp-eyebrow { justify-content: center; }
+.ab__missionText {
+  position: relative;
+  margin: 16px auto 0;
+  max-width: 680px;
+  font-size: clamp(19px, 2.4vw, 26px);
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+/* Stat strip */
+.ab__stats {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: clamp(24px, 4vw, 44px);
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-soft);
+}
+.ab__stat { text-align: center; }
+.ab__statNum {
+  display: block;
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  background: var(--lp-grad-soft);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ab__statLabel { display: block; margin-top: 4px; font-size: 13px; color: var(--text-secondary); }
+
+/* ---------- Values ---------- */
+.ab__values {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.ab__value { padding: 26px; }
+.ab__value h3 { margin: 16px 0 8px; font-size: 17px; font-weight: 750; color: var(--text-primary); }
+.ab__value p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+
+/* ---------- What makes WaslX different ---------- */
+.ab__approach {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.ab__diff { padding: 28px 24px; }
+.ab__diff h3 { margin: 18px 0 8px; font-size: 17px; font-weight: 750; color: var(--text-primary); }
+.ab__diff p { margin: 0; font-size: 14px; line-height: 1.65; color: var(--text-secondary); }
+
+/* ---------- Impact band (dark) ---------- */
+.ab__impact {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #eaf0ff;
+  border-radius: 32px;
+  margin-inline: clamp(0px, 3vw, 24px);
+  background: radial-gradient(120% 100% at 50% 0%, #131d43 0%, #0a1128 60%, #070d20 100%);
+}
+.ab__impactGlow {
+  position: absolute;
+  top: -30%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  width: 720px;
+  height: 520px;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(124 92 246 / 0.28), transparent 70%);
+  pointer-events: none;
+}
+[dir='rtl'] .ab__impactGlow { transform: translateX(50%); }
+.ab__impact .ab__impactEyebrow { justify-content: center; }
+.ab__impactTitle { color: #fff; }
+
+.ab__impactRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(24px, 4vw, 48px);
+  margin-top: 8px;
+}
+.ab__figure { text-align: center; }
+.ab__figureNum {
+  display: block;
+  font-size: clamp(40px, 6vw, 68px);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: var(--lp-grad-soft);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ab__figureLabel {
+  display: block;
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #9fabce;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .ab__values { grid-template-columns: 1fr 1fr; }
+  .ab__approach { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .ab__impactRow { grid-template-columns: 1fr; gap: 32px; }
+}
+@media (max-width: 620px) {
+  .ab__values { grid-template-columns: 1fr; }
+  .ab__approach { grid-template-columns: 1fr; }
+}

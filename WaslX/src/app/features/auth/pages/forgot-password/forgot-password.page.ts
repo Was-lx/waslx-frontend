@@ -7,11 +7,13 @@ import { AuthApiService } from '../../../../core/auth/auth-api.service';
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { AuthShellComponent } from '../../components/auth-shell/auth-shell.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-forgot-password-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthShellComponent, IconComponent],
   templateUrl: './forgot-password.page.html',
   styleUrl: './forgot-password.page.css'
 })

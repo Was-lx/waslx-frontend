@@ -1,0 +1,604 @@
+/* ============================================================================
+   SuperAdmin — Plans page ("operations cockpit").
+   Builds bespoke character on top of the shared app-ui primitives (.ui-*,
+   .feature-page): a summary strip, plan cards with an accent top rail +
+   featured "popular" state + gradient price, plan skeletons, and a premium
+   create/edit modal. Token-driven, light/dark aware, RTL-safe (logical props).
+   ========================================================================== */
+
+.plans-page {
+  animation: plans-rise var(--mo-quick, 280ms) var(--ease-out, ease) both;
+}
+
+@keyframes plans-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.plans-page__nav {
+  align-self: flex-start;
+}
+
+/* ── Header ── */
+.plans-page__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.plans-page__eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
+  animation: plans-pulse 2.4s ease-in-out infinite;
+}
+@keyframes plans-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent); }
+  50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--primary) 3%, transparent); }
+}
+
+.plans-page__subtitle {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  max-width: 48ch;
+}
+
+/* ══ Summary strip ═══════════════════════════════════════════════════════ */
+.plans-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 130% at 0% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 55%),
+    var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.plans-summary__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  position: relative;
+}
+.plans-summary__item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: -7px;
+  inset-block: 4px;
+  width: 1px;
+  background: var(--border-soft);
+}
+@media (max-width: 640px) {
+  .plans-summary__item::after { display: none; }
+}
+
+.plans-summary__tile {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  color: var(--primary);
+  background: linear-gradient(140deg,
+      color-mix(in srgb, var(--primary) 18%, var(--surface)),
+      color-mix(in srgb, var(--primary) 7%, var(--surface)));
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+}
+.plans-summary__tile--success {
+  color: var(--success);
+  background: linear-gradient(140deg, color-mix(in srgb, var(--success) 18%, var(--surface)), color-mix(in srgb, var(--success) 7%, var(--surface)));
+  border-color: color-mix(in srgb, var(--success) 22%, transparent);
+}
+.plans-summary__tile--accent {
+  color: var(--accent);
+  background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 18%, var(--surface)), color-mix(in srgb, var(--accent) 7%, var(--surface)));
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.plans-summary__tile--warning {
+  color: var(--warning);
+  background: linear-gradient(140deg, color-mix(in srgb, var(--warning) 20%, var(--surface)), color-mix(in srgb, var(--warning) 8%, var(--surface)));
+  border-color: color-mix(in srgb, var(--warning) 24%, transparent);
+}
+.plans-summary__tile app-icon { display: inline-flex; }
+.plans-summary__tile svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.plans-summary__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+.plans-summary__value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.plans-summary__label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ══ Plan cards grid ═════════════════════════════════════════════════════ */
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(292px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform var(--mo-fast, 180ms) ease, box-shadow var(--mo-fast, 180ms) ease,
+    border-color var(--mo-fast, 180ms) ease;
+}
+
+/* Accent top rail. */
+.plan-card::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0.9;
+}
+
+/* A soft branded corner glow that intensifies on hover. */
+.plan-card::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -40%;
+  inset-inline-end: -30%;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--primary) 12%, transparent), transparent 68%);
+  opacity: 0;
+  transition: opacity var(--mo-quick, 280ms) ease;
+  pointer-events: none;
+}
+[dir='rtl'] .plan-card::after { inset-inline-end: auto; inset-inline-start: -30%; }
+.plan-card:hover::after { opacity: 1; }
+
+.plan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-float);
+  border-color: color-mix(in srgb, var(--primary) 26%, var(--border-subtle));
+}
+
+.plan-card--dim {
+  opacity: 0.72;
+}
+.plan-card--dim::before {
+  background: var(--border-subtle);
+}
+
+/* Featured "most popular" plan — richer rail, tinted field, standout border. */
+.plan-card--featured {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border-subtle));
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 4%, var(--surface)), var(--surface));
+  box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+[dir='rtl'] .plan-card--featured {
+  background:
+    radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 4%, var(--surface)), var(--surface));
+}
+.plan-card--featured::before {
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--cyan), var(--accent));
+}
+
+.plan-card__ribbon {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: 14px;
+  inset-inline-end: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+.plan-card__ribbon app-icon { display: inline-flex; }
+.plan-card__ribbon svg { fill: currentColor; stroke: none; }
+
+.plan-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plan-card__id {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.plan-card__id h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 780;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.plan-card__tagline {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.plan-card__badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.plan-card--featured .plan-card__badges {
+  margin-block-start: 26px;
+}
+
+/* ── Price ── */
+.plan-card__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plan-card__amount {
+  font-size: 2.1rem;
+  font-weight: 820;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(120deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--primary);
+}
+
+.plan-card__cycle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.plan-card__yearly {
+  margin-inline-start: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+/* ── Specs list ── */
+.plan-card__specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px 14px;
+  margin: 0;
+  padding: 15px 0;
+  list-style: none;
+  border-block: 1px solid var(--border-soft);
+}
+
+.plan-card__specs li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+.plan-card__specs li span {
+  color: var(--text-muted);
+}
+.plan-card__specs li b {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Features ── */
+.plan-card__features ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.plan-card__features li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.plan-card__check {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+}
+.plan-card__check app-icon { display: inline-flex; }
+.plan-card__check svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Footer ── */
+.plan-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.plan-card__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.plan-card__toggle.is-busy {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.plan-card__toggle-label {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+
+/* ══ Plan skeletons (loading) ════════════════════════════════════════════ */
+.plan-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+}
+.plan-skeleton__pill { width: 64px; height: 22px; border-radius: 999px; }
+.plan-skeleton__title { width: 55%; height: 20px; border-radius: 8px; }
+.plan-skeleton__price { width: 40%; height: 30px; border-radius: 10px; margin-block: 4px 8px; }
+.plan-skeleton__row { width: 100%; height: 13px; border-radius: 999px; }
+
+.shimmer {
+  background: linear-gradient(100deg,
+      var(--surface-soft) 30%,
+      color-mix(in srgb, var(--primary) 7%, var(--surface-soft)) 50%,
+      var(--surface-soft) 70%);
+  background-size: 200% 100%;
+  animation: plans-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes plans-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* ══ Modal ═══════════════════════════════════════════════════════════════ */
+.plans-modal__head {
+  padding-block-start: 24px;
+  padding-block-end: 18px;
+  margin-block-end: 0;
+  border-block-end: 1px solid var(--border-subtle);
+  background:
+    radial-gradient(120% 160% at 0% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 58%),
+    var(--surface);
+  border-start-start-radius: 20px;
+  border-start-end-radius: 20px;
+}
+.plans-modal__headline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.plans-modal__glyph {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+.plans-modal__glyph svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.plans-modal__section {
+  display: block;
+  margin-block: 4px 12px;
+}
+.plans-modal__section:not(:first-child) {
+  margin-block-start: 22px;
+}
+
+/* ── Modal form grid ── */
+.plan-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.plan-form__span-2 {
+  grid-column: 1 / -1;
+}
+
+.plan-form__opt {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ── Flags ── */
+.plan-form__flags {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.plan-form__flag {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 15px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 13px;
+  background: var(--surface-soft);
+  transition: border-color var(--mo-fast, 180ms) ease, background var(--mo-fast, 180ms) ease;
+}
+.plan-form__flag.is-on {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border-subtle));
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+}
+
+.plan-form__flag-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.plan-form__flag-title {
+  font-size: 0.84rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+.plan-form__flag-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ── Features editor ── */
+.plan-form__features {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-form__features-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.plan-form__feature-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.plan-form__feature-row .ui-input {
+  flex: 1;
+  min-width: 0;
+}
+.plan-form__feature-row .ui-btn {
+  flex: 0 0 auto;
+  width: 40px;
+  padding: 0;
+}
+
+/* The modal save button re-uses .ui-spinner; keep it inline-sized there. */
+.ui-modal__foot .ui-btn--primary .ui-spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  border-color: color-mix(in srgb, #fff 45%, transparent);
+  border-top-color: #fff;
+}
+
+/* ── Responsive ── */
+@media (max-width: 720px) {
+  .plan-form__grid {
+    grid-template-columns: 1fr;
+  }
+  .plans-page__nav {
+    width: 100%;
+  }
+  .plans-page__nav .ui-seg__btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plans-page {
+    animation: none;
+  }
+  .plan-card:hover {
+    transform: none;
+  }
+  .plans-page__eyebrow-dot,
+  .shimmer {
+    animation: none;
+  }
+}

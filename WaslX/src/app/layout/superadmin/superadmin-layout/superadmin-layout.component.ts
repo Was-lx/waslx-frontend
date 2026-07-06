@@ -37,10 +37,11 @@ export class SuperAdminLayoutComponent {
     const t = (key: any) => this.languageService.text(key);
     return [
       {
-        id: 'main',
-        label: t('main'),
+        id: 'platform',
+        label: t('platform'),
         items: [
-          { id: 'dashboard', label: t('dashboard'), description: t('dashboardDesc'), icon: 'grid', routerLink: '/app/superadmin' }
+          { id: 'tenants', label: t('tenants'), description: t('tenantsDesc'), icon: 'building', routerLink: '/app/superadmin/tenants' },
+          { id: 'plans', label: t('plans'), description: t('plansDesc'), icon: 'layers', routerLink: '/app/superadmin/plans' }
         ]
       }
     ];

@@ -1,0 +1,362 @@
+<section class="feature-page plans-page" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header plans-page__header">
+    <div>
+      <span class="feature-page__eyebrow plans-page__eyebrow">
+        <span class="plans-page__eyebrow-dot" aria-hidden="true"></span>
+        {{ c().eyebrow }}
+      </span>
+      <h1>{{ c().title }}</h1>
+      <p class="plans-page__subtitle">{{ c().subtitle }}</p>
+    </div>
+    <div class="feature-page__actions">
+      <button type="button" class="ui-btn ui-btn--primary" (click)="openCreate()">
+        <app-icon name="tag" [size]="17" />
+        {{ c().newPlan }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Summary strip ── -->
+  @if (!loading() && !error() && plans().length) {
+    <div class="plans-summary">
+      <div class="plans-summary__item">
+        <span class="plans-summary__tile" aria-hidden="true"><app-icon name="tag" [size]="16" /></span>
+        <div class="plans-summary__body">
+          <span class="plans-summary__value">{{ plans().length | number }}</span>
+          <span class="plans-summary__label">{{ c().sumTotal }}</span>
+        </div>
+      </div>
+      <div class="plans-summary__item">
+        <span class="plans-summary__tile plans-summary__tile--success" aria-hidden="true"><app-icon name="check-circle" [size]="16" /></span>
+        <div class="plans-summary__body">
+          <span class="plans-summary__value">{{ activePlansCount() | number }}</span>
+          <span class="plans-summary__label">{{ c().sumActive }}</span>
+        </div>
+      </div>
+      <div class="plans-summary__item">
+        <span class="plans-summary__tile plans-summary__tile--accent" aria-hidden="true"><app-icon name="globe" [size]="16" /></span>
+        <div class="plans-summary__body">
+          <span class="plans-summary__value">{{ publicPlansCount() | number }}</span>
+          <span class="plans-summary__label">{{ c().sumPublic }}</span>
+        </div>
+      </div>
+      <div class="plans-summary__item">
+        <span class="plans-summary__tile plans-summary__tile--warning" aria-hidden="true"><app-icon name="star" [size]="16" /></span>
+        <div class="plans-summary__body">
+          <span class="plans-summary__value">{{ customPlansCount() | number }}</span>
+          <span class="plans-summary__label">{{ c().sumCustom }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Body states ── -->
+  @if (loading()) {
+    <div class="plans-grid plans-skeleton" aria-hidden="true">
+      @for (card of [1,2,3]; track card) {
+        <div class="ui-card plan-skeleton">
+          <span class="plan-skeleton__pill shimmer"></span>
+          <span class="plan-skeleton__title shimmer"></span>
+          <span class="plan-skeleton__price shimmer"></span>
+          <span class="plan-skeleton__row shimmer"></span>
+          <span class="plan-skeleton__row shimmer"></span>
+          <span class="plan-skeleton__row shimmer" style="width: 60%"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <app-icon name="shield" [size]="30" />
+      <h3>{{ c().errorTitle }}</h3>
+      <p>{{ c().errorBody }}</p>
+      <button type="button" class="ui-btn ui-btn--ghost" (click)="loadPlans()">{{ c().retry }}</button>
+    </div>
+  } @else if (plans().length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="tag" [size]="30" />
+      <h3>{{ c().emptyTitle }}</h3>
+      <p>{{ c().emptyBody }}</p>
+      <button type="button" class="ui-btn ui-btn--primary" (click)="openCreate()">
+        <app-icon name="tag" [size]="16" />
+        {{ c().newPlan }}
+      </button>
+    </div>
+  } @else {
+    <div class="plans-grid">
+      @for (plan of plans(); track plan.id) {
+        <article
+          class="ui-card plan-card"
+          [class.plan-card--dim]="!plan.isActive"
+          [class.plan-card--featured]="isFeatured(plan)"
+        >
+          @if (isFeatured(plan)) {
+            <span class="plan-card__ribbon">
+              <app-icon name="star" [size]="12" />
+              {{ c().popular }}
+            </span>
+          }
+          <header class="plan-card__head">
+            <div class="plan-card__id">
+              <span class="ui-pill ui-pill--info">{{ plan.code }}</span>
+              <h3>{{ plan.name }}</h3>
+              @if (plan.tagline) {
+                <p class="plan-card__tagline">{{ plan.tagline }}</p>
+              }
+            </div>
+            <div class="plan-card__badges">
+              @if (plan.isPublic) {
+                <span class="ui-pill ui-pill--success">{{ c().public }}</span>
+              }
+              @if (plan.isCustom) {
+                <span class="ui-pill">{{ c().custom }}</span>
+              }
+            </div>
+          </header>
+
+          <div class="plan-card__price">
+            <span class="plan-card__amount">{{ plan.price | number }}</span>
+            <span class="plan-card__cycle">{{ plan.billingCycle === 'Yearly' ? c().perYear : c().perMonth }}</span>
+            @if (plan.priceYearly) {
+              <span class="plan-card__yearly">{{ plan.priceYearly | number }} {{ c().yearly }}</span>
+            }
+          </div>
+
+          <ul class="plan-card__specs">
+            <li><span>{{ c().agents }}</span><b>{{ plan.maxAgents | number }}</b></li>
+            <li><span>{{ c().numbers }}</span><b>{{ plan.maxNumbers | number }}</b></li>
+            <li><span>{{ c().messages }}</span><b>{{ plan.msgQuota | number }}</b></li>
+            <li><span>{{ c().aiQuota }}</span><b>{{ plan.aiQuota | number }}</b></li>
+            <li><span>{{ c().trial }}</span><b>{{ plan.trialDays | number }} {{ c().days }}</b></li>
+          </ul>
+
+          @if (plan.features.length) {
+            <div class="plan-card__features">
+              <span class="ui-sectiontitle">{{ c().features }}</span>
+              <ul>
+                @for (feature of plan.features; track feature) {
+                  <li><span class="plan-card__check" aria-hidden="true"><app-icon name="check" [size]="12" /></span> {{ feature }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          <footer class="plan-card__foot">
+            <label
+              class="plan-card__toggle"
+              [class.is-busy]="busyId() === plan.id"
+            >
+              <button
+                type="button"
+                class="ui-toggle"
+                [class.is-on]="plan.isActive"
+                [attr.aria-checked]="plan.isActive"
+                [disabled]="busyId() === plan.id"
+                (click)="toggleActive(plan)"
+              ></button>
+              <span class="plan-card__toggle-label">{{ plan.isActive ? c().active : c().inactive }}</span>
+            </label>
+            <button type="button" class="ui-btn ui-btn--sm ui-btn--ghost" (click)="openEdit(plan)">
+              <app-icon name="sliders" [size]="14" />
+              {{ c().edit }}
+            </button>
+          </footer>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- ── Create / edit modal ── -->
+  @if (modalOpen()) {
+    <div class="ui-overlay" (click)="closeModal()">
+      <div
+        class="ui-modal ui-modal--lg plans-modal"
+        role="dialog"
+        aria-modal="true"
+        [attr.dir]="direction()"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="ui-modal__head plans-modal__head">
+          <div class="plans-modal__headline">
+            <span class="plans-modal__glyph" aria-hidden="true">
+              <app-icon name="tag" [size]="20" />
+            </span>
+            <div>
+              <h2 class="ui-modal__title">{{ editingId() === null ? c().createTitle : c().editTitle }}</h2>
+              <p class="ui-modal__sub">{{ editingId() === null ? c().createSubtitle : c().editSubtitle }}</p>
+            </div>
+          </div>
+          <button type="button" class="ui-modal__close" (click)="closeModal()" aria-label="Close">
+            <app-icon name="x" [size]="18" />
+          </button>
+        </header>
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="ui-modal__body">
+            <span class="ui-sectiontitle plans-modal__section">{{ c().sectionIdentity }}</span>
+            <div class="plan-form__grid">
+              <div class="ui-field">
+                <label class="ui-label" for="code">{{ c().code }}</label>
+                <input id="code" class="ui-input" type="text" formControlName="code" />
+                @if (invalid('code')) { <span class="ui-error">{{ c().required }}</span> }
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="name">{{ c().name }}</label>
+                <input id="name" class="ui-input" type="text" formControlName="name" />
+                @if (invalid('name')) { <span class="ui-error">{{ c().required }}</span> }
+              </div>
+
+              <div class="ui-field plan-form__span-2">
+                <label class="ui-label" for="tagline">{{ c().tagline }} <span class="plan-form__opt">{{ c().optional }}</span></label>
+                <input id="tagline" class="ui-input" type="text" formControlName="tagline" />
+              </div>
+            </div>
+
+            <span class="ui-sectiontitle plans-modal__section">{{ c().sectionPricing }}</span>
+            <div class="plan-form__grid">
+              <div class="ui-field">
+                <label class="ui-label" for="price">{{ c().price }}</label>
+                <input id="price" class="ui-input" type="number" min="0" formControlName="price" />
+                @if (invalid('price')) { <span class="ui-error">{{ c().required }}</span> }
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="priceYearly">{{ c().priceYearly }} <span class="plan-form__opt">{{ c().optional }}</span></label>
+                <input id="priceYearly" class="ui-input" type="number" min="0" formControlName="priceYearly" />
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="billingCycle">{{ c().billingCycle }}</label>
+                <select id="billingCycle" class="ui-select" formControlName="billingCycle">
+                  @for (cycle of billingCycles; track cycle) {
+                    <option [ngValue]="cycle">{{ cycle === 'Yearly' ? c().yearlyOpt : c().monthly }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="sortOrder">{{ c().sortOrder }}</label>
+                <input id="sortOrder" class="ui-input" type="number" min="0" formControlName="sortOrder" />
+              </div>
+            </div>
+
+            <span class="ui-sectiontitle plans-modal__section">{{ c().sectionLimits }}</span>
+            <div class="plan-form__grid">
+              <div class="ui-field">
+                <label class="ui-label" for="maxAgents">{{ c().maxAgents }}</label>
+                <input id="maxAgents" class="ui-input" type="number" min="0" formControlName="maxAgents" />
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="maxNumbers">{{ c().maxNumbers }}</label>
+                <input id="maxNumbers" class="ui-input" type="number" min="0" formControlName="maxNumbers" />
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="msgQuota">{{ c().msgQuota }}</label>
+                <input id="msgQuota" class="ui-input" type="number" min="0" formControlName="msgQuota" />
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="aiQuota">{{ c().aiQuotaField }}</label>
+                <input id="aiQuota" class="ui-input" type="number" min="0" formControlName="aiQuota" />
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="trialDays">{{ c().trialDays }}</label>
+                <input id="trialDays" class="ui-input" type="number" min="0" formControlName="trialDays" />
+              </div>
+            </div>
+
+            <!-- Flags -->
+            <div class="plan-form__flags">
+              <div class="plan-form__flag" [class.is-on]="form.controls.isActive.value">
+                <button
+                  type="button"
+                  class="ui-toggle"
+                  [class.is-on]="form.controls.isActive.value"
+                  [attr.aria-checked]="form.controls.isActive.value"
+                  (click)="toggleFlag('isActive')"
+                ></button>
+                <span class="plan-form__flag-text">
+                  <span class="plan-form__flag-title">{{ c().isActive }}</span>
+                  <span class="plan-form__flag-hint">{{ c().isActiveHint }}</span>
+                </span>
+              </div>
+
+              <div class="plan-form__flag" [class.is-on]="form.controls.isPublic.value">
+                <button
+                  type="button"
+                  class="ui-toggle"
+                  [class.is-on]="form.controls.isPublic.value"
+                  [attr.aria-checked]="form.controls.isPublic.value"
+                  (click)="toggleFlag('isPublic')"
+                ></button>
+                <span class="plan-form__flag-text">
+                  <span class="plan-form__flag-title">{{ c().isPublic }}</span>
+                  <span class="plan-form__flag-hint">{{ c().isPublicHint }}</span>
+                </span>
+              </div>
+
+              <div class="plan-form__flag" [class.is-on]="form.controls.isCustom.value">
+                <button
+                  type="button"
+                  class="ui-toggle"
+                  [class.is-on]="form.controls.isCustom.value"
+                  [attr.aria-checked]="form.controls.isCustom.value"
+                  (click)="toggleFlag('isCustom')"
+                ></button>
+                <span class="plan-form__flag-text">
+                  <span class="plan-form__flag-title">{{ c().isCustom }}</span>
+                  <span class="plan-form__flag-hint">{{ c().isCustomHint }}</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Features FormArray -->
+            <div class="plan-form__features" formArrayName="features">
+              <div class="plan-form__features-head">
+                <span class="ui-label">{{ c().featuresLabel }}</span>
+                <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="addFeature()">
+                  <app-icon name="check" [size]="14" />
+                  {{ c().addFeature }}
+                </button>
+              </div>
+              @for (control of featuresArray.controls; track $index) {
+                <div class="ui-field plan-form__feature-row">
+                  <input
+                    class="ui-input"
+                    type="text"
+                    [formControlName]="$index"
+                    [placeholder]="c().featurePlaceholder"
+                  />
+                  <button
+                    type="button"
+                    class="ui-btn ui-btn--sm ui-btn--danger"
+                    (click)="removeFeature($index)"
+                    aria-label="Remove"
+                  >
+                    <app-icon name="x" [size]="16" />
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <footer class="ui-modal__foot">
+            <button type="button" class="ui-btn ui-btn--ghost" (click)="closeModal()">{{ c().cancel }}</button>
+            <button type="submit" class="ui-btn ui-btn--primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <span class="ui-spinner" aria-hidden="true"></span>
+                {{ c().saving }}
+              } @else {
+                {{ c().save }}
+              }
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+</section>

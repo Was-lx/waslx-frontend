@@ -1,0 +1,93 @@
+.ft {
+  position: relative;
+  padding-block: 56px 32px;
+  background: linear-gradient(180deg, #16213f 0%, #101a33 100%);
+  color: #c3cde0;
+  border-top: 1px solid rgb(255 255 255 / 0.06);
+}
+.ft__inner { position: relative; }
+
+.ft__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 2fr;
+  gap: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+.ft__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.ft__logo img { filter: drop-shadow(0 4px 12px rgb(139 92 246 / 0.4)); }
+.ft__x {
+  background: linear-gradient(120deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ft__tag { margin: 16px 0 20px; max-width: 320px; font-size: 14.5px; line-height: 1.6; color: #93a1c4; }
+.ft__social { display: flex; gap: 10px; }
+.ft__soc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  color: #c3cde8;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  transition: transform 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+}
+.ft__soc:hover {
+  transform: translateY(-3px);
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+  border-color: rgb(255 255 255 / 0.28);
+}
+
+.ft__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+.ft__col { display: flex; flex-direction: column; gap: 12px; }
+.ft__colTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7e8cb0;
+}
+.ft__link {
+  font-size: 14.5px;
+  color: #a5b1d0;
+  text-decoration: none;
+  width: fit-content;
+  transition: color 0.2s, transform 0.2s;
+}
+.ft__link:hover { color: #fff; transform: translateX(3px); }
+[dir='rtl'] .ft__link:hover { transform: translateX(-3px); }
+
+.ft__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 22px;
+  font-size: 13.5px;
+  color: #7683a6;
+  flex-wrap: wrap;
+}
+.ft__legal { display: flex; gap: 22px; }
+.ft__legal a { color: #7683a6; text-decoration: none; transition: color 0.2s; }
+.ft__legal a:hover { color: #c3cde0; }
+
+@media (max-width: 820px) {
+  .ft__grid { grid-template-columns: 1fr; gap: 36px; }
+}
+@media (max-width: 560px) {
+  .ft__cols { grid-template-columns: 1fr 1fr; gap: 24px; }
+}

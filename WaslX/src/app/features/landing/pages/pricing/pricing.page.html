@@ -1,0 +1,180 @@
+<!-- ============ PAGE HERO (split) ============ -->
+<section class="phx phx--pricing">
+  <span class="phx__grid" aria-hidden="true"></span>
+  <span class="phx__seam" aria-hidden="true"></span>
+  <div class="lp-container phx__inner">
+    <div class="phx__copy">
+      <span class="phx__rule" aria-hidden="true"></span>
+      <span class="lp-badge phx__badge" appReveal="fade"><span class="lp-badge__dot"></span> {{ c().pricingPage.badge }}</span>
+      <h1 class="phx__title" appReveal="up" [revealDelay]="80">{{ c().pricingPage.title }}</h1>
+      <p class="phx__sub" appReveal="up" [revealDelay]="160">{{ c().pricingPage.subtitle }}</p>
+
+      <div class="pr__toggle" appReveal="fade" [revealDelay]="240">
+        <button type="button" class="pr__seg" [class.is-on]="!yearly()" (click)="yearly.set(false)">
+          {{ c().pricingPage.monthly }}
+        </button>
+        <button type="button" class="pr__seg" [class.is-on]="yearly()" (click)="yearly.set(true)">
+          {{ c().pricingPage.yearly }}
+          <span class="pr__save">{{ c().pricingPage.yearlyNote }}</span>
+        </button>
+      </div>
+    </div>
+
+    <aside class="phx__visual" appReveal="scale" [revealDelay]="220" aria-hidden="true">
+      <div class="phx__tilt" appTilt>
+        <div class="phx-price__card lp-card">
+          <span class="phx-price__tag"><app-icon name="star" [size]="12" /> {{ plans()[1].name }}</span>
+          <div class="phx-price__amt">
+            <span class="phx-price__cur">$</span>
+            <b class="phx-price__num">{{ price(plans()[1]) }}</b>
+            <span class="phx-price__per">{{ c().pricingPage.perMonth }}</span>
+          </div>
+          <div class="phx-price__bar" [class.is-year]="yearly()"><span></span></div>
+          <ul class="phx-price__feat">
+            @for (f of plans()[1].features.slice(0, 3); track f) {
+              <li><app-icon name="check-circle" [size]="14" /> {{ f }}</li>
+            }
+          </ul>
+        </div>
+        <span class="phx__chip phx-price__chip">
+          <span class="phx-dot"></span> {{ yearly() ? c().pricingPage.yearlyNote : c().pricingPage.perMonth }}
+        </span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ PLANS ============ -->
+<section class="lp-band--sunken lp-section lp-section--tight">
+  <div class="lp-container">
+    <div class="pr__grid" appStagger [staggerStep]="100">
+      @for (plan of plans(); track plan.id) {
+        <article class="pr__plan lp-card" [class.pr__plan--pop]="plan.popular">
+          @if (plan.popular) {
+            <span class="pr__tag"><app-icon name="star" [size]="13" /> {{ c().pricingPage.mostPopular }}</span>
+          }
+          <div class="pr__planHead">
+            <div class="lp-icon-tile" [class.lp-icon-tile--ai]="plan.icon === 'sparkles'">
+              <app-icon [name]="plan.icon" [size]="20" />
+            </div>
+            <div>
+              <h3 class="pr__name">{{ plan.name }}</h3>
+              <p class="pr__tagline">{{ plan.tagline }}</p>
+            </div>
+          </div>
+
+          <div class="pr__price">
+            @if (isCustom(plan)) {
+              <span class="pr__amount">{{ plan.priceCustom }}</span>
+            } @else {
+              <span class="pr__currency">$</span><span class="pr__amount">{{ price(plan) }}</span>
+              <span class="pr__per">{{ c().pricingPage.perMonth }}</span>
+            }
+          </div>
+
+          <a
+            class="lp-btn pr__cta"
+            [class.lp-btn--primary]="plan.popular"
+            [class.lp-btn--ghost]="!plan.popular"
+            [routerLink]="isCustom(plan) ? '/contact' : '/signup'"
+          >
+            {{ isCustom(plan) ? ctaContact() : ctaTrial() }}
+          </a>
+
+          <ul class="pr__features">
+            @for (f of plan.features; track f) {
+              <li><app-icon name="check-circle" [size]="17" /> {{ f }}</li>
+            }
+          </ul>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPARISON TABLE ============ -->
+<section class="lp-band--paper lp-section">
+  <div class="lp-container">
+    <div class="lp-head">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="check" [size]="15" /> Compare</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().pricingPage.comparisonTitle }}</h2>
+    </div>
+
+    <div class="lp-card pr__cmpCard" appReveal="up" [revealDelay]="160">
+      <div class="pr__cmpScroll" style="overflow-x: auto">
+        <table class="pr__cmp">
+          <thead>
+            <tr>
+              <th class="pr__cmpFeature" scope="col"></th>
+              @for (p of c().pricingPage.comparisonPlans; track p; let ci = $index) {
+                <th scope="col" [class.pr__cmpMid]="ci === 1">{{ p }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of c().pricingPage.comparison; track row.feature) {
+              <tr>
+                <th class="pr__cmpFeature" scope="row">{{ row.feature }}</th>
+                @for (cell of row.cells; track $index; let ci = $index) {
+                  <td [class.pr__cmpMid]="ci === 1">
+                    @if (cell === 'yes') {
+                      <app-icon name="check" [size]="16" class="pr__yes" />
+                    } @else if (cell === 'no') {
+                      <span class="pr__no" aria-hidden="true">—</span>
+                    } @else {
+                      <span class="pr__cmpVal">{{ cell }}</span>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ASSURANCE ============ -->
+<section class="lp-band--sunken lp-section">
+  <div class="lp-container">
+    <div class="lp-head">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="shield" [size]="15" /> Included</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().pricingPage.assuranceTitle }}</h2>
+    </div>
+
+    <div class="pr__assure lp-tiles-multi" appStagger [staggerStep]="90">
+      @for (item of c().pricingPage.assurance; track item.title) {
+        <article class="lp-card pr__assureCard">
+          <div class="lp-icon-tile lp-icon-tile--soft">
+            <app-icon [name]="item.icon" [size]="20" />
+          </div>
+          <h3 class="pr__assureTitle">{{ item.title }}</h3>
+          <p class="pr__assureDesc">{{ item.desc }}</p>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="lp-band--paper lp-section faq">
+  <div class="lp-container faq__wrap">
+    <div class="lp-head">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="message" [size]="15" /> FAQ</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().pricingPage.faqTitle }}</h2>
+    </div>
+
+    <div class="faq__list" appStagger [staggerStep]="70" staggerFrom="up">
+      @for (item of c().pricingPage.faqs; track item.q; let i = $index) {
+        <div class="faq__item" [class.is-open]="openFaq() === i">
+          <button type="button" class="faq__q" (click)="toggleFaq(i)" [attr.aria-expanded]="openFaq() === i">
+            {{ item.q }}
+            <span class="faq__chevron"><app-icon name="chevron-down" [size]="18" /></span>
+          </button>
+          <div class="faq__a"><p>{{ item.a }}</p></div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

@@ -43,7 +43,8 @@ export class AdminLayoutComponent {
         items: [
           { id: 'dashboard', label: t('dashboard'), description: t('dashboardDesc'), icon: 'grid', routerLink: '/app/dashboard' },
           { id: 'inbox', label: t('inbox'), description: t('inboxDesc'), icon: 'message', routerLink: '/app/inbox', badge: t('live') },
-          { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' }
+          { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' },
+          { id: 'whatsapp', label: t('whatsapp'), description: t('whatsappDesc'), icon: 'phone', routerLink: '/app/channels' }
         ]
       },
       {
@@ -59,6 +60,8 @@ export class AdminLayoutComponent {
         id: 'system',
         label: t('system'),
         items: [
+          { id: 'permissions', label: t('permissions'), description: t('permissionsDesc'), icon: 'lock', routerLink: '/app/permissions', roles: ['Admin', 'SuperAdmin'] as AppRole[] },
+          { id: 'subscription', label: t('subscription'), description: t('subscriptionDesc'), icon: 'credit-card', routerLink: '/app/subscription', roles: ['Admin', 'SuperAdmin'] as AppRole[] },
           { id: 'settings', label: t('settings'), description: t('settingsDesc'), icon: 'sliders', routerLink: '/app/settings', roles: ['Admin', 'SuperAdmin'] as AppRole[] }
         ]
       }

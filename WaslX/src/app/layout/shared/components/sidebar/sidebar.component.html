@@ -1,105 +1,54 @@
 <aside
-  class="sidebar"
-  [class.sidebar--collapsed]="collapsed()"
-  [class.sidebar--mobile-open]="mobileOpen()"
+  class="side"
+  [class.side--collapsed]="collapsed()"
+  [class.side--mobile-open]="mobileOpen()"
 >
-  <div class="sidebar__top">
-    <a class="sidebar__brand" routerLink="/app/dashboard" aria-label="WaslX home">
-      <span class="sidebar__brand-mark">
-        <img src="/logo.png" alt="" />
-      </span>
-      <span class="sidebar__brand-copy">
+  <div class="side__head">
+    <a class="side__brand" routerLink="/app/dashboard" (click)="closeMobile.emit()" aria-label="WaslX home">
+      <span class="side__logo"><img src="/logo.png" alt="" /></span>
+      <span class="side__brandcopy">
         <strong>{{ brandName() }}</strong>
         <span>{{ brandSubtitle() }}</span>
       </span>
     </a>
-
-    <button
-      class="sidebar__collapse"
-      type="button"
-      (click)="toggleCollapsed.emit()"
-      [attr.aria-label]="collapseLabel()"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M15 6 9 12l6 6" />
-      </svg>
-    </button>
   </div>
 
-  <div class="sidebar__groups">
-    @for (group of groups(); track group.id) {
-    <section class="sidebar__group" [attr.aria-label]="group.label">
-      <div class="sidebar__group-label">{{ group.label }}</div>
-
-      <div class="sidebar__items">
-        @for (item of group.items; track item.id) {
-        <a
-          *appHasRole="item.roles"
-          class="sidebar__item"
-          [routerLink]="item.routerLink"
-          routerLinkActive="sidebar__item--active"
-          (click)="closeMobile.emit()"
-        >
-          <span class="sidebar__icon" aria-hidden="true">
-            @switch (item.icon) { @case ('grid') {
-            <svg viewBox="0 0 24 24">
-              <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" />
-            </svg>
-            } @case ('message') {
-            <svg viewBox="0 0 24 24"><path d="M4 5h16v10H7l-3 3z" /></svg>
-            } @case ('chart') {
-            <svg viewBox="0 0 24 24">
-              <path d="M4 19V5" />
-              <path d="M4 19h16" />
-              <path d="M8 15v-4" />
-              <path d="M12 15V9" />
-              <path d="M16 15v-7" />
-            </svg>
-            } @case ('folder') {
-            <svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v10H3z" /></svg>
-            } @case ('sliders') {
-            <svg viewBox="0 0 24 24">
-              <path d="M4 6h16" />
-              <path d="M4 12h16" />
-              <path d="M4 18h16" />
-              <path d="M9 6v0" />
-              <path d="M15 12v0" />
-              <path d="M7 18v0" />
-            </svg>
-            } @case ('shield') {
-            <svg viewBox="0 0 24 24">
-              <path d="M12 3 19 6v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z" />
-            </svg>
-            } @case ('users') {
-            <svg viewBox="0 0 24 24">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            } }
-          </span>
-
-          <span class="sidebar__item-copy">
-            <span class="sidebar__item-title">{{ item.label }}</span>
-            @if (!collapsed()) {
-            <span class="sidebar__item-description">{{ item.description }}</span>
-            }
-          </span>
-
-          @if (item.badge && !collapsed()) {
-          <span class="sidebar__badge">{{ item.badge }}</span>
-          }
-        </a>
-        }
-      </div>
-    </section>
-    }
-  </div>
-
+  <!-- Always-available collapse / expand toggle on the sidebar edge -->
   <button
-    class="sidebar__mobile-close"
+    class="side__toggle"
     type="button"
-    (click)="closeMobile.emit()"
-    [attr.aria-label]="closeNavigationLabel()"
+    (click)="toggleCollapsed.emit()"
+    [attr.aria-label]="collapseLabel()"
+    [attr.title]="collapseLabel()"
   >
-    {{ closeNavigationLabel() }}
+    <app-icon name="chevron-left" [size]="15" />
   </button>
+
+  <nav class="side__nav" aria-label="Primary">
+    @for (group of groups(); track group.id) {
+      <div class="side__group">
+        <span class="side__grouplabel">{{ group.label }}</span>
+        <div class="side__items">
+          @for (item of group.items; track item.id) {
+            <a
+              *appHasRole="item.roles"
+              class="side__item"
+              [routerLink]="item.routerLink"
+              routerLinkActive="is-active"
+              (click)="closeMobile.emit()"
+              [attr.title]="item.label"
+            >
+              <span class="side__ico" aria-hidden="true">
+                <app-icon [name]="item.icon" [size]="18" />
+              </span>
+              <span class="side__label">{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="side__badge">{{ item.badge }}</span>
+              }
+            </a>
+          }
+        </div>
+      </div>
+    }
+  </nav>
 </aside>

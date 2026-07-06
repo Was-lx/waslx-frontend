@@ -7,15 +7,18 @@ import { AuthApiService } from '../../../../core/auth/auth-api.service';
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { AuthShellComponent } from '../../components/auth-shell/auth-shell.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-reset-password-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthShellComponent, IconComponent],
   templateUrl: './reset-password.page.html',
   styleUrl: './reset-password.page.css'
 })
 export class ResetPasswordPageComponent implements OnInit {
+  readonly showPassword = signal(false);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly authApiService = inject(AuthApiService);
   private readonly toastService = inject(ToastService);
@@ -29,7 +32,8 @@ export class ResetPasswordPageComponent implements OnInit {
   readonly successMessage = signal('');
   readonly passwordHelpId = 'reset-password-help';
   
-  private token = '';
+  private email = '';
+  private code = '';
 
   readonly resetForm = this.formBuilder.group({
     password: ['', [Validators.required, Validators.minLength(8)]],
@@ -56,8 +60,10 @@ export class ResetPasswordPageComponent implements OnInit {
   };
 
   ngOnInit() {
-    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
-    if (!this.token) {
+    // The reset email links to /login/reset-password?email=..&code=..
+    this.email = this.route.snapshot.queryParamMap.get('email') ?? '';
+    this.code = this.route.snapshot.queryParamMap.get('code') ?? '';
+    if (!this.email || !this.code) {
       this.errorMessage.set(this.t('errorOccurred'));
     }
   }
@@ -74,14 +80,14 @@ export class ResetPasswordPageComponent implements OnInit {
       return;
     }
 
-    if (this.resetForm.invalid || !this.token) {
+    if (this.resetForm.invalid || !this.email || !this.code) {
       return;
     }
 
     this.submitting.set(true);
 
     try {
-      await firstValueFrom(this.authApiService.resetPassword({ token: this.token, password }));
+      await firstValueFrom(this.authApiService.resetPassword({ email: this.email, code: this.code, newPassword: password }));
       this.successMessage.set(this.t('passwordResetSuccess'));
       this.resetForm.reset();
       setTimeout(() => {
@@ -92,6 +98,10 @@ export class ResetPasswordPageComponent implements OnInit {
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  togglePassword(): void {
+    this.showPassword.update((v) => !v);
   }
 
   controlInvalid(controlName: 'password' | 'confirmPassword'): boolean {

@@ -1,16 +1,23 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { type TranslationKey, LanguageService } from '../../../../core/services/language.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { User, UsersApiService } from '../../../../core/api/users-api.service';
 import { AppRole } from '../../../../core/services/auth-session.service';
+import { apiErrorMessage } from '../../../../core/utils/api-error';
+
+type SortKey = 'name' | 'role' | 'status' | 'joined';
+type SortDir = 'asc' | 'desc';
+
+const PAGE_SIZE = 10;
 
 @Component({
   selector: 'app-users-list-page',
   standalone: true,
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, FormsModule],
   templateUrl: './users-list.page.html',
   styleUrl: './users-list.page.css'
 })
@@ -23,8 +30,51 @@ export class UsersListPageComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal(false);
 
+  // ─── Search / sort / pagination state ──────────────────────────────────────
+  readonly search = signal('');
+  readonly sortKey = signal<SortKey>('name');
+  readonly sortDir = signal<SortDir>('asc');
+  readonly page = signal(1);
+  readonly pageSize = PAGE_SIZE;
+
+  /** User awaiting activate/deactivate confirmation (null = no dialog). */
+  readonly pendingUser = signal<User | null>(null);
+
   readonly t = (key: TranslationKey) => this.languageService.text(key);
   readonly direction = () => this.languageService.getDirection();
+
+  // ─── Derived lists: filter → sort → paginate ───────────────────────────────
+  readonly filteredUsers = computed(() => {
+    const term = this.search().trim().toLowerCase();
+    if (!term) {
+      return this.users();
+    }
+    return this.users().filter(
+      (u) =>
+        u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
+    );
+  });
+
+  readonly sortedUsers = computed(() => {
+    const key = this.sortKey();
+    const dir = this.sortDir() === 'asc' ? 1 : -1;
+    return [...this.filteredUsers()].sort((a, b) => compareUsers(a, b, key) * dir);
+  });
+
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.sortedUsers().length / this.pageSize))
+  );
+
+  readonly pagedUsers = computed(() => {
+    const start = (this.page() - 1) * this.pageSize;
+    return this.sortedUsers().slice(start, start + this.pageSize);
+  });
+
+  /** Count of active members — display-only summary chip in the header. */
+  readonly activeCount = computed(() => this.users().filter((u) => u.isActive).length);
+
+  /** Placeholder rows used to render the loading skeleton (visual only). */
+  readonly skeletonRows = Array.from({ length: 6 });
 
   ngOnInit(): void {
     this.loadUsers();
@@ -36,21 +86,64 @@ export class UsersListPageComponent implements OnInit {
 
     this.usersApiService.getUsers().subscribe({
       next: (data) => {
-        // Since there is no real backend, if it fails or returns nothing, let's mock some users
-        this.users.set(data || []);
+        this.users.set(data ?? []);
         this.loading.set(false);
       },
       error: () => {
-        // Mock data for UI demonstration purposes when backend is not attached
-        this.users.set([
-          { id: '1', name: 'Ahmed Ali', email: 'ahmed@waslx.com', role: 'Admin', isActive: true, createdAt: new Date().toISOString() },
-          { id: '2', name: 'Sara Mostafa', email: 'sara@waslx.com', role: 'Manager', isActive: true, createdAt: new Date(Date.now() - 86400000).toISOString() },
-          { id: '3', name: 'Kareem Tarek', email: 'kareem@waslx.com', role: 'Agent', isActive: false, createdAt: new Date(Date.now() - 172800000).toISOString() },
-        ]);
+        this.error.set(true);
         this.loading.set(false);
-        // this.error.set(true); // Commmented out so UI renders the mock data
       }
     });
+  }
+
+  // ─── Search ────────────────────────────────────────────────────────────────
+  onSearchChange(value: string): void {
+    this.search.set(value);
+    this.page.set(1); // reset to first page whenever the query changes
+  }
+
+  // ─── Sorting ───────────────────────────────────────────────────────────────
+  sortBy(key: SortKey): void {
+    if (this.sortKey() === key) {
+      this.sortDir.update((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortKey.set(key);
+      this.sortDir.set('asc');
+    }
+    this.page.set(1);
+  }
+
+  sortIndicator(key: SortKey): string {
+    if (this.sortKey() !== key) {
+      return '';
+    }
+    return this.sortDir() === 'asc' ? '▲' : '▼';
+  }
+
+  // ─── Pagination ────────────────────────────────────────────────────────────
+  prevPage(): void {
+    this.page.update((p) => Math.max(1, p - 1));
+  }
+
+  nextPage(): void {
+    this.page.update((p) => Math.min(this.totalPages(), p + 1));
+  }
+
+  // ─── Activate / deactivate with confirmation ───────────────────────────────
+  requestToggle(user: User): void {
+    this.pendingUser.set(user);
+  }
+
+  cancelToggle(): void {
+    this.pendingUser.set(null);
+  }
+
+  confirmToggle(): void {
+    const user = this.pendingUser();
+    if (user) {
+      this.toggleStatus(user);
+    }
+    this.pendingUser.set(null);
   }
 
   toggleStatus(user: User): void {
@@ -60,26 +153,42 @@ export class UsersListPageComponent implements OnInit {
         this.users.update(users => users.map(u => u.id === user.id ? { ...u, isActive: newStatus } : u));
         this.toastService.success(this.t('userStatusUpdated'), '');
       },
-      error: () => {
-        // Mock success for demonstration
-        this.users.update(users => users.map(u => u.id === user.id ? { ...u, isActive: newStatus } : u));
-        this.toastService.success(this.t('userStatusUpdated'), '');
+      error: (err) => {
+        this.toastService.error(this.t('error'), apiErrorMessage(err, this.t('genericError')));
       }
     });
   }
 
   changeRole(user: User, newRole: string): void {
     const role = newRole as AppRole;
+    const previous = user.role;
+    // Optimistically reflect the change, roll back if the server rejects it.
+    this.users.update(users => users.map(u => u.id === user.id ? { ...u, role } : u));
     this.usersApiService.updateUserRole(user.id, role).subscribe({
       next: () => {
-        this.users.update(users => users.map(u => u.id === user.id ? { ...u, role } : u));
         this.toastService.success(this.t('userRoleUpdated'), '');
       },
-      error: () => {
-         // Mock success for demonstration
-         this.users.update(users => users.map(u => u.id === user.id ? { ...u, role } : u));
-         this.toastService.success(this.t('userRoleUpdated'), '');
+      error: (err) => {
+        this.users.update(users => users.map(u => u.id === user.id ? { ...u, role: previous } : u));
+        this.toastService.error(this.t('error'), apiErrorMessage(err, this.t('genericError')));
       }
+
     });
+  }
+}
+
+function compareUsers(a: User, b: User, key: SortKey): number {
+  switch (key) {
+    case 'name':
+      return a.name.localeCompare(b.name);
+    case 'role':
+      return a.role.localeCompare(b.role);
+    case 'status':
+      // active (true) sorts after inactive (false) in ascending order
+      return Number(a.isActive) - Number(b.isActive);
+    case 'joined':
+      return (a.createdAt || '').localeCompare(b.createdAt || '');
+    default:
+      return 0;
   }
 }

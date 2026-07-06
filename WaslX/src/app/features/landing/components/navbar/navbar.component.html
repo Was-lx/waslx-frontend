@@ -1,0 +1,68 @@
+<header class="nav" [class.nav--scrolled]="scrolled() || mobileOpen()" [class.nav--over-hero]="overHero()">
+  <div class="rail">
+    <div class="rail__inner">
+      <a class="brand" routerLink="/" (click)="closeMobile()" aria-label="WaslX home">
+        <img class="brand__mark" src="logo.png" alt="" width="42" height="42" />
+        <span class="brand__word">Wasl<span class="brand__x">X</span></span>
+      </a>
+
+      <nav class="nav__links" aria-label="Primary">
+        @for (link of c().nav; track link.path) {
+          <a
+            class="nav__link"
+            [routerLink]="link.path"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: link.path === '/' }"
+          >
+            <span class="nav__txt">{{ link.label }}</span>
+          </a>
+        }
+      </nav>
+
+      <div class="nav__actions">
+        <button type="button" class="icon-btn" (click)="toggleLanguage()" [attr.aria-label]="c().langLabel" [title]="c().langLabel">
+          <app-icon name="globe" [size]="17" />
+          <span class="icon-btn__label">{{ c().langLabel }}</span>
+        </button>
+        <button type="button" class="icon-btn icon-btn--round" (click)="toggleTheme()" aria-label="Toggle theme">
+          <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" [size]="17" />
+        </button>
+        <span class="nav__div" aria-hidden="true"></span>
+        <a class="ghost-link" routerLink="/login">{{ c().signIn }}</a>
+        <a class="btn-cta" routerLink="/signup">
+          {{ c().getStarted }}
+          <app-icon name="arrow-right" [size]="16" />
+        </a>
+      </div>
+
+      <button type="button" class="nav__burger" (click)="toggleMobile()" [attr.aria-expanded]="mobileOpen()" aria-label="Menu">
+        <app-icon [name]="mobileOpen() ? 'x' : 'menu'" [size]="22" />
+      </button>
+    </div>
+    <span class="nav__progress" appScrollProgress aria-hidden="true"></span>
+  </div>
+</header>
+
+@if (mobileOpen()) {
+  <div class="mobile-scrim" (click)="closeMobile()"></div>
+  <aside class="mobile">
+    <nav class="mobile__links">
+      @for (link of c().nav; track link.path) {
+        <a [routerLink]="link.path" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: link.path === '/' }" (click)="closeMobile()">{{ link.label }}</a>
+      }
+    </nav>
+    <div class="mobile__actions">
+      <button type="button" class="mobile__toggle" (click)="toggleLanguage()">
+        <app-icon name="globe" [size]="18" /> {{ c().langLabel }}
+      </button>
+      <button type="button" class="mobile__toggle" (click)="toggleTheme()">
+        <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
+        {{ theme() === 'dark' ? 'Light' : 'Dark' }}
+      </button>
+    </div>
+    <a class="ghost-link mobile__signin" routerLink="/login" (click)="closeMobile()">{{ c().signIn }}</a>
+    <a class="btn-cta mobile__cta" routerLink="/signup" (click)="closeMobile()">
+      {{ c().getStarted }} <app-icon name="arrow-right" [size]="16" />
+    </a>
+  </aside>
+}

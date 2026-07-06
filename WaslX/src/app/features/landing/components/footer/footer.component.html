@@ -1,0 +1,38 @@
+<footer class="ft">
+  <div class="lp-container ft__inner">
+    <div class="ft__grid">
+      <div class="ft__brandCol">
+        <a class="ft__logo" routerLink="/" aria-label="WaslX home">
+          <img src="logo.png" alt="" width="36" height="36" />
+          <span>Wasl<span class="ft__x">X</span></span>
+        </a>
+        <p class="ft__tag">{{ c().footer.tagline }}</p>
+        <div class="ft__social">
+          <a href="#" class="ft__soc" aria-label="Twitter"><app-icon name="twitter" [size]="18" /></a>
+          <a href="#" class="ft__soc" aria-label="LinkedIn"><app-icon name="linkedin" [size]="18" /></a>
+          <a href="#" class="ft__soc" aria-label="GitHub"><app-icon name="github" [size]="18" /></a>
+        </div>
+      </div>
+
+      <div class="ft__cols">
+        @for (col of c().footer.columns; track col.title) {
+          <div class="ft__col">
+            <h4 class="ft__colTitle">{{ col.title }}</h4>
+            @for (link of col.links; track link.label) {
+              <a class="ft__link" [routerLink]="link.path">{{ link.label }}</a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="ft__bottom">
+      <span>{{ c().footer.copyright }}</span>
+      <div class="ft__legal">
+        @for (link of c().footer.legal; track link.label) {
+          <a [routerLink]="link.path">{{ link.label }}</a>
+        }
+      </div>
+    </div>
+  </div>
+</footer>

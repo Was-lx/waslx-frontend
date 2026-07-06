@@ -1,83 +1,288 @@
-.settings-container {
+/* ═══════════════════════════════════════════════════════════════════════════
+   Settings — profile + change password
+   Leans on the shared .ui-* / .feature-page primitives (app-ui.css); only the
+   settings-specific card layout lives here. Logical properties throughout so the
+   layout mirrors cleanly in RTL.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.settings {
+  animation: settingsFade 320ms var(--ease-out, ease) both;
+}
+
+@keyframes settingsFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings { animation: none; }
+}
+
+/* ── Header lead ─────────────────────────────────────────────────────────── */
+.settings__lead {
+  margin: 8px 0 0;
+  max-inline-size: 60ch;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ── Identity summary — avatar + name + role, on a soft branded wash ─────── */
+.settings__identity {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  max-inline-size: 760px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--primary) 6%, transparent), transparent 60%),
+    var(--surface);
+}
+.settings__identity-glow {
+  position: absolute;
+  inset-block-start: -70px;
+  inset-inline-end: -60px;
+  inline-size: 220px;
+  block-size: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent), transparent 66%);
+  pointer-events: none;
+}
+
+.settings__avatar {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  inline-size: 54px;
+  block-size: 54px;
+  border-radius: 16px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 32%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.28);
+}
+.settings__avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+
+.settings__identity-body {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  margin-top: 2rem;
-  max-width: 600px;
+  gap: 5px;
+  min-inline-size: 0;
+  flex: 1 1 auto;
+}
+.settings__identity-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 1.08rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.settings__identity-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.settings__identity-meta svg {
+  color: var(--primary);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.settings-section {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 2rem;
+.settings__identity-status {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--success) 74%, var(--text-primary));
+  background: color-mix(in srgb, var(--success) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--success) 24%, transparent);
+}
+.settings__status-dot {
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgb(34 197 94 / 0.5);
+  animation: settingsPulse 2.4s ease-out infinite;
+}
+@keyframes settingsPulse {
+  0% { box-shadow: 0 0 0 0 rgb(34 197 94 / 0.5); }
+  70%, 100% { box-shadow: 0 0 0 7px rgb(34 197 94 / 0); }
 }
 
-.settings-section h3 {
-  margin-bottom: 1.5rem;
-  font-size: 1.25rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
+@media (max-width: 560px) {
+  .settings__identity { flex-wrap: wrap; }
+  .settings__identity-status { order: 3; }
 }
 
-.settings-form {
+/* ── Stacked sections ───────────────────────────────────────────────────── */
+.settings__stack {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 20px;
+  max-inline-size: 760px;
 }
 
-.form-group {
+/* ── Card (border/radius/shadow from .ui-card; add padding + inner rhythm) ─ */
+.settings__card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  transition: transform 200ms var(--ease-out, ease), box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+/* Top-accent hairline reveals on hover (signature move). */
+.settings__card::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+.settings__card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border-subtle));
+}
+.settings__card:hover::before { opacity: 1; }
+
+.settings__card-head {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 14px;
+  margin-block-end: 20px;
+  padding-block-end: 16px;
+  border-block-end: 1px solid var(--border-soft, var(--border-subtle));
 }
 
-.form-group label {
-  font-weight: 500;
+.settings__card-badge {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  inline-size: 42px;
+  block-size: 42px;
+  border-radius: 12px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+}
+.settings__card-badge--security {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.settings__card-badge svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.form-control {
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--bg-body);
+.settings__card-heading { min-inline-size: 0; }
+
+.settings__card-tag {
+  display: inline-block;
+  margin-block-end: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.settings__card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
-.form-control:focus {
-  outline: none;
-  border-color: var(--primary-color);
+.settings__card-desc {
+  margin: 6px 0 0;
+  max-inline-size: 52ch;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
-.form-control:disabled {
-  background: var(--bg-surface);
-  opacity: 0.7;
-  cursor: not-allowed;
+@media (prefers-reduced-motion: reduce) {
+  .settings__card { transition: none; }
+  .settings__card:hover { transform: none; }
+  .settings__status-dot { animation: none; }
 }
 
-.error-message {
-  color: var(--error-color);
-  font-size: 0.85rem;
+/* ── Form ───────────────────────────────────────────────────────────────── */
+.settings__form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.form-actions {
-  margin-top: 1rem;
+/* Two-column field grid on wide screens, single column on mobile. */
+.settings__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
+.settings__field--full {
+  grid-column: 1 / -1;
 }
 
-.btn-primary {
-  background: var(--primary-color);
-  color: white;
+@media (max-width: 560px) {
+  .settings__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+/* ── Actions ────────────────────────────────────────────────────────────── */
+.settings__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Keep the spinner sized to sit inline within the button. */
+.settings__actions .ui-spinner {
+  inline-size: 16px;
+  block-size: 16px;
+  border-width: 2px;
+  border-top-color: #fff;
+  border-color: color-mix(in srgb, #fff 45%, transparent);
+  border-block-start-color: #fff;
+}
+
+@media (max-width: 560px) {
+  .settings__actions .ui-btn {
+    inline-size: 100%;
+  }
 }

@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  background: var(--page-bg);
+  overflow-x: clip;
+}
+
+.lp-main {
+  display: block;
+  min-height: 60vh;
+}

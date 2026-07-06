@@ -102,6 +102,7 @@ export class AuthSessionService {
     try {
       const response = await firstValueFrom(
         this.http.post<RefreshSessionResponse>(`${environment.apiUrl}/auth/refresh`, {
+          token: currentSession.accessToken,
           refreshToken
         })
       );
@@ -137,6 +138,30 @@ export class AuthSessionService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Server-side logout: revokes the active refresh tokens, then clears the
+   * local session. Best-effort — the local session is cleared regardless.
+   */
+  async logout(): Promise<void> {
+    const accessToken = this.getAccessToken();
+
+    if (accessToken) {
+      try {
+        await firstValueFrom(
+          this.http.post<void>(
+            `${environment.apiUrl}/auth/logout`,
+            {},
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          )
+        );
+      } catch {
+        // Ignore network/auth errors; the local session is cleared below.
+      }
+    }
+
+    this.signOut();
   }
 
   signOut(): void {
