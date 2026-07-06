@@ -1,78 +1,271 @@
-<section class="onboarding-page" [attr.dir]="direction()">
-  <div class="onboarding-container">
-    <div class="onboarding-header">
-      <img src="/logo.png" alt="WaslX" class="onboarding-logo" />
-      <h1>{{ t('onboardingTitle') }}</h1>
-      <p class="onboarding-lead">{{ t('onboardingLead') }}</p>
-    </div>
+<section class="ob" [attr.dir]="direction()">
+  <!-- Ambient aurora / grid backdrop -->
+  <div class="ob__aurora" aria-hidden="true"></div>
+  <div class="ob__grid" aria-hidden="true"></div>
 
-    <div class="onboarding-progress">
-      <div class="step" [class.active]="currentStep() >= 1">1</div>
-      <div class="step-line" [class.active]="currentStep() >= 2"></div>
-      <div class="step" [class.active]="currentStep() >= 2">2</div>
-      <div class="step-line" [class.active]="currentStep() >= 3"></div>
-      <div class="step" [class.active]="currentStep() >= 3">3</div>
-    </div>
+  <div class="ob__shell">
+    <!-- ── Rail: brand + cinematic step tracker ───────────────────────── -->
+    <aside class="ob__rail">
+      <div class="ob__rail-glow" aria-hidden="true"></div>
+      <div class="ob__rail-grid" aria-hidden="true"></div>
+      <div class="ob__rail-scan" aria-hidden="true"></div>
 
-    <!-- Step 1 -->
-    @if (currentStep() === 1) {
-      <div class="onboarding-step">
-        <h2>{{ t('onboardingStepOneTitle') }}</h2>
-        <p class="onboarding-lead">{{ t('onboardingStepOneLead') }}</p>
-        <form [formGroup]="step1Form" (ngSubmit)="nextStep()">
-          <div class="form-group">
-            <label for="workspaceName">{{ t('workspaceName') }}</label>
-            <input id="workspaceName" formControlName="workspaceName" class="form-control" placeholder="e.g. Acme Corp" />
-            <small>{{ t('workspaceNameHelp') }}</small>
-          </div>
-          <div class="form-actions right">
-            <button type="submit" class="btn btn-primary" [disabled]="step1Form.invalid">{{ t('stepForward') }}</button>
-          </div>
-        </form>
+      <div class="ob__brand">
+        <span class="ob__brand-orb" aria-hidden="true">
+          <svg class="ob__brand-ring" viewBox="0 0 44 44">
+            <circle class="ob__brand-track" cx="22" cy="22" r="20" />
+            <circle
+              class="ob__brand-prog"
+              cx="22"
+              cy="22"
+              r="20"
+              [style.stroke-dashoffset]="125.6 - (125.6 * progressPct()) / 100"
+            />
+          </svg>
+          <img src="/logo.png" alt="WaslX" class="ob__logo" />
+        </span>
+        <span class="ob__tag">{{ c().brandTag }}</span>
       </div>
-    }
 
-    <!-- Step 2 -->
-    @if (currentStep() === 2) {
-      <div class="onboarding-step">
-        <h2>{{ t('onboardingStepTwoTitle') }}</h2>
-        <p class="onboarding-lead">{{ t('onboardingStepTwoLead') }}</p>
-        <form [formGroup]="step2Form" (ngSubmit)="nextStep()">
-          <div class="form-group">
-            <label for="inviteEmail">{{ t('adminEmail') }}</label>
-            <input id="inviteEmail" formControlName="inviteEmail" class="form-control" placeholder="colleague@company.com" />
-            <small>{{ t('adminEmailHelp') }}</small>
-          </div>
-          <div class="form-actions">
-            <button type="button" class="btn btn-secondary" (click)="prevStep()">{{ t('stepBack') }}</button>
-            <button type="submit" class="btn btn-primary">{{ t('stepForward') }}</button>
-          </div>
-        </form>
+      <ol class="ob__steps">
+        @for (step of c().steps; track step.key; let i = $index) {
+          <li
+            class="ob__step"
+            [class.is-active]="currentStep() === i + 1"
+            [class.is-done]="currentStep() > i + 1"
+          >
+            <span class="ob__step-rail" aria-hidden="true">
+              <span class="ob__step-mark">
+                @if (currentStep() > i + 1) {
+                  <app-icon name="check" [size]="16" />
+                } @else {
+                  <app-icon [name]="step.icon" [size]="18" />
+                }
+              </span>
+              @if (!$last) {
+                <span class="ob__step-line"></span>
+              }
+            </span>
+            <span class="ob__step-text">
+              <span class="ob__step-index">
+                {{ c().stepWord }} {{ i + 1 }}
+                @if (currentStep() > i + 1) {
+                  <span class="ob__step-state ob__step-state--done">{{ c().stateDone }}</span>
+                } @else if (currentStep() === i + 1) {
+                  <span class="ob__step-state ob__step-state--now">{{ c().stateNow }}</span>
+                }
+              </span>
+              <span class="ob__step-title">{{ step.title }}</span>
+              <span class="ob__step-caption">{{ step.caption }}</span>
+            </span>
+          </li>
+        }
+      </ol>
+
+      <!-- Live "system status" console — the cockpit signature -->
+      <div class="ob__console" aria-hidden="true">
+        <span class="ob__console-row">
+          <span class="ob__console-dot"></span>
+          <span class="ob__console-label">{{ c().railStatus }}</span>
+          <span class="ob__console-time">{{ clock() }}</span>
+        </span>
       </div>
-    }
 
-    <!-- Step 3 -->
-    @if (currentStep() === 3) {
-      <div class="onboarding-step">
-        <h2>{{ t('onboardingStepThreeTitle') }}</h2>
-        <p class="onboarding-lead">{{ t('onboardingStepThreeLead') }}</p>
-        
-        <div class="whatsapp-placeholder">
-          <!-- Placeholder for QR code or OAuth button -->
-          <p>{{ t('whatsappNumberHelp') }}</p>
+      <div class="ob__rail-foot">
+        <span class="ob__rail-mark">WaslX</span>
+        <span class="ob__rail-note">{{ c().railFoot }}</span>
+      </div>
+    </aside>
+
+    <!-- ── Panel: active step ─────────────────────────────────────────── -->
+    <div class="ob__panel">
+      <!-- Progress -->
+      <header class="ob__progress">
+        <div class="ob__progress-head">
+          <span class="ob__progress-label">{{ c().progressLabel(currentStep(), totalSteps) }}</span>
+          <span class="ob__progress-pct">{{ progressPct() | number: '1.0-0' }}%</span>
         </div>
+        <div
+          class="ob__bar"
+          role="progressbar"
+          [attr.aria-valuenow]="currentStep()"
+          [attr.aria-valuemin]="1"
+          [attr.aria-valuemax]="totalSteps"
+        >
+          <span class="ob__bar-fill" [style.inline-size.%]="progressPct()">
+            <span class="ob__bar-shine" aria-hidden="true"></span>
+          </span>
+        </div>
+      </header>
 
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="prevStep()">{{ t('stepBack') }}</button>
-          <button type="button" class="btn btn-primary" (click)="finishOnboarding()" [disabled]="loading()">
-            @if (loading()) {
-              Loading...
-            } @else {
-              {{ t('finishSetup') }}
+      <!-- Step 1 — Welcome -->
+      @if (currentStep() === 1) {
+        <div class="ob__body ob-anim">
+          <span class="ob__eyebrow ui-pill ui-pill--info">
+            <app-icon name="sparkles" [size]="14" />
+            {{ c().welcomeEyebrow }}
+          </span>
+          <h1 class="ob__title">
+            {{ c().welcomeGreetingPre }}
+            <span class="ob__title-name">{{ workspaceName() || c().workspaceFallback }}</span>
+          </h1>
+          <p class="ob__lead">{{ c().welcomeLead }}</p>
+
+          <ul class="ob__cards">
+            @for (b of c().welcomeCards; track b.title; let i = $index) {
+              <li class="ob__mcard" [style.--i]="i">
+                <span class="ob__mcard-icon"><app-icon [name]="b.icon" [size]="18" /></span>
+                <span class="ob__mcard-text">
+                  <span class="ob__mcard-title">{{ b.title }}</span>
+                  <span class="ob__mcard-sub">{{ b.sub }}</span>
+                </span>
+                <span class="ob__mcard-num">0{{ i + 1 }}</span>
+              </li>
             }
-          </button>
+          </ul>
+
+          <div class="ob__actions ob__actions--end">
+            <span class="ob__ttv">
+              <app-icon name="clock" [size]="15" />
+              {{ c().timeToValue }}
+            </span>
+            <button type="button" class="ui-btn ui-btn--primary ob__cta" (click)="goNext()">
+              {{ c().startCta }}
+              <app-icon name="arrow-right" [size]="18" class="ob-arrow" />
+            </button>
+          </div>
         </div>
-      </div>
-    }
+      }
+
+      <!-- Step 2 — Invite team -->
+      @if (currentStep() === 2) {
+        <div class="ob__body ob-anim">
+          <div class="ob__step-head">
+            <span class="ob__step-badge"><app-icon name="users" [size]="18" /></span>
+            <span class="ob__seats" aria-hidden="true">
+              <span class="ob__seats-num">{{ seatsFilled() }}</span>
+              <span class="ob__seats-of">/ 3</span>
+              <span class="ob__seats-label">{{ c().seatsLabel }}</span>
+            </span>
+          </div>
+          <h1 class="ob__title ob__title--sm">{{ c().inviteTitle }}</h1>
+          <p class="ob__lead">{{ c().inviteLead }}</p>
+
+          <form [formGroup]="inviteForm" (ngSubmit)="sendInvites()">
+            <div class="ob__rows" formArrayName="rows">
+              @for (row of rows.controls; track row; let i = $index) {
+                <div
+                  class="ob__row"
+                  [formGroupName]="i"
+                  [style.--i]="i"
+                  [class.is-filled]="(row.get('email')?.value?.trim()?.length ?? 0) > 0"
+                  [class.is-invalid]="row.get('email')?.touched && row.get('email')?.invalid"
+                >
+                  <span class="ob__row-num">{{ i + 1 }}</span>
+                  <div class="ui-field ob__field">
+                    <div class="ob__field-wrap">
+                      <span class="ob__field-icon"><app-icon name="mail" [size]="17" /></span>
+                      <input
+                        type="email"
+                        class="ui-input ob__input"
+                        formControlName="email"
+                        [placeholder]="c().emailPlaceholder"
+                        autocomplete="off"
+                        [attr.aria-invalid]="row.get('email')?.touched && row.get('email')?.invalid"
+                      />
+                    </div>
+                    @if (row.get('email')?.touched && row.get('email')?.invalid) {
+                      <span class="ui-error ob__error">{{ c().invalidEmail }}</span>
+                    }
+                  </div>
+                  <select class="ui-select ob__select" formControlName="role" [attr.aria-label]="c().roleManager">
+                    <option value="Manager">{{ c().roleManager }}</option>
+                    <option value="Agent">{{ c().roleAgent }}</option>
+                  </select>
+                </div>
+              }
+            </div>
+
+            <p class="ob__hint">
+              <app-icon name="shield" [size]="15" />
+              {{ c().inviteHint }}
+            </p>
+
+            <div class="ob__actions">
+              <button type="button" class="ui-btn ui-btn--ghost ob__back" (click)="goBack()">
+                <app-icon name="arrow-right" [size]="17" class="ob-flip" />
+                {{ c().back }}
+              </button>
+              <div class="ob__actions-right">
+                <button type="button" class="ob-link" (click)="skipInvites()">{{ c().skipForNow }}</button>
+                <button type="submit" class="ui-btn ui-btn--primary ob__cta" [disabled]="sendingInvites()">
+                  @if (sendingInvites()) {
+                    <span class="ui-spinner ob-spinner" aria-hidden="true"></span>
+                  } @else {
+                    <app-icon name="send" [size]="17" />
+                  }
+                  {{ c().sendInvites }}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      }
+
+      <!-- Step 3 — Connect WhatsApp -->
+      @if (currentStep() === 3) {
+        <div class="ob__body ob-anim">
+          <span class="ob__step-badge ob__step-badge--wa"><app-icon name="message" [size]="18" /></span>
+          <h1 class="ob__title ob__title--sm">{{ c().waTitle }}</h1>
+          <p class="ob__lead">{{ c().waLead }}</p>
+
+          <div class="ob__wa-card ui-card">
+            <span class="ob__wa-glow" aria-hidden="true"></span>
+
+            <!-- Signal handshake: brand → pulse → WhatsApp -->
+            <div class="ob__wa-signal" aria-hidden="true">
+              <span class="ob__wa-node ob__wa-node--brand"><app-icon name="zap" [size]="18" /></span>
+              <span class="ob__wa-wire">
+                <span class="ob__wa-pulse"></span>
+                <span class="ob__wa-pulse ob__wa-pulse--2"></span>
+              </span>
+              <span class="ob__wa-node ob__wa-node--wa">
+                <span class="ob__wa-rings"></span>
+                <app-icon name="message" [size]="22" />
+              </span>
+            </div>
+
+            <span class="ui-pill ui-pill--warning ui-pill--dot ob__wa-chip">
+              {{ c().waPending }}
+            </span>
+            <p class="ob__wa-note">{{ c().waNote }}</p>
+
+            <ul class="ob__wa-steps">
+              @for (s of c().waSteps; track s.text; let i = $index) {
+                <li class="ob__wa-step" [style.--i]="i">
+                  <span class="ob__wa-step-num">{{ i + 1 }}</span>
+                  <span>{{ s.text }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <div class="ob__actions">
+            <button type="button" class="ui-btn ui-btn--ghost ob__back" (click)="goBack()">
+              <app-icon name="arrow-right" [size]="17" class="ob-flip" />
+              {{ c().back }}
+            </button>
+            <button type="button" class="ui-btn ui-btn--primary ob__cta" (click)="finish()" [disabled]="loading()">
+              @if (loading()) {
+                <span class="ui-spinner ob-spinner" aria-hidden="true"></span>
+              } @else {
+                <app-icon name="check-circle" [size]="18" />
+              }
+              {{ c().finishCta }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
   </div>
 </section>

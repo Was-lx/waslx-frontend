@@ -5,21 +5,27 @@ import { firstValueFrom } from 'rxjs';
 
 import { AuthSessionService, type AppRole } from '../../../../core/services/auth-session.service';
 import { AuthApiService } from '../../../../core/auth/auth-api.service';
+import { PermissionsStore } from '../../../../core/services/permissions.store';
+import { apiError } from '../../../../core/utils/api-error';
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { AuthShellComponent } from '../../components/auth-shell/auth-shell.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthShellComponent, IconComponent],
   templateUrl: './login.page.html',
   styleUrl: './login.page.css'
 })
 export class LoginPageComponent {
+  readonly showPassword = signal(false);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly authSessionService = inject(AuthSessionService);
   private readonly authApiService = inject(AuthApiService);
+  private readonly permissionsStore = inject(PermissionsStore);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toastService = inject(ToastService);
@@ -91,30 +97,31 @@ export class LoginPageComponent {
         }
       );
 
-      this.toastService.success(
-        this.languageService.text('signedIn'),
-        this.languageService.text('workspaceReady')
-      );
+      // Load the real, per-tenant resolved permissions so the UI gates correctly.
+      await this.permissionsStore.load();
+
+      // No success toast — landing on the dashboard is the confirmation.
+      // An Admin who hasn't finished workspace setup resumes onboarding first.
+      const explicitRedirect = this.route.snapshot.queryParamMap.get('redirectTo');
+      if (primaryRole === 'Admin' && !this.permissionsStore.onboardingCompleted() && !explicitRedirect) {
+        void this.router.navigateByUrl('/onboarding', { replaceUrl: true });
+        return;
+      }
 
       void this.router.navigateByUrl(this.resolveLandingTarget(primaryRole), { replaceUrl: true });
     } catch (error: any) {
-      // Assuming 429 status or specific error code for lockout
-      if (error?.status === 429 || error?.error?.code === 'lockout') {
-        const msg = this.languageService.language() === 'ar' 
-          ? 'تم حظر الحساب مؤقتاً بسبب محاولات فاشلة متكررة.' 
+      // Backend signals a locked account with 401 + code 'User.LockedUser'
+      // (RFC7807 ProblemDetails → errors:[code, description]).
+      const { code } = apiError(error);
+      // Errors are shown inline (below the form) — no toast, to keep it professional.
+      if (error?.status === 429 || code === 'User.LockedUser') {
+        const msg = this.languageService.language() === 'ar'
+          ? 'تم حظر الحساب مؤقتاً بسبب محاولات فاشلة متكررة.'
           : 'Account temporarily locked due to repeated failed attempts.';
         this.lockoutMessage.set(msg);
         this.errorMessage.set('');
-        this.toastService.error(
-          this.languageService.text('auth'),
-          msg
-        );
       } else {
         this.errorMessage.set(this.languageService.text('invalidCredentials'));
-        this.toastService.error(
-          this.languageService.text('auth'),
-          this.languageService.text('invalidCredentials')
-        );
       }
     } finally {
       this.submitting.set(false);
@@ -127,6 +134,10 @@ export class LoginPageComponent {
 
   toggleTheme(): void {
     this.themeService.toggleTheme();
+  }
+
+  togglePassword(): void {
+    this.showPassword.update((v) => !v);
   }
 
   controlInvalid(controlName: 'email' | 'password'): boolean {

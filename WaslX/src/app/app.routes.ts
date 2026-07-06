@@ -6,13 +6,12 @@ import { roleMatchGuard } from './core/guards/role-match.guard';
 
 export const routes: Routes = [
   {
-    path: '',
-    pathMatch: 'full',
-    loadComponent: () => import('./features/landing/pages/landing/landing.page').then((m) => m.LandingPageComponent)
-  },
-  {
     path: 'login',
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.authRoutes)
+  },
+  {
+    path: 'signup',
+    loadComponent: () => import('./features/auth/pages/signup/signup.page').then((m) => m.SignupPageComponent)
   },
   {
     path: 'onboarding',
@@ -33,7 +32,7 @@ export const routes: Routes = [
       {
         path: 'superadmin',
         canMatch: [roleMatchGuard(['SuperAdmin'])],
-        loadChildren: () => import('./features/admin/dashboard/dashboard.routes').then((m) => m.adminDashboardRoutes) // Place-holding it to admin routes for now, as user didn't specify superadmin feature yet, but he wants it on its own layout. Wait, I should make a dummy superadmin routes file so it doesn't pollute admin routes. Let's create it later.
+        loadChildren: () => import('./features/superadmin/superadmin.routes').then((m) => m.superAdminRoutes)
       },
       {
         path: 'dashboard',
@@ -75,6 +74,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/contacts/contacts.routes').then((m) => m.contactsRoutes)
       },
       {
+        path: 'channels',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/channels/channels.routes').then((m) => m.channelsRoutes)
+      },
+      {
         path: 'users',
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager'] },
@@ -95,10 +100,26 @@ export const routes: Routes = [
       {
         path: 'settings',
         canActivate: [roleGuard],
-        data: { roles: ['Admin'] },
+        data: { roles: ['Admin', 'Manager', 'Agent'] },
         loadChildren: () => import('./features/settings/settings.routes').then((m) => m.settingsRoutes)
+      },
+      {
+        path: 'permissions',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] },
+        loadChildren: () => import('./features/permissions/permissions.routes').then((m) => m.permissionsRoutes)
+      },
+      {
+        path: 'subscription',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] },
+        loadChildren: () => import('./features/subscription/subscription.routes').then((m) => m.subscriptionRoutes)
       }
     ]
+  },
+  {
+    path: '',
+    loadChildren: () => import('./features/landing/landing.routes').then((m) => m.landingRoutes)
   },
   {
     path: '**',

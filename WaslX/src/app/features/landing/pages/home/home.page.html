@@ -1,0 +1,428 @@
+<!-- ══ HERO (split) ═══════════════════════════════════════════════════════ -->
+<section class="hero" [class.is-ready]="heroReady()">
+  <div class="hero__bg" aria-hidden="true">
+    <span class="lp-orb hero__orb hero__orb--1" appParallax [parallaxSpeed]="0.08"></span>
+    <span class="lp-orb hero__orb hero__orb--2" appParallax [parallaxSpeed]="-0.06"></span>
+    <span class="lp-orb hero__orb hero__orb--3"></span>
+    <div class="hero__grid"></div>
+    <div class="hero__beam"></div>
+  </div>
+
+  <div class="lp-container hero__split">
+    <!-- LEFT: copy -->
+    <div class="hero__copy">
+      <span class="hero__badge">
+        <span class="hero__badgeDot"></span>
+        <app-icon name="sparkles" [size]="14" />
+        {{ c().hero.badge }}
+      </span>
+
+      <h1 class="hero__title">
+        <span class="hero__titleLead">{{ c().hero.titleLead }}</span>
+        <span class="hero__rotate">
+          <span class="hero__rotateWord lp-grad-text--flow">{{ rotatingWord() }}</span>
+          <span class="hero__caret"></span>
+        </span>
+      </h1>
+
+      <p class="hero__sub">{{ c().hero.subtitle }}</p>
+
+      <div class="hero__cta">
+        <a class="lp-btn lp-btn--lg lp-btn--primary" appMagnetic routerLink="/signup">
+          {{ c().hero.ctaPrimary }} <app-icon name="arrow-right" [size]="18" />
+        </a>
+        <a class="lp-btn lp-btn--lg lp-btn--ghost" routerLink="/pricing">
+          <app-icon name="chart" [size]="16" /> {{ c().hero.ctaSecondary }}
+        </a>
+      </div>
+
+      <div class="hero__trust">
+        <div class="hero__avatars">
+          <span class="hero__ta hero__ta--1">SA</span>
+          <span class="hero__ta hero__ta--2">MK</span>
+          <span class="hero__ta hero__ta--3">LR</span>
+          <span class="hero__ta hero__ta--4">+</span>
+        </div>
+        <p class="hero__trustText">
+          <span class="hero__trustStars">
+            <app-icon name="star" [size]="13" /><app-icon name="star" [size]="13" /><app-icon name="star" [size]="13" /><app-icon name="star" [size]="13" /><app-icon name="star" [size]="13" />
+          </span>
+          {{ c().hero.trustText }}
+        </p>
+      </div>
+    </div>
+
+    <!-- RIGHT: animated visual -->
+    <div class="hero__visual" appParallax [parallaxSpeed]="-0.08" [parallaxMax]="40">
+      <div class="hero__vGlow" aria-hidden="true"></div>
+
+      <div class="hv-card hv-card--route" aria-hidden="true">
+        <div class="hv-route__head"><app-icon name="route" [size]="14" /> Smart routing</div>
+        <div class="hv-route__row"><span class="hv-dot hv-dot--g"></span> Nour · Ops <b>best fit</b></div>
+        <div class="hv-route__row hv-route__row--dim"><span class="hv-dot"></span> Karim · Sales</div>
+        <div class="hv-route__bar"><span></span></div>
+      </div>
+
+      <div class="stage hero__stage" appTilt dir="ltr">
+        <div class="stage__bar">
+          <span class="stage__dot"></span><span class="stage__dot"></span><span class="stage__dot"></span>
+          <span class="stage__url">app.waslx.com/inbox</span>
+        </div>
+        <div class="stage__body stage__body--hero">
+          <div class="mk-list">
+            <div class="mk-list__head">Conversations</div>
+            <div class="mk-conv is-active">
+              <span class="mk-avatar mk-avatar--a">SA</span>
+              <div class="mk-conv__body"><b>Sara Adel</b><span>Is my order shipped?</span></div>
+              <span class="mk-pill mk-pill--ai">AI</span>
+            </div>
+            <div class="mk-conv">
+              <span class="mk-avatar mk-avatar--b">MK</span>
+              <div class="mk-conv__body"><b>Mostafa K.</b><span>الفاتورة فيها مشكلة…</span></div>
+              <span class="mk-pill mk-pill--urgent">VIP</span>
+            </div>
+            <div class="mk-conv">
+              <span class="mk-avatar mk-avatar--c">LR</span>
+              <div class="mk-conv__body"><b>Layla R.</b><span>Thanks! 🙌</span></div>
+            </div>
+          </div>
+
+          <div class="mk-chat">
+            <div class="mk-chat__stream">
+              <div class="mk-bubble mk-bubble--in">Hi! Is my order #4821 shipped yet?</div>
+              <div class="mk-bubble mk-bubble--out">Hi Sara! Let me check that for you. 😊</div>
+              <div class="mk-ai hv-ai">
+                <div class="mk-ai__head"><app-icon name="sparkles" [size]="14" /> AI suggestion <span class="mk-ai__tag">98% match</span></div>
+                <p class="mk-ai__text hv-typing"><span class="hv-typing__ink">Yes — order #4821 shipped today and arrives tomorrow. I can update the address before dispatch.</span><span class="hv-typing__caret"></span></p>
+                <div class="mk-ai__actions"><span class="mk-ai__use">Insert reply</span><span class="mk-ai__alt">2 more</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hv-chip" aria-hidden="true">
+        <span class="hv-chip__icon"><app-icon name="zap" [size]="16" /></span>
+        <div><b [appCountUp]="1.4" [countDecimals]="1" countSuffix="s">1.4s</b><span>AI response</span></div>
+      </div>
+      <span class="hv-orbit hv-orbit--1" aria-hidden="true"></span>
+      <span class="hv-orbit hv-orbit--2" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ══ MARQUEE ════════════════════════════════════════════════════════════ -->
+<section class="lp-band--paper marq" aria-label="Trusted by teams">
+  <p class="marq__label">{{ c().marqueeLabel }}</p>
+  <div class="marq__track">
+    <div class="marq__row">
+      @for (n of logoRow; track $index) {
+        <span class="marq__logo"><app-icon [name]="n.icon" [size]="20" /> {{ n.label }}</span>
+      }
+      @for (n of logoRow; track 'b' + $index) {
+        <span class="marq__logo" aria-hidden="true"><app-icon [name]="n.icon" [size]="20" /> {{ n.label }}</span>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ══ STATS — light telemetry cluster ════════════════════════════════════ -->
+<section class="lp-band--sunken lp-stats">
+  <span class="lp-stats__grid" aria-hidden="true"></span>
+  <span class="lp-stats__aurora" aria-hidden="true"></span>
+  <div class="lp-container">
+    <header class="lp-stats__head" appReveal="up">
+      <span class="lp-stats__eyebrow"><app-icon name="trending-up" [size]="15" /> {{ c().statsEyebrow }}</span>
+      <span class="lp-stats__rule" aria-hidden="true"></span>
+    </header>
+
+    <div class="lp-stats__cluster" appStagger [staggerStep]="100">
+      <!-- LEAD = stats[1] (3× faster resolution) -->
+      <article class="lp-stat lp-stat--lead">
+        <div class="lp-stat__plate lp-card--spot" appSpotlight appTilt>
+          <span class="lp-stat__dot" aria-hidden="true"></span>
+          <span class="lp-stat__num">
+            <span [appCountUp]="c().stats[1].value" [countDecimals]="c().stats[1].decimals" [countPrefix]="c().stats[1].prefix" [countSuffix]="c().stats[1].suffix">{{ c().stats[1].prefix }}0{{ c().stats[1].suffix }}</span>
+          </span>
+          <span class="lp-stat__label">{{ c().stats[1].label }}</span>
+          <span class="lp-stat__wipe" aria-hidden="true"></span>
+        </div>
+      </article>
+      <!-- SATELLITE = stats[0] (10,000+) -->
+      <article class="lp-stat lp-stat--a">
+        <div class="lp-stat__plate">
+          <span class="lp-stat__dot" aria-hidden="true"></span>
+          <span class="lp-stat__num">
+            <span [appCountUp]="c().stats[0].value" [countDecimals]="c().stats[0].decimals" [countPrefix]="c().stats[0].prefix" [countSuffix]="c().stats[0].suffix">{{ c().stats[0].prefix }}0{{ c().stats[0].suffix }}</span>
+          </span>
+          <span class="lp-stat__label">{{ c().stats[0].label }}</span>
+        </div>
+      </article>
+      <!-- SATELLITE = stats[2] (40%) -->
+      <article class="lp-stat lp-stat--b">
+        <div class="lp-stat__plate">
+          <span class="lp-stat__dot" aria-hidden="true"></span>
+          <span class="lp-stat__num">
+            <span [appCountUp]="c().stats[2].value" [countDecimals]="c().stats[2].decimals" [countPrefix]="c().stats[2].prefix" [countSuffix]="c().stats[2].suffix">{{ c().stats[2].prefix }}0{{ c().stats[2].suffix }}</span>
+          </span>
+          <span class="lp-stat__label">{{ c().stats[2].label }}</span>
+        </div>
+      </article>
+      <!-- SATELLITE = stats[3] (90%) -->
+      <article class="lp-stat lp-stat--c">
+        <div class="lp-stat__plate">
+          <span class="lp-stat__dot" aria-hidden="true"></span>
+          <span class="lp-stat__num">
+            <span [appCountUp]="c().stats[3].value" [countDecimals]="c().stats[3].decimals" [countPrefix]="c().stats[3].prefix" [countSuffix]="c().stats[3].suffix">{{ c().stats[3].prefix }}0{{ c().stats[3].suffix }}</span>
+          </span>
+          <span class="lp-stat__label">{{ c().stats[3].label }}</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BEFORE / AFTER ═════════════════════════════════════════════════════ -->
+<section class="lp-band--paper lp-section cmp">
+  <div class="lp-container">
+    <div class="plat__opener" appReveal="up"><span class="plat__rule" aria-hidden="true"></span></div>
+    <div class="lp-head lp-head--start">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="route" [size]="15" /> {{ c().compareEyebrow }}</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().compareTitle }}</h2>
+      <p class="lp-lead" appReveal="up" [revealDelay]="160">{{ c().compareSubtitle }}</p>
+    </div>
+    <div class="cmp__grid" appStagger [staggerStep]="120">
+      <div class="cmp__card cmp__card--bad">
+        <div class="cmp__head cmp__head--bad"><app-icon name="x" [size]="16" /> {{ c().compareBadLabel }}</div>
+        <ul class="cmp__list">
+          @for (p of c().compareBad; track p) { <li><span class="cmp__x"><app-icon name="x" [size]="13" /></span> {{ p }}</li> }
+        </ul>
+      </div>
+      <div class="cmp__card cmp__card--good">
+        <span class="cmp__glow" aria-hidden="true"></span>
+        <div class="cmp__head cmp__head--good"><app-icon name="check" [size]="16" /> {{ c().compareGoodLabel }}</div>
+        <ul class="cmp__list">
+          @for (p of c().compareGood; track p) { <li><span class="cmp__check"><app-icon name="check" [size]="13" /></span> {{ p }}</li> }
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ONE PLATFORM — zigzag plates ═══════════════════════════════════════ -->
+<section class="lp-band--sunken lp-section plat">
+  <span class="plat__seam" aria-hidden="true"></span>
+  <div class="lp-container">
+    <div class="plat__opener" appReveal="up">
+      <span class="plat__rule" aria-hidden="true"></span>
+    </div>
+    <div class="lp-head lp-head--start">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="layers" [size]="15" /> {{ c().featuresEyebrow }}</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().featuresTitle }}</h2>
+      <p class="lp-lead" appReveal="up" [revealDelay]="160">{{ c().featuresSubtitle }}</p>
+    </div>
+
+    <div class="plat__rows">
+      @for (f of c().features; track f.title; let i = $index) {
+        <div class="plat__row" [class.plat__row--rev]="i % 2 === 1">
+          <div class="plat__text lp-card lp-card--spot" appSpotlight appReveal [revealDelay]="60">
+            <span class="plat__eyebrow"><app-icon [name]="f.icon" [size]="15" /> {{ f.eyebrow }}</span>
+            <h3 class="lp-h3 plat__title">{{ f.title }}</h3>
+            <p class="plat__desc">{{ f.desc }}</p>
+            <ul class="plat__points" appStagger [staggerStep]="70">
+              @for (p of f.points; track p) { <li><app-icon name="check-circle" [size]="18" /> {{ p }}</li> }
+            </ul>
+          </div>
+
+          <div class="plat__visual" appReveal="scale" [revealDelay]="120">
+            <span class="plat__vGlow" aria-hidden="true"></span>
+            <div class="plat__stage lp-card" appTilt dir="ltr" [attr.data-kind]="f.kind">
+              @if (f.kind === 'inbox') {
+                <div class="pv-head"><app-icon name="inbox" [size]="14" /> Inbox <span class="pv-live"></span></div>
+                <div class="pv-conv is-active"><span class="pv-av pv-av--a">SA</span><b>Sara Adel</b><span class="pv-tag pv-tag--ai">AI</span></div>
+                <div class="pv-conv"><span class="pv-av pv-av--b">MK</span><b>Mostafa K.</b><span class="pv-tag pv-tag--vip">VIP</span></div>
+                <div class="pv-conv"><span class="pv-av pv-av--c">LR</span><b>Layla R.</b></div>
+              }
+              @if (f.kind === 'route') {
+                <div class="pv-head"><app-icon name="route" [size]="14" /> Smart routing <span class="pv-live"></span></div>
+                <div class="pv-route pv-route--win"><span class="pv-dot pv-dot--g"></span> Nour · Ops <b>best fit</b><i class="pv-bar" style="--w: 92%"></i></div>
+                <div class="pv-route"><span class="pv-dot"></span> Karim · Sales<i class="pv-bar" style="--w: 61%"></i></div>
+                <div class="pv-route"><span class="pv-dot"></span> Huda · Support<i class="pv-bar" style="--w: 44%"></i></div>
+              }
+              @if (f.kind === 'ai') {
+                <div class="pv-bubble pv-bubble--in">Is my order #4821 shipped?</div>
+                <div class="pv-ai">
+                  <div class="pv-ai__head"><app-icon name="sparkles" [size]="14" /> AI suggestion <span class="pv-ai__tag">98%</span></div>
+                  <p class="pv-ai__text"><span class="pv-type">Yes — #4821 shipped today, arrives tomorrow.</span><span class="pv-caret"></span></p>
+                  <div class="pv-ai__act"><span class="pv-use">Insert reply</span><span class="pv-alt">2 more</span></div>
+                </div>
+              }
+              @if (f.kind === 'handoff') {
+                <div class="pv-head"><app-icon name="layers" [size]="14" /> Stage handoff <span class="pv-live"></span></div>
+                <div class="pv-flow">
+                  <span class="pv-stage is-done">Sales</span><i class="pv-arrow"></i>
+                  <span class="pv-stage is-cur">Ops</span><i class="pv-arrow"></i>
+                  <span class="pv-stage">Done</span>
+                </div>
+                <div class="pv-sumcard"><app-icon name="sparkles" [size]="13" /> AI summary carried over</div>
+              }
+            </div>
+            <span class="plat__chip" aria-hidden="true"><app-icon name="zap" [size]="14" /> <b>1.4s</b></span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ══ AI PIPELINE ════════════════════════════════════════════════════════ -->
+<section id="pipeline" class="lp-section lp-section--band pipe" appReveal="fade">
+  <div class="pipe__bg" aria-hidden="true">
+    <span class="lp-orb pipe__orb pipe__orb--1"></span>
+    <span class="lp-orb pipe__orb pipe__orb--2"></span>
+    <span class="lp-noise"></span>
+  </div>
+  <div class="lp-container">
+    <div class="lp-head lp-head--start">
+      <span class="lp-eyebrow pipe__eyebrow" appReveal="up"><app-icon name="cpu" [size]="15" /> {{ c().pipeline.eyebrow }}</span>
+      <h2 class="lp-h2 pipe__title" appReveal="up" [revealDelay]="80">{{ c().pipeline.title }}</h2>
+      <p class="lp-lead pipe__lead" appReveal="up" [revealDelay]="160">{{ c().pipeline.subtitle }}</p>
+    </div>
+    <div class="pipe__flow" appStagger [staggerStep]="130">
+      @for (s of c().pipeline.steps; track s.title; let i = $index) {
+        <div class="pipe__node">
+          <span class="pipe__index">0{{ i + 1 }}</span>
+          <div class="pipe__icon"><app-icon [name]="s.icon" [size]="24" /></div>
+          <h3 class="pipe__nodeTitle">{{ s.title }}</h3>
+          <p class="pipe__nodeDesc">{{ s.desc }}</p>
+        </div>
+      }
+    </div>
+    <div class="pipe__badge" appReveal="fade" [revealDelay]="200">
+      <app-icon name="zap" [size]="16" /> {{ c().pipeline.badge }}
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ═══════════════════════════════════════════════════════ -->
+<section id="how" class="lp-band--sunken lp-section how">
+  <div class="lp-container">
+    <div class="plat__opener" appReveal="up"><span class="plat__rule" aria-hidden="true"></span></div>
+    <div class="lp-head lp-head--start">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="zap" [size]="15" /> {{ c().howEyebrow }}</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().howTitle }}</h2>
+      <p class="lp-lead" appReveal="up" [revealDelay]="160">{{ c().howSubtitle }}</p>
+    </div>
+    <div class="how__grid" appStagger [staggerStep]="120">
+      @for (s of c().how; track s.title; let i = $index) {
+        <div class="how__step">
+          <div class="how__num">{{ i + 1 }}</div>
+          <div class="how__icon"><app-icon [name]="s.icon" [size]="26" /></div>
+          <h3 class="how__title">{{ s.title }}</h3>
+          <p class="how__desc">{{ s.desc }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ══ PURPOSE-BUILT — bento mosaic ═══════════════════════════════════════ -->
+<section class="lp-band--sunken lp-section pb" aria-labelledby="pb-title">
+  <span class="pb__seam" aria-hidden="true"></span>
+  <span class="pb__grid-sub" aria-hidden="true"></span>
+  <div class="lp-container">
+    <div class="lp-head lp-head--start pb__head">
+      <span class="lp-eyebrow pb__eyebrow" appReveal="up">
+        <app-icon name="star" [size]="15" /> {{ c().showcaseEyebrow }}
+      </span>
+      <h2 id="pb-title" class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().showcaseTitle }}</h2>
+      <span class="pb__rule" aria-hidden="true"></span>
+    </div>
+
+    <div class="pb__bento" appStagger [staggerStep]="110">
+      @for (row of c().showcase; track row.title; let i = $index) {
+        <article
+          class="pb__plate lp-card--spot"
+          [class.pb__plate--hero]="i === 1"
+          [class.pb__plate--wide]="i === 3"
+          appSpotlight
+        >
+          <span class="pb__hair" aria-hidden="true"></span>
+          <div class="pb__body">
+            <div class="pb__icon lp-icon-tile" [class.lp-icon-tile--ai]="row.icon === 'cpu'">
+              <app-icon [name]="row.icon" [size]="22" />
+            </div>
+            <span class="pb__kicker">{{ row.eyebrow }}</span>
+            <h3 class="pb__title lp-h3">{{ row.title }}</h3>
+            <p class="pb__desc">{{ row.desc }}</p>
+            <ul class="pb__points">
+              @for (p of row.points; track p) {
+                <li><span class="pb__tick"><app-icon name="check" [size]="12" /></span>{{ p }}</li>
+              }
+            </ul>
+          </div>
+
+          <div class="pb__viz" aria-hidden="true" dir="ltr">
+            @switch (i) {
+              @case (0) {
+                <div class="pb__flow">
+                  <span class="pb__node">Sales</span>
+                  <span class="pb__wire"><span class="pb__pkt"></span></span>
+                  <span class="pb__node pb__node--to">Ops</span>
+                </div>
+                <div class="pb__summary"><app-icon name="sparkles" [size]="12" /> AI summary attached</div>
+              }
+              @case (1) {
+                <div class="pb__lead">
+                  <div class="pb__agent pb__agent--win"><span class="pb__ava">NA</span><b>Nour · Ops</b><span class="pb__meter"><i style="width: 92%"></i></span><span class="pb__score">92</span><span class="pb__tag">best fit</span></div>
+                  <div class="pb__agent"><span class="pb__ava">KH</span><b>Karim · Sales</b><span class="pb__meter"><i style="width: 61%"></i></span><span class="pb__score">61</span></div>
+                  <div class="pb__agent"><span class="pb__ava">LR</span><b>Layla · Ops</b><span class="pb__meter"><i style="width: 44%"></i></span><span class="pb__score">44</span></div>
+                </div>
+              }
+              @case (2) {
+                <div class="pb__memo">
+                  <span class="pb__memo-card">Order #4821 · shipped</span>
+                  <span class="pb__memo-card">Prefers Arabic replies</span>
+                  <span class="pb__memo-card pb__memo-card--live"><span class="pb__dot"></span>Recalled just now</span>
+                </div>
+              }
+              @case (3) {
+                <div class="pb__inbox">
+                  <span class="pb__row is-active"><span class="pb__ava pb__ava--a">SA</span>Sara Adel<i class="pb__own">Nour</i></span>
+                  <span class="pb__row"><span class="pb__ava pb__ava--b">MK</span>Mostafa K.<i class="pb__own pb__own--2">Karim</i></span>
+                  <span class="pb__row"><span class="pb__ava pb__ava--c">LR</span>Layla R.<span class="pb__pres"></span></span>
+                </div>
+              }
+            }
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS — featured pinboard ═══════════════════════════════════ -->
+<section class="lp-band--sunken lp-section tst">
+  <div class="lp-container">
+    <div class="lp-head lp-head--start">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="quote" [size]="15" /> {{ c().testimonialsEyebrow }}</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().testimonialsTitle }}</h2>
+    </div>
+
+    <div class="tst__board" appStagger [staggerStep]="90">
+      @for (t of c().testimonials; track t.name) {
+        <figure class="tst__plate lp-card--spot" appSpotlight>
+          <span class="tst__mark" aria-hidden="true">“</span>
+          <div class="tst__stars" aria-label="5 out of 5">
+            @for (s of [1,2,3,4,5]; track s) { <app-icon name="star" [size]="15" /> }
+          </div>
+          <blockquote class="tst__quote">{{ t.quote }}</blockquote>
+          <figcaption class="tst__who">
+            <span class="tst__avatar">{{ t.initials }}</span>
+            <span class="tst__meta"><b>{{ t.name }}</b><small>{{ t.role }}</small></span>
+          </figcaption>
+        </figure>
+      }
+    </div>
+  </div>
+</section>

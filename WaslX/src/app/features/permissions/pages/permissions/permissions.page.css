@@ -1,0 +1,563 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Roles & Permissions — matrix editor  ·  "access cockpit"
+   Leans on the shared .ui-* / .feature-page primitives (app-ui.css); only the
+   genuinely matrix-specific character lives here. Logical properties throughout
+   so the whole grid mirrors cleanly in RTL.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.perms {
+  animation: permsFade 320ms var(--ease-out, ease) both;
+}
+
+@keyframes permsFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perms { animation: none; }
+}
+
+.perms__subtitle {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-inline-size: 46ch;
+}
+
+/* ── Error state (centered card) ────────────────────────────────────────── */
+.perms__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.perms__error h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.perms__error p {
+  margin: 0 0 6px;
+  max-inline-size: 42ch;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.perms__error-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 16px;
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+}
+
+/* ── Legend ─────────────────────────────────────────────────────────────── */
+.perms__legend {
+  position: relative;
+  padding: 18px 20px;
+  overflow: hidden;
+}
+
+/* A whisper of the brand gradient washed into the legend's top-inline corner. */
+.perms__legend::before {
+  content: '';
+  position: absolute;
+  inset-block-start: -40%;
+  inset-inline-end: -8%;
+  inline-size: 320px;
+  block-size: 220px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    transparent 72%
+  );
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.perms__legend-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.perms__legend-glyph {
+  display: grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 8px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+}
+
+.perms__legend-items {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+  margin-block-start: 14px;
+}
+
+.perms__legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px 13px;
+  border: 1px solid var(--border-soft, var(--border-subtle));
+  border-radius: 13px;
+  background: var(--surface);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.perms__legend-item:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary) 22%, var(--border-subtle));
+  box-shadow: var(--shadow-xs);
+}
+
+.perms__legend-item strong {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.perms__legend-item span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.perms__tier-chip {
+  display: grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.perms__tier-chip--configurable {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+}
+
+.perms__tier-chip--manager {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+}
+
+.perms__tier-chip--admin {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
+/* ── Table (card provides border/radius/shadow; add horizontal scroll) ──── */
+.perms__table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Clip the sticky corner so it never bleeds over the rounded card edge. */
+  border-radius: 16px;
+}
+
+.perms__table {
+  inline-size: 100%;
+  min-inline-size: 680px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+
+/* ── Header row ──────────────────────────────────────────────────────────── */
+.perms__th {
+  padding: 0;
+  background: var(--surface-soft);
+  border-block-end: 1px solid var(--border-subtle);
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+}
+
+/* A soft seam under the header that reads as a lifted "control bar". */
+.perms__th::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  block-size: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--primary) 34%, transparent),
+    color-mix(in srgb, var(--accent) 34%, transparent),
+    transparent
+  );
+  opacity: 0.7;
+}
+
+.perms__th-label {
+  display: block;
+  padding: 15px 18px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.perms__th--perm {
+  text-align: start;
+  min-inline-size: 280px;
+  /* Sticky first column so permission names stay visible while scrolling. */
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 3;
+}
+
+.perms__th--role {
+  text-align: center;
+  inline-size: 138px;
+}
+
+/* Role column header: a glyph tile + label, tinted per role. */
+.perms__rolehead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
+}
+
+.perms__rolehead-glyph {
+  display: grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 12%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent);
+  transition: transform 200ms var(--ease-out, ease);
+}
+
+.perms__rolehead-name {
+  white-space: nowrap;
+}
+
+/* Per-role identity tints — echo the legend tiers. */
+.perms__rolehead--admin { color: color-mix(in srgb, var(--accent) 72%, var(--text-primary)); }
+.perms__rolehead--admin .perms__rolehead-glyph {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+.perms__rolehead--manager { color: color-mix(in srgb, var(--primary) 72%, var(--text-primary)); }
+.perms__rolehead--manager .perms__rolehead-glyph {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+}
+.perms__rolehead--agent { color: color-mix(in srgb, var(--cyan, var(--primary)) 66%, var(--text-primary)); }
+.perms__rolehead--agent .perms__rolehead-glyph {
+  color: var(--cyan, var(--primary));
+  background: color-mix(in srgb, var(--cyan, var(--primary)) 14%, var(--surface));
+}
+
+/* Gentle glyph micro-motion when hovering that role's column header. */
+.perms__th--role:hover .perms__rolehead-glyph {
+  transform: translateY(-1px) scale(1.05);
+}
+
+/* Faint tint down each role column, keyed off the header's data-tint. */
+.perms__th--role[data-tint='admin']   { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--accent) 26%, transparent); }
+.perms__th--role[data-tint='manager'] { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--primary) 26%, transparent); }
+.perms__th--role[data-tint='agent']   { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cyan, var(--primary)) 26%, transparent); }
+
+/* ── Category header row ─────────────────────────────────────────────────── */
+.perms__cat-row td {
+  padding: 0;
+  border-block-end: 1px solid var(--border-subtle);
+  background: var(--surface-sunken, var(--surface-soft));
+}
+
+.perms__cat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  padding: 13px 18px;
+  background: transparent;
+  border: none;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+/* A slim accent rail on the leading edge, revealed on hover / expanded. */
+.perms__cat::before {
+  content: '';
+  position: absolute;
+  inset-block: 8px;
+  inset-inline-start: 0;
+  inline-size: 3px;
+  border-radius: 999px;
+  background: linear-gradient(var(--primary), var(--accent));
+  transform: scaleY(0.3);
+  opacity: 0;
+  transition: opacity 200ms ease, transform 200ms var(--ease-out, ease);
+}
+
+.perms__cat:hover {
+  background: color-mix(in srgb, var(--primary) 4%, transparent);
+}
+
+.perms__cat:hover::before,
+.perms__cat:not(.perms__cat--collapsed)::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.perms__cat-chevron {
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: transform 220ms var(--ease-out, ease), color 160ms ease;
+}
+
+.perms__cat:hover .perms__cat-chevron { color: var(--primary); }
+
+.perms__cat--collapsed .perms__cat-chevron {
+  transform: rotate(-90deg);
+}
+
+[dir='rtl'] .perms__cat--collapsed .perms__cat-chevron {
+  transform: rotate(90deg);
+}
+
+.perms__cat-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+/* Completion ring — conic progress fill, quietly data-driven. */
+.perms__cat-ring {
+  --ring: 0%;
+  margin-inline-start: auto;
+  display: grid;
+  place-items: center;
+  inline-size: 30px;
+  block-size: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    var(--primary) 0,
+    var(--accent) var(--ring),
+    color-mix(in srgb, var(--text-muted) 22%, var(--surface)) var(--ring)
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-primary) 6%, transparent);
+  transition: background 320ms var(--ease-out, ease);
+}
+
+.perms__cat-ring-core {
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 0.64rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  letter-spacing: -0.02em;
+}
+
+.perms__cat-count {
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  color: var(--primary);
+}
+
+/* ── Permission rows ─────────────────────────────────────────────────────── */
+.perms__row {
+  transition: background-color 160ms ease;
+}
+
+.perms__row:hover {
+  background: color-mix(in srgb, var(--primary) 3.5%, var(--surface));
+}
+
+.perms__cell {
+  padding: 13px 18px;
+  border-block-end: 1px solid var(--border-soft, var(--border-subtle));
+  vertical-align: middle;
+}
+
+.perms__row:last-child .perms__cell {
+  border-block-end: none;
+}
+
+.perms__cell--perm {
+  position: relative;
+  text-align: start;
+  /* Sticky first column, inherits row hover background via its own paint. */
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+
+/* A hairline that separates the frozen name column from the scrolling cells. */
+.perms__cell--perm::after,
+.perms__th--perm::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: 1px;
+  background: var(--border-soft, var(--border-subtle));
+}
+.perms__th--perm::after { inset-block: 0; }
+
+.perms__row:hover .perms__cell--perm {
+  background: color-mix(in srgb, var(--primary) 3.5%, var(--surface));
+}
+
+/* Inset accent that slides in on the frozen cell as you hover the row. */
+.perms__cell--perm::before {
+  content: '';
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  inline-size: 3px;
+  border-radius: 999px;
+  background: linear-gradient(var(--primary), var(--accent));
+  transform: scaleY(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: opacity 160ms ease, transform 200ms var(--ease-out, ease);
+}
+
+.perms__row:hover .perms__cell--perm::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.perms__cell--role {
+  text-align: center;
+}
+
+.perms__perm-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.perms__perm-code {
+  display: inline-block;
+  margin-block-start: 4px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 9%, var(--surface));
+  border: 1px solid var(--border-soft, var(--border-subtle));
+}
+
+/* ── Toggle cell (uses .ui-toggle primitive; center + edited ring) ──────── */
+.perms__toggle {
+  vertical-align: middle;
+}
+
+.perms__toggle--edited {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ── Scope select (uses .ui-select.ui-field--sm; center + edited ring) ──── */
+.perms__scope-field {
+  display: inline-flex;
+  min-inline-size: 128px;
+  text-align: start;
+}
+
+.perms__scope {
+  font-weight: 550;
+}
+
+.perms__scope--edited {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* ── Locked chip — an elegant, unmistakably "sealed" cell ────────────────── */
+.perms__lock {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--text-muted) 8%, var(--surface)) 0 5px,
+      color-mix(in srgb, var(--text-muted) 12%, var(--surface)) 5px 10px
+    );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-muted) 18%, transparent);
+  cursor: not-allowed;
+  transition: color 160ms ease, box-shadow 160ms ease;
+}
+
+/* Locked-ON = an authoritative, granted-by-design cell (Admin / manager tier). */
+.perms__lock--on {
+  color: var(--accent);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--accent) 10%, var(--surface)) 0 5px,
+      color-mix(in srgb, var(--accent) 16%, var(--surface)) 5px 10px
+    );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .feature-page__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .feature-page__actions {
+    inline-size: 100%;
+  }
+  .feature-page__actions .ui-btn {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perms__cat-chevron,
+  .perms__cat::before,
+  .perms__cell--perm::before,
+  .perms__rolehead-glyph,
+  .perms__cat-ring {
+    transition: none;
+  }
+}

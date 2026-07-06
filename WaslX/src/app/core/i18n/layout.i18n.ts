@@ -27,6 +27,8 @@ export type LayoutKey =
   | 'inboxDesc'
   | 'contacts'
   | 'contactsDesc'
+  | 'whatsapp'
+  | 'whatsappDesc'
   | 'users'
   | 'usersDesc'
   | 'teams'
@@ -35,6 +37,15 @@ export type LayoutKey =
   | 'analyticsDesc'
   | 'settings'
   | 'settingsDesc'
+  | 'permissions'
+  | 'permissionsDesc'
+  | 'subscription'
+  | 'subscriptionDesc'
+  | 'platform'
+  | 'tenants'
+  | 'tenantsDesc'
+  | 'plans'
+  | 'plansDesc'
   // Role labels
   | 'roleSuperAdmin'
   | 'roleAdmin'
@@ -68,6 +79,8 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     inboxDesc: 'Conversations',
     contacts: 'Contacts',
     contactsDesc: 'Customer directory',
+    whatsapp: 'WhatsApp',
+    whatsappDesc: 'Connected numbers',
     users: 'Users',
     usersDesc: 'User management',
     teams: 'Teams',
@@ -76,6 +89,15 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     analyticsDesc: 'Reports & insights',
     settings: 'Settings',
     settingsDesc: 'Workspace config',
+    permissions: 'Roles & permissions',
+    permissionsDesc: 'Control what each role can do',
+    subscription: 'Subscription',
+    subscriptionDesc: 'Plan, billing & usage',
+    platform: 'Platform',
+    tenants: 'Tenants',
+    tenantsDesc: 'Workspaces & accounts',
+    plans: 'Plans',
+    plansDesc: 'Subscription plans',
     // Roles
     roleSuperAdmin: 'Super Admin',
     roleAdmin: 'Admin',
@@ -108,6 +130,8 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     inboxDesc: 'المحادثات',
     contacts: 'جهات الاتصال',
     contactsDesc: 'دليل العملاء',
+    whatsapp: 'واتساب',
+    whatsappDesc: 'الأرقام المتصلة',
     users: 'المستخدمون',
     usersDesc: 'إدارة المستخدمين',
     teams: 'الفرق',
@@ -116,6 +140,15 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     analyticsDesc: 'التقارير والرؤى',
     settings: 'الإعدادات',
     settingsDesc: 'إعدادات المساحة',
+    permissions: 'الأدوار والصلاحيات',
+    permissionsDesc: 'تحكّم في ما يفعله كل دور',
+    subscription: 'الاشتراك',
+    subscriptionDesc: 'الخطة والفوترة والاستخدام',
+    platform: 'المنصة',
+    tenants: 'المستأجرون',
+    tenantsDesc: 'المساحات والحسابات',
+    plans: 'الخطط',
+    plansDesc: 'خطط الاشتراك',
     // Roles
     roleSuperAdmin: 'سوبر أدمن',
     roleAdmin: 'مدير النظام',

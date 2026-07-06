@@ -16,9 +16,61 @@
   --success: #22c55e;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.08), 0 8px 24px rgb(15 23 42 / 0.04);
-  --shadow-lg: 0 20px 50px rgb(15 23 42 / 0.08), 0 2px 8px rgb(15 23 42 / 0.05);
+  --shadow-sm: 0 1px 3px rgb(15 23 42 / 0.05), 0 6px 16px rgb(15 23 42 / 0.05);
+  --shadow-lg: 0 4px 12px rgb(15 23 42 / 0.07), 0 28px 60px rgb(15 23 42 / 0.1);
   --focus-ring: 0 0 0 4px rgb(37 99 235 / 0.16);
+
+  /* ── Motion durations ── */
+  --mo-fast: 180ms;
+  --mo-quick: 280ms;
+  --mo-base: 560ms;
+  --mo-slow: 720ms;
+  --mo-xslow: 1100ms;
+  --mo-stagger: 90ms;
+  --mo-rise: 40px;
+  --mo-lift: -4px;
+  /* ── Easings ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-magnetic: cubic-bezier(0.33, 1, 0.68, 1);
+
+  /* ── Surface layering (light-mode depth) ── */
+  --surface-sunken: #f5f8fd;
+  --surface-raised: #ffffff;
+  --border-soft: #eaeff6;
+
+  /* ── Compatibility aliases (some feature pages reference these names) ── */
+  --border-color: var(--border-subtle);
+  --bg-surface: var(--surface);
+  --bg-body: var(--page-bg);
+  --primary-color: var(--primary);
+  --success-color: var(--success);
+  --error-color: var(--danger);
+
+  /* ── App shell metrics ── */
+  --shell-sidebar-w: 268px;
+  --shell-sidebar-collapsed-w: 76px;
+  --shell-navbar-h: 64px;
+
+  /* ── Layered shadows ── */
+  --shadow-xs: 0 1px 2px rgb(15 23 42 / 0.04);
+  --shadow-md: 0 2px 6px rgb(15 23 42 / 0.06), 0 14px 34px rgb(15 23 42 / 0.08);
+  --shadow-card: 0 1px 1px rgb(15 23 42 / 0.04), 0 4px 8px rgb(15 23 42 / 0.04),
+    0 16px 32px rgb(15 23 42 / 0.06), inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --shadow-float: 0 2px 4px rgb(15 23 42 / 0.05), 0 12px 24px rgb(15 23 42 / 0.08),
+    0 32px 64px rgb(15 23 42 / 0.1);
+
+  /* ── Navbar frost ── */
+  --nav-bg-scrolled: color-mix(in srgb, var(--surface) 80%, transparent);
+  --nav-border: color-mix(in srgb, var(--border-subtle) 90%, transparent);
+  --nav-shadow: 0 1px 0 rgb(15 23 42 / 0.04), 0 8px 30px rgb(15 23 42 / 0.06);
+
+  /* ── Containers ── */
+  --lp-max: 1200px;
+  --lp-max-wide: 1320px;
+  --lp-max-text: 720px;
 }
 
 :root[data-theme='dark'] {
@@ -31,9 +83,21 @@
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
   --border-subtle: #24324a;
-  --shadow-sm: 0 1px 2px rgb(2 6 23 / 0.3), 0 10px 26px rgb(2 6 23 / 0.22);
-  --shadow-lg: 0 22px 60px rgb(2 6 23 / 0.42), 0 4px 12px rgb(2 6 23 / 0.26);
+  --shadow-sm: 0 2px 6px rgb(2 6 23 / 0.35), 0 10px 26px rgb(2 6 23 / 0.3);
+  --shadow-lg: 0 8px 24px rgb(2 6 23 / 0.45), 0 34px 70px rgb(2 6 23 / 0.5);
   --focus-ring: 0 0 0 4px rgb(96 165 250 / 0.22);
+
+  --surface-sunken: color-mix(in srgb, var(--surface) 70%, #060c18);
+  --surface-raised: var(--surface-soft);
+  --border-soft: #1e2c44;
+  --shadow-xs: 0 1px 2px rgb(2 6 23 / 0.4);
+  --shadow-md: 0 4px 12px rgb(2 6 23 / 0.4), 0 18px 44px rgb(2 6 23 / 0.42);
+  --shadow-card: 0 1px 1px rgb(2 6 23 / 0.4), 0 8px 24px rgb(2 6 23 / 0.36),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --shadow-float: 0 12px 32px rgb(2 6 23 / 0.5), 0 32px 64px rgb(2 6 23 / 0.4);
+  --nav-bg-scrolled: color-mix(in srgb, #0b1424 82%, transparent);
+  --nav-border: color-mix(in srgb, #ffffff 8%, transparent);
+  --nav-shadow: 0 1px 0 rgb(2 6 23 / 0.5), 0 8px 30px rgb(2 6 23 / 0.4);
 }
 
 html,
@@ -99,4 +163,25 @@ select:focus-visible {
 
 img {
   max-width: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+[id] {
+  scroll-margin-top: 84px;
+}
+::selection {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+  color: var(--text-primary);
+}
+
+.nav-locked {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

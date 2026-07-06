@@ -1,0 +1,365 @@
+<section class="feature-page tenants-page" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header tenants-page__header">
+    <div>
+      <span class="feature-page__eyebrow tenants-page__eyebrow">
+        <span class="tenants-page__eyebrow-dot" aria-hidden="true"></span>
+        {{ c().eyebrow }}
+      </span>
+      <h1>{{ c().title }}</h1>
+      <p class="tenants-page__subtitle">{{ c().subtitle }}</p>
+    </div>
+    <div class="feature-page__actions">
+      <button type="button" class="ui-btn ui-btn--primary" (click)="openModal()">
+        <app-icon name="users" [size]="17" />
+        {{ c().newTenant }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Stat strip (KPI cockpit) ── -->
+  <div class="tenants-stats">
+    <div class="ui-card tenants-stat tenants-stat--total">
+      <div class="tenants-stat__top">
+        <span class="tenants-stat__tile" aria-hidden="true">
+          <app-icon name="layers" [size]="18" />
+        </span>
+        <span class="ui-trend ui-trend--flat tenants-stat__trend">
+          <app-icon name="grid" [size]="12" />
+          {{ c().allWorkspaces }}
+        </span>
+      </div>
+      <span class="tenants-stat__label">{{ c().totalTenants }}</span>
+      <span class="tenants-stat__value">{{ tenants().length | number }}</span>
+      <svg class="tenants-spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="tenSparkTotal" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--stat-accent)" stop-opacity="0.28" />
+            <stop offset="1" stop-color="var(--stat-accent)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="tenants-spark__area" d="M0,24 L15,20 L30,22 L45,15 L60,17 L75,10 L90,13 L105,7 L120,9 L120,32 L0,32 Z" fill="url(#tenSparkTotal)" />
+        <path class="tenants-spark__line" d="M0,24 L15,20 L30,22 L45,15 L60,17 L75,10 L90,13 L105,7 L120,9" fill="none" />
+      </svg>
+    </div>
+
+    <div class="ui-card tenants-stat tenants-stat--success">
+      <div class="tenants-stat__top">
+        <span class="tenants-stat__tile" aria-hidden="true">
+          <app-icon name="check-circle" [size]="18" />
+        </span>
+        <span class="ui-trend ui-trend--up tenants-stat__trend">
+          <app-icon name="trending-up" [size]="12" />
+          {{ activeRatio() }}%
+        </span>
+      </div>
+      <span class="tenants-stat__label">{{ c().activeTenants }}</span>
+      <span class="tenants-stat__value">{{ activeCount() | number }}</span>
+      <svg class="tenants-spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="tenSparkActive" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--stat-accent)" stop-opacity="0.28" />
+            <stop offset="1" stop-color="var(--stat-accent)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="tenants-spark__area" d="M0,26 L15,23 L30,24 L45,18 L60,19 L75,12 L90,14 L105,9 L120,6 L120,32 L0,32 Z" fill="url(#tenSparkActive)" />
+        <path class="tenants-spark__line" d="M0,26 L15,23 L30,24 L45,18 L60,19 L75,12 L90,14 L105,9 L120,6" fill="none" />
+      </svg>
+    </div>
+
+    <div class="ui-card tenants-stat tenants-stat--warning">
+      <div class="tenants-stat__top">
+        <span class="tenants-stat__tile" aria-hidden="true">
+          <app-icon name="clock" [size]="18" />
+        </span>
+        <span class="ui-trend ui-trend--flat tenants-stat__trend">
+          <app-icon name="sparkles" [size]="12" />
+          {{ c().trialLabel }}
+        </span>
+      </div>
+      <span class="tenants-stat__label">{{ c().onTrial }}</span>
+      <span class="tenants-stat__value">{{ trialCount() | number }}</span>
+      <svg class="tenants-spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="tenSparkTrial" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--stat-accent)" stop-opacity="0.28" />
+            <stop offset="1" stop-color="var(--stat-accent)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="tenants-spark__area" d="M0,18 L15,20 L30,14 L45,17 L60,12 L75,15 L90,11 L105,16 L120,13 L120,32 L0,32 Z" fill="url(#tenSparkTrial)" />
+        <path class="tenants-spark__line" d="M0,18 L15,20 L30,14 L45,17 L60,12 L75,15 L90,11 L105,16 L120,13" fill="none" />
+      </svg>
+    </div>
+
+    <div class="ui-card tenants-stat tenants-stat--danger">
+      <div class="tenants-stat__top">
+        <span class="tenants-stat__tile" aria-hidden="true">
+          <app-icon name="shield" [size]="18" />
+        </span>
+        <span class="ui-trend ui-trend--down tenants-stat__trend">
+          <app-icon name="eye-off" [size]="12" />
+          {{ c().suspendedLabel }}
+        </span>
+      </div>
+      <span class="tenants-stat__label">{{ c().suspended }}</span>
+      <span class="tenants-stat__value">{{ suspendedCount() | number }}</span>
+      <svg class="tenants-spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="tenSparkSusp" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--stat-accent)" stop-opacity="0.28" />
+            <stop offset="1" stop-color="var(--stat-accent)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="tenants-spark__area" d="M0,14 L15,16 L30,15 L45,19 L60,18 L75,22 L90,21 L105,25 L120,24 L120,32 L0,32 Z" fill="url(#tenSparkSusp)" />
+        <path class="tenants-spark__line" d="M0,14 L15,16 L30,15 L45,19 L60,18 L75,22 L90,21 L105,25 L120,24" fill="none" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- ── Body states ── -->
+  @if (loading()) {
+    <div class="feature-page__table-container tenants-skeleton" aria-hidden="true">
+      @for (row of [1,2,3,4,5,6]; track row) {
+        <div class="tenants-skeleton__row">
+          <span class="tenants-skeleton__avatar shimmer"></span>
+          <span class="tenants-skeleton__bar shimmer" style="width: 34%"></span>
+          <span class="tenants-skeleton__bar shimmer" style="width: 16%"></span>
+          <span class="tenants-skeleton__bar shimmer" style="width: 14%"></span>
+          <span class="tenants-skeleton__bar shimmer tenants-skeleton__bar--end" style="width: 18%"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <app-icon name="shield" [size]="30" />
+      <h3>{{ c().errorTitle }}</h3>
+      <p>{{ c().errorBody }}</p>
+      <button type="button" class="ui-btn ui-btn--ghost" (click)="loadTenants()">{{ c().retry }}</button>
+    </div>
+  } @else if (tenants().length === 0) {
+    <div class="feature-page__empty tenants-empty">
+      <app-icon name="layers" [size]="30" />
+      <h3>{{ c().emptyTitle }}</h3>
+      <p>{{ c().emptyBody }}</p>
+      <button type="button" class="ui-btn ui-btn--primary" (click)="openModal()">
+        <app-icon name="users" [size]="16" />
+        {{ c().newTenant }}
+      </button>
+    </div>
+  } @else {
+    <div class="ui-card tenants-directory">
+      <div class="tenants-directory__bar">
+        <span class="ui-sectiontitle">{{ c().directoryLabel }}</span>
+        <span class="tenants-table-wrap__count">{{ tenants().length | number }} {{ c().directoryUnit }}</span>
+      </div>
+      <div class="tenants-directory__scroll">
+      <table class="feature-page__table tenants-table">
+        <thead>
+          <tr>
+            <th>{{ c().colName }}</th>
+            <th>{{ c().colPlan }}</th>
+            <th>{{ c().colStatus }}</th>
+            <th>{{ c().colBilling }}</th>
+            <th>{{ c().colTrial }}</th>
+            <th class="tenants-table__num">{{ c().colUsers }}</th>
+            <th>{{ c().colAdmin }}</th>
+            <th>{{ c().colCreated }}</th>
+            <th class="tenants-table__end">{{ c().colActions }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tenant of pagedTenants(); track tenant.id) {
+            <tr>
+              <td>
+                <div class="tenants-cell">
+                  <span class="tenants-avatar" [attr.data-hue]="avatarHue(tenant.name)">{{ avatarInitials(tenant.name) }}</span>
+                  <span class="tenants-cell__meta">
+                    <span class="tenants-cell__name">{{ tenant.name }}</span>
+                    <span class="tenants-cell__sub">#{{ tenant.id }}</span>
+                  </span>
+                </div>
+              </td>
+              <td><span class="ui-pill ui-pill--info">{{ tenant.planName || c().none }}</span></td>
+              <td>
+                <span
+                  class="ui-pill ui-pill--dot"
+                  [class.ui-pill--success]="statusTone(tenant.status) === 'success'"
+                  [class.ui-pill--warning]="statusTone(tenant.status) === 'warning'"
+                  [class.ui-pill--danger]="statusTone(tenant.status) === 'danger'"
+                >
+                  {{ tenant.status || c().none }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="ui-pill"
+                  [class.ui-pill--success]="billingTone(tenant.billingStatus) === 'success'"
+                  [class.ui-pill--warning]="billingTone(tenant.billingStatus) === 'warning'"
+                  [class.ui-pill--danger]="billingTone(tenant.billingStatus) === 'danger'"
+                >
+                  {{ tenant.billingStatus || c().none }}
+                </span>
+              </td>
+              <td class="tenants-table__muted">
+                {{ tenant.trialEndsAt ? (tenant.trialEndsAt | date: 'mediumDate') : c().none }}
+              </td>
+              <td class="tenants-table__num">
+                <span class="tenants-users">
+                  <app-icon name="users" [size]="13" />
+                  {{ tenant.userCount | number }}
+                </span>
+              </td>
+              <td class="tenants-table__muted">{{ tenant.adminEmail || c().none }}</td>
+              <td class="tenants-table__muted">{{ tenant.createdAt | date: 'mediumDate' }}</td>
+              <td class="tenants-table__end">
+                <button
+                  type="button"
+                  class="ui-btn ui-btn--sm"
+                  [class.ui-btn--danger]="isActive(tenant.status)"
+                  [class.ui-btn--ghost]="!isActive(tenant.status)"
+                  [disabled]="busyId() === tenant.id"
+                  (click)="toggleStatus(tenant)"
+                >
+                  @if (busyId() === tenant.id) {
+                    <span class="ui-spinner" aria-hidden="true"></span>
+                  } @else {
+                    <app-icon [name]="isActive(tenant.status) ? 'eye-off' : 'check-circle'" [size]="14" />
+                  }
+                  {{ isActive(tenant.status) ? c().suspend : c().activate }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      </div>
+      @if (totalPages() > 1) {
+        <div class="feature-page__pagination tenants-directory__foot">
+          <span class="feature-page__page-info">{{ c().pageLabel }} {{ page() }} {{ c().ofLabel }} {{ totalPages() }} · {{ tenants().length | number }} {{ c().directoryUnit }}</span>
+          <div class="feature-page__page-nav">
+            <button type="button" class="feature-page__page-btn" (click)="prevPage()" [disabled]="page() <= 1">{{ c().prev }}</button>
+            <button type="button" class="feature-page__page-btn" (click)="nextPage()" [disabled]="page() >= totalPages()">{{ c().next }}</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── New-tenant modal ── -->
+  @if (modalOpen()) {
+    <div class="ui-overlay" (click)="closeModal()">
+      <div
+        class="ui-modal ui-modal--lg tenants-modal"
+        role="dialog"
+        aria-modal="true"
+        [attr.dir]="direction()"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="ui-modal__head tenants-modal__head">
+          <div class="tenants-modal__headline">
+            <span class="tenants-modal__glyph" aria-hidden="true">
+              <app-icon name="building" [size]="20" />
+            </span>
+            <div>
+              <h2 class="ui-modal__title">{{ c().modalTitle }}</h2>
+              <p class="ui-modal__sub">{{ c().modalSubtitle }}</p>
+            </div>
+          </div>
+          <button type="button" class="ui-modal__close" (click)="closeModal()" aria-label="Close">
+            <app-icon name="x" [size]="18" />
+          </button>
+        </header>
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="ui-modal__body">
+            <span class="ui-sectiontitle tenants-modal__section">{{ c().sectionWorkspace }}</span>
+            <div class="tenant-form__grid">
+              <div class="ui-field tenant-form__span-2">
+                <label class="ui-label" for="orgName">{{ c().orgName }}</label>
+                <input id="orgName" class="ui-input" type="text" formControlName="orgName" />
+                @if (invalid('orgName')) { <span class="ui-error">{{ c().required }}</span> }
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="adminFullName">{{ c().adminFullName }}</label>
+                <input id="adminFullName" class="ui-input" type="text" formControlName="adminFullName" />
+                @if (invalid('adminFullName')) { <span class="ui-error">{{ c().required }}</span> }
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="adminEmail">{{ c().adminEmail }}</label>
+                <input id="adminEmail" class="ui-input" type="email" formControlName="adminEmail" />
+                @if (invalid('adminEmail')) { <span class="ui-error">{{ c().invalidEmail }}</span> }
+              </div>
+
+              <div class="ui-field tenant-form__span-2">
+                <label class="ui-label" for="planId">{{ c().plan }}</label>
+                <select id="planId" class="ui-select" formControlName="planId">
+                  <option [ngValue]="null" disabled>{{ c().selectPlan }}</option>
+                  @for (plan of plans(); track plan.id) {
+                    <option [ngValue]="plan.id">{{ plan.name }} · {{ plan.code }}</option>
+                  }
+                </select>
+                @if (invalid('planId')) { <span class="ui-error">{{ c().required }}</span> }
+              </div>
+            </div>
+
+            <span class="ui-sectiontitle tenants-modal__section">{{ c().sectionProfile }}</span>
+            <div class="tenant-form__grid">
+              <div class="ui-field">
+                <label class="ui-label" for="website">{{ c().website }} <span class="tenant-form__opt">{{ c().optional }}</span></label>
+                <input id="website" class="ui-input" type="text" formControlName="website" />
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="industry">{{ c().industry }} <span class="tenant-form__opt">{{ c().optional }}</span></label>
+                <input id="industry" class="ui-input" type="text" formControlName="industry" />
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="phone">{{ c().phone }} <span class="tenant-form__opt">{{ c().optional }}</span></label>
+                <input id="phone" class="ui-input" type="tel" formControlName="phone" />
+              </div>
+
+              <div class="ui-field">
+                <label class="ui-label" for="customerType">{{ c().customerType }}</label>
+                <select id="customerType" class="ui-select" formControlName="customerType">
+                  @for (type of customerTypes; track type) {
+                    <option [ngValue]="type">{{ type }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- Start-trial toggle -->
+            <div class="tenant-form__flag" [class.is-on]="form.controls.startTrial.value">
+              <button
+                type="button"
+                class="ui-toggle"
+                [class.is-on]="form.controls.startTrial.value"
+                [attr.aria-checked]="form.controls.startTrial.value"
+                (click)="toggleStartTrial()"
+              ></button>
+              <span class="tenant-form__flag-text">
+                <span class="tenant-form__flag-title">{{ c().startTrial }}</span>
+                <span class="tenant-form__flag-hint">{{ c().startTrialHint }}</span>
+              </span>
+            </div>
+          </div>
+
+          <footer class="ui-modal__foot">
+            <button type="button" class="ui-btn ui-btn--ghost" (click)="closeModal()">{{ c().cancel }}</button>
+            <button type="submit" class="ui-btn ui-btn--primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <span class="ui-spinner" aria-hidden="true"></span>
+                {{ c().creating }}
+              } @else {
+                {{ c().create }}
+              }
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+</section>

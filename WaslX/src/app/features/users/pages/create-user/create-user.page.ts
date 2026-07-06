@@ -6,6 +6,7 @@ import { type TranslationKey, LanguageService } from '../../../../core/services/
 import { ToastService } from '../../../../core/services/toast.service';
 import { UsersApiService } from '../../../../core/api/users-api.service';
 import { AppRole } from '../../../../core/services/auth-session.service';
+import { apiErrorMessage } from '../../../../core/utils/api-error';
 
 @Component({
   selector: 'app-create-user-page',
@@ -24,6 +25,7 @@ export class CreateUserPageComponent {
   readonly loading = signal(false);
 
   readonly inviteForm = this.fb.group({
+    fullName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     role: ['Agent' as AppRole, Validators.required]
   });
@@ -33,11 +35,13 @@ export class CreateUserPageComponent {
 
   onSubmit(): void {
     if (this.inviteForm.invalid) {
+      this.inviteForm.markAllAsTouched();
       return;
     }
 
     this.loading.set(true);
     const request = {
+      fullName: this.inviteForm.value.fullName!.trim(),
       email: this.inviteForm.value.email!,
       role: this.inviteForm.value.role!
     };
@@ -46,13 +50,11 @@ export class CreateUserPageComponent {
       next: () => {
         this.loading.set(false);
         this.toastService.success(this.t('userInvited'), '');
-        void this.router.navigate(['/app/admin/users']);
+        void this.router.navigate(['/app/users']);
       },
-      error: () => {
-        // Mock success for UI demo
+      error: (err) => {
         this.loading.set(false);
-        this.toastService.success(this.t('userInvited'), '');
-        void this.router.navigate(['/app/admin/users']);
+        this.toastService.error(this.t('genericError'), apiErrorMessage(err, this.t('genericError')));
       }
     });
   }

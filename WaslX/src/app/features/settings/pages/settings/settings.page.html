@@ -1,39 +1,74 @@
-<section class="feature-page" [attr.dir]="direction()">
-  <header class="feature-page__header">
+<section class="feature-page settings" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header settings__header">
     <div>
       <span class="feature-page__eyebrow">{{ t('settings') }}</span>
-      <h1>{{ t('workspaceSettings') }}</h1>
+      <h1>{{ t('accountSettings') }}</h1>
+      <p class="settings__lead">{{ t('accountSettingsLead') }}</p>
     </div>
   </header>
 
-  <div class="feature-page__tabs">
-    <button class="feature-page__tab feature-page__tab--active">{{ t('workspaceSettings') }}</button>
-    <button class="feature-page__tab">{{ t('whatsappConfig') }}</button>
-    <button class="feature-page__tab">{{ t('billingView') }}</button>
+  <!-- ── Identity summary (read-only) ── -->
+  <div class="ui-card settings__identity">
+    <div class="settings__identity-glow" aria-hidden="true"></div>
+    <div class="settings__avatar" aria-hidden="true">{{ identity().initial }}</div>
+    <div class="settings__identity-body">
+      <div class="settings__identity-name">
+        <span>{{ identity().name }}</span>
+        <span class="ui-pill ui-pill--info ui-pill--dot">{{ identity().role }}</span>
+      </div>
+      @if (identity().email) {
+        <div class="settings__identity-meta">
+          <app-icon name="mail" [size]="14" /> {{ identity().email }}
+        </div>
+      }
+    </div>
+    <div class="settings__identity-status">
+      <span class="settings__status-dot" aria-hidden="true"></span>
+      {{ t('identityMember') }}
+    </div>
   </div>
 
-  <div class="settings-container">
-    
-    <!-- Profile Details Section -->
-    <div class="settings-section">
-      <h3>{{ t('profileSettings') }}</h3>
-      
-      <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="settings-form">
-        <div class="form-group">
-          <label for="name">{{ t('profileName') }}</label>
-          <input id="name" type="text" formControlName="name" class="form-control" />
+  <div class="settings__stack">
+
+    <!-- ── Profile details ── -->
+    <div class="ui-card settings__card">
+      <div class="settings__card-head">
+        <div class="settings__card-badge settings__card-badge--profile" aria-hidden="true">
+          <app-icon name="user" [size]="18" />
+        </div>
+        <div class="settings__card-heading">
+          <span class="settings__card-tag">{{ t('sectionProfileTag') }}</span>
+          <h2 class="settings__card-title">{{ t('profileSettings') }}</h2>
+          <p class="settings__card-desc">{{ t('profileSettingsDesc') }}</p>
+        </div>
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="settings__form">
+        <div class="settings__grid">
+          <div class="ui-field">
+            <label class="ui-label" for="name">{{ t('profileName') }}</label>
+            <input id="name" type="text" formControlName="name" class="ui-input" />
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label" for="phone">{{ t('profilePhone') }}</label>
+            <input id="phone" type="tel" formControlName="phone" class="ui-input" [placeholder]="t('profilePhonePlaceholder')" />
+          </div>
+
+          <div class="ui-field settings__field--full">
+            <label class="ui-label" for="email">{{ t('profileEmail') }}</label>
+            <input id="email" type="email" formControlName="email" class="ui-input" />
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="email">{{ t('profileEmail') }}</label>
-          <input id="email" type="email" formControlName="email" class="form-control" />
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid || profileLoading()">
+        <div class="settings__actions">
+          <button type="submit" class="ui-btn ui-btn--primary" [disabled]="profileForm.invalid || profileLoading()">
             @if (profileLoading()) {
+              <span class="ui-spinner" aria-hidden="true"></span>
               {{ t('loading') }}
             } @else {
+              <app-icon name="check" [size]="16" />
               {{ t('saveProfile') }}
             }
           </button>
@@ -41,37 +76,50 @@
       </form>
     </div>
 
-    <!-- Change Password Section -->
-    <div class="settings-section">
-      <h3>{{ t('changePasswordSection') }}</h3>
-      
-      <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="settings-form">
-        <div class="form-group">
-          <label for="currentPassword">{{ t('currentPassword') }}</label>
-          <input id="currentPassword" type="password" formControlName="currentPassword" class="form-control" />
+    <!-- ── Change password ── -->
+    <div class="ui-card settings__card">
+      <div class="settings__card-head">
+        <div class="settings__card-badge settings__card-badge--security" aria-hidden="true">
+          <app-icon name="shield" [size]="18" />
+        </div>
+        <div class="settings__card-heading">
+          <span class="settings__card-tag">{{ t('sectionSecurityTag') }}</span>
+          <h2 class="settings__card-title">{{ t('changePasswordSection') }}</h2>
+          <p class="settings__card-desc">{{ t('changePasswordDesc') }}</p>
+        </div>
+      </div>
+
+      <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="settings__form">
+        <div class="settings__grid">
+          <div class="ui-field settings__field--full">
+            <label class="ui-label" for="currentPassword">{{ t('currentPassword') }}</label>
+            <input id="currentPassword" type="password" formControlName="currentPassword" class="ui-input" />
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label" for="newPassword">{{ t('newPassword') }}</label>
+            <input id="newPassword" type="password" formControlName="newPassword" class="ui-input" />
+            @if (passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched) {
+              <div class="ui-error">{{ t('passwordTooShort') }}</div>
+            }
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label" for="confirmPassword">{{ t('confirmPassword') }}</label>
+            <input id="confirmPassword" type="password" formControlName="confirmPassword" class="ui-input" />
+            @if (passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched) {
+              <div class="ui-error">{{ t('passwordMismatch') }}</div>
+            }
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="newPassword">{{ t('newPassword') }}</label>
-          <input id="newPassword" type="password" formControlName="newPassword" class="form-control" />
-          @if (passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched) {
-            <div class="error-message">{{ t('passwordTooShort') }}</div>
-          }
-        </div>
-
-        <div class="form-group">
-          <label for="confirmPassword">{{ t('confirmPassword') }}</label>
-          <input id="confirmPassword" type="password" formControlName="confirmPassword" class="form-control" />
-          @if (passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched) {
-            <div class="error-message">{{ t('passwordMismatch') }}</div>
-          }
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" [disabled]="passwordForm.invalid || passwordLoading()">
+        <div class="settings__actions">
+          <button type="submit" class="ui-btn ui-btn--primary" [disabled]="passwordForm.invalid || passwordLoading()">
             @if (passwordLoading()) {
+              <span class="ui-spinner" aria-hidden="true"></span>
               {{ t('loading') }}
             } @else {
+              <app-icon name="lock" [size]="16" />
               {{ t('changePasswordBtn') }}
             }
           </button>

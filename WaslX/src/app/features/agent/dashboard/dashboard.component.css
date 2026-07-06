@@ -1,184 +1,479 @@
-.dashboard {
-  padding: 0;
-  animation: fadeIn 300ms ease both;
+:host { display: block; }
+
+/* ============================================================================
+   WaslX — Dashboard cockpit layer
+   Page-specific character on top of the shared .dashboard__* + .ui-* primitives.
+   A calm, layered "WhatsApp operations control room": tinted gradient tiles,
+   sparklines, a live-ops strip, quick actions, a volume chart, an AI preview,
+   and a shimmer activity feed. Placeholder visuals are intentional & static.
+   ============================================================================ */
+
+.dash { position: relative; }
+
+/* ── Greeting header + live-ops status strip ─────────────────────────────── */
+.dash__header { align-items: center; }
+
+.dash__lead {
+  margin: 8px 0 0;
+  max-width: 52ch;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.dashboard__header {
-  margin-bottom: 32px;
-}
-
-.dashboard__eyebrow {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--primary);
-  margin-bottom: 4px;
-}
-
-.dashboard__header h1 {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  margin: 0 0 8px;
-}
-
-.dashboard__role-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgb(from var(--accent) r g b / 0.1);
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.dashboard__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.dashboard__card {
-  padding: 24px;
-  border-radius: 16px;
+.dash__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 16px;
+  border-radius: 14px;
   border: 1px solid var(--border-subtle);
-  background: var(--surface);
-  transition: all 200ms ease;
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--success) 10%, transparent), transparent 60%),
+    var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
-.dashboard__card:hover {
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-2px);
+.dash__status-pulse {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--success);
+}
+.dash__status-pulse::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--success);
+  animation: dash-ping 2.4s var(--ease-out) infinite;
 }
 
-.dashboard__card--metric {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
+.dash__status-text { display: grid; line-height: 1.25; }
+.dash__status-text strong {
+  font-size: 0.86rem;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+.dash__status-text em {
+  font-style: normal;
+  font-size: 0.76rem;
+  color: color-mix(in srgb, var(--success) 62%, var(--text-secondary));
+  font-weight: 600;
 }
 
-.dashboard__card-icon {
+@keyframes dash-ping {
+  0% { transform: scale(1); opacity: 0.55; }
+  70%, 100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* ── Quick actions strip ─────────────────────────────────────────────────── */
+.dash__actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  flex-shrink: 0;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--primary) 4%, var(--surface)), var(--surface) 55%);
+  box-shadow: var(--shadow-card);
 }
 
-.dashboard__card-icon svg {
-  width: 22px;
-  height: 22px;
+.dash__actions-label {
+  margin-inline-end: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dash__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 15px 8px 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+[dir='rtl'] .dash__action { padding: 8px 9px 8px 15px; }
+
+.dash__action:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border-subtle));
+  box-shadow: var(--shadow-md);
+}
+.dash__action:active { transform: translateY(0) scale(0.98); }
+
+.dash__action-ico {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+}
+.dash__action-ico svg {
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.dash__action-ico--primary { background: color-mix(in srgb, var(--primary) 12%, var(--surface)); color: var(--primary); }
+.dash__action-ico--accent  { background: color-mix(in srgb, var(--accent) 13%, var(--surface)); color: var(--accent); }
+.dash__action-ico--success { background: color-mix(in srgb, var(--success) 14%, var(--surface)); color: var(--success); }
+.dash__action-ico--warning { background: color-mix(in srgb, var(--warning) 16%, var(--surface)); color: var(--warning); }
 
-.dashboard__card-icon--primary {
-  background: rgb(from var(--primary) r g b / 0.1);
+.dash__action:hover .dash__action-ico {
+  transform: rotate(-6deg) scale(1.08);
+  transition: transform var(--mo-quick) var(--ease-spring);
+}
+
+/* ── KPI cards ───────────────────────────────────────────────────────────── */
+.dash__grid { gap: 18px; }
+
+.dash__kpi {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  padding-bottom: 0;
+}
+
+.dash__kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Give the shared trend chip a small directional glyph */
+.dash__kpi .ui-trend svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dash__kpi .dashboard__card-value {
+  font-size: 2rem;
+  background: linear-gradient(180deg, var(--text-primary), color-mix(in srgb, var(--text-primary) 74%, var(--text-secondary)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Decorative sparkline pinned to the card floor */
+.dash__spark {
+  display: block;
+  width: calc(100% + 40px);
+  height: 34px;
+  margin: 4px -20px 0;
+  opacity: 0.9;
+}
+.dash__spark-line {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 320;
+  /* Resting default is fully drawn (offset 0); the draw animation runs from the
+     hidden end, so a stalled clock still shows the complete sparkline. */
+  stroke-dashoffset: 0;
+  animation: dash-draw 1.4s var(--ease-out) 0.2s;
+}
+@keyframes dash-draw { from { stroke-dashoffset: 320; } to { stroke-dashoffset: 0; } }
+
+/* ── Section grid: wide chart + AI rail ──────────────────────────────────── */
+.dash__section-grid { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); }
+
+.dash__panel { gap: 0; overflow: hidden; position: relative; }
+.dash__panel::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+.dash__panel:hover::before { opacity: 0.9; }
+
+.dash__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.dash__panel-head h2 { margin: 0; }
+
+.dash__link {
+  border: 0;
+  background: transparent;
   color: var(--primary);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 650;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: background-color 150ms ease;
+}
+.dash__link:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+
+.dash__ai-pill {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  letter-spacing: 0.08em;
 }
 
-.dashboard__card-icon--success {
-  background: rgb(from var(--success) r g b / 0.1);
-  color: var(--success);
+/* ── Conversation-volume mini bar chart ──────────────────────────────────── */
+.dash__chart {
+  position: relative;
+  margin: 0 0 20px;
+  padding: 8px 4px 0;
+  height: 150px;
 }
-
-.dashboard__card-icon--warning {
-  background: rgb(from var(--warning) r g b / 0.1);
-  color: var(--warning);
-}
-
-.dashboard__card-icon--accent {
-  background: rgb(from var(--accent) r g b / 0.1);
-  color: var(--accent);
-}
-
-.dashboard__card-body {
+.dash__chart-grid {
+  position: absolute;
+  inset: 0 4px 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: space-between;
+  pointer-events: none;
 }
-
-.dashboard__card-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
+.dash__chart-grid span {
+  height: 1px;
+  background: var(--border-soft);
 }
+.dash__bars {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: end;
+  gap: clamp(8px, 3vw, 20px);
+  height: 100%;
+  padding: 0 6px;
+}
+.dash__bar {
+  height: var(--h);
+  min-height: 6px;
+  border-radius: 7px 7px 3px 3px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 72%, var(--accent)), color-mix(in srgb, var(--primary) 42%, var(--surface)));
+  transform-origin: bottom;
+  /* Reveal via opacity + a gentle rise (not a height collapse) so a paused or
+     backgrounded animation clock still leaves every bar drawn at full height. */
+  animation: dash-grow 0.7s var(--ease-out) both;
+  transition: filter 160ms ease;
+}
+.dash__bar:hover { filter: brightness(1.08) saturate(1.1); }
+.dash__bar--peak {
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--primary) 60%, var(--accent)));
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.dash__bars .dash__bar:nth-child(1) { animation-delay: 40ms; }
+.dash__bars .dash__bar:nth-child(2) { animation-delay: 90ms; }
+.dash__bars .dash__bar:nth-child(3) { animation-delay: 140ms; }
+.dash__bars .dash__bar:nth-child(4) { animation-delay: 190ms; }
+.dash__bars .dash__bar:nth-child(5) { animation-delay: 240ms; }
+.dash__bars .dash__bar:nth-child(6) { animation-delay: 290ms; }
+.dash__bars .dash__bar:nth-child(7) { animation-delay: 340ms; }
+@keyframes dash-grow { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-.dashboard__card-value {
-  font-size: 28px;
+/* ── Mini stats row under the chart ──────────────────────────────────────── */
+.dash__mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.dash__mini { display: grid; gap: 3px; }
+.dash__mini-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.dash__mini-value {
+  font-size: 1.28rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
-.dashboard__section {
-  margin-bottom: 24px;
+/* ── AI routing preview panel ────────────────────────────────────────────── */
+.dash__panel--ai {
+  background:
+    radial-gradient(130% 120% at 100% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 55%),
+    var(--surface);
 }
 
-.dashboard__section h2 {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 16px;
-}
+.dash__ai-preview { display: grid; gap: 14px; }
 
-.dashboard__section-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.dashboard__empty-state {
+.dash__ai-route {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
-  border-radius: 14px;
-  border: 1px dashed var(--border-subtle);
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid var(--border-soft);
+  border-radius: 13px;
   background: var(--surface-soft);
-  text-align: center;
+}
+.dash__ai-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  font-weight: 750;
+  font-size: 0.95rem;
+}
+.dash__ai-route-body { display: grid; gap: 3px; min-width: 0; }
+.dash__ai-route-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+.dash__ai-route-hint { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+
+.dash__ai-reply {
+  position: relative;
+  display: grid;
+  gap: 9px;
+  padding: 15px 15px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border-soft));
+  border-radius: 13px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 5%, var(--surface)), color-mix(in srgb, var(--accent) 6%, var(--surface)));
+  overflow: hidden;
+}
+.dash__ai-reply::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, color-mix(in srgb, var(--accent) 14%, transparent) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: dash-shimmer 3.4s var(--ease-out) 0.6s infinite;
+}
+.dash__ai-reply-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.dash__ai-line {
+  height: 9px;
+  width: var(--w);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 24%, var(--surface));
+}
+.dash__ai-conf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.dash__ai-conf-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.dash__ai-conf-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 18%, var(--surface));
+  overflow: hidden;
+}
+.dash__ai-conf-fill {
+  display: block;
+  height: 100%;
+  width: 82%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  /* No fill mode: resting width (82%) shows during the delay / if the clock stalls. */
+  animation: dash-conf 1.2s var(--ease-out) 0.4s;
+}
+@keyframes dash-conf { from { width: 0; } to { width: 82%; } }
+@keyframes dash-shimmer { 0% { transform: translateX(-120%); } 55%, 100% { transform: translateX(120%); } }
+
+/* ── Recent activity feed (skeleton shimmer) + rich empty state ──────────── */
+.dash__feed { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+.dash__feed-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.dash__sk {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text-muted) 16%, var(--surface));
+  border-radius: 8px;
+}
+.dash__sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 70%, transparent), transparent);
+  transform: translateX(-100%);
+  animation: dash-sk 1.6s ease-in-out infinite;
+}
+.dash__sk-avatar { width: 38px; height: 38px; flex: 0 0 auto; border-radius: 11px; }
+.dash__sk-line { height: 11px; width: var(--w); border-radius: 999px; }
+.dash__sk-chip { width: 58px; height: 22px; margin-inline-start: auto; border-radius: 999px; flex: 0 0 auto; }
+[dir='rtl'] .dash__sk::after { animation-name: dash-sk-rtl; }
+@keyframes dash-sk { 0% { transform: translateX(-100%); } 60%, 100% { transform: translateX(100%); } }
+@keyframes dash-sk-rtl { 0% { transform: translateX(100%); } 60%, 100% { transform: translateX(-100%); } }
+
+.dash__panel .dash__empty {
+  min-height: 0;
+  padding: 28px 24px;
+  border: 1px dashed var(--border-subtle);
+  background:
+    radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 62%),
+    var(--surface-soft);
+}
+.dash__panel .dash__empty svg { width: 24px; height: 24px; padding: 12px; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .dash__section-grid { grid-template-columns: 1fr; }
+  .dash__status { align-self: flex-start; }
 }
 
-.dashboard__empty-state svg {
-  width: 32px;
-  height: 32px;
-  fill: none;
-  stroke: var(--text-muted);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  margin-bottom: 12px;
-  opacity: 0.5;
-}
-
-.dashboard__empty-state p {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-@media (max-width: 768px) {
-  .dashboard__grid {
-    grid-template-columns: 1fr;
-  }
-  .dashboard__section-grid {
-    grid-template-columns: 1fr;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .dash__status-pulse::before,
+  .dash__spark-line,
+  .dash__bar,
+  .dash__ai-reply::after,
+  .dash__ai-conf-fill,
+  .dash__sk::after,
+  .dash__action:hover .dash__action-ico { animation: none !important; transition: none !important; }
+  .dash__spark-line { stroke-dashoffset: 0; }
+  .dash__ai-conf-fill { width: 82%; }
+  .dash__bar { transform: none; opacity: 1; }
 }

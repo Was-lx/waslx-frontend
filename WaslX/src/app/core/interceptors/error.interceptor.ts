@@ -18,6 +18,13 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
       }
 
       if (error.status === 401) {
+        // Public auth flows own their 401s (invalid credentials, lockout, bad reset
+        // code). Don't hijack them into a session-expiry refresh/redirect.
+        const publicAuthPaths = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password', '/auth/refresh'];
+        if (publicAuthPaths.some((p) => request.url.includes(p))) {
+          return throwError(() => error);
+        }
+
         const refreshToken = authSessionService.getRefreshToken();
 
         if (refreshToken && !request.url.includes('/auth/refresh')) {
@@ -53,8 +60,9 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
         return throwError(() => error);
       }
 
-      const friendlyMessage = error.error?.message ?? error.message ?? 'Something went wrong. Please try again.';
-      toastService.error('Request failed', friendlyMessage);
+      // Don't surface raw request failures as toasts — they leak technical detail and
+      // feel unprofessional. The page that made the call decides how (or whether) to
+      // show the error inline; here we just propagate it.
       return throwError(() => error);
     })
   );

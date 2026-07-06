@@ -1,7 +1,7 @@
-<section class="feature-page" [attr.dir]="direction()">
+<section class="feature-page contacts-page" [attr.dir]="direction()">
   <header class="feature-page__header">
     <div>
-      <span class="feature-page__eyebrow">{{ t('contacts') }}</span>
+      <span class="feature-page__eyebrow">{{ t('contactsEyebrow') }}</span>
       <h1>{{ t('contactList') }}</h1>
     </div>
     <div class="feature-page__actions">
@@ -16,9 +16,93 @@
     </div>
   </header>
 
-  <div class="feature-page__empty">
-    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-    <h3>{{ t('noData') }}</h3>
-    <p>{{ t('featureComingSoonDesc') }}</p>
+  <div class="showcase">
+    <div class="showcase__grid" aria-hidden="true"></div>
+    <span class="showcase__orb showcase__orb--a"></span>
+    <span class="showcase__orb showcase__orb--b"></span>
+
+    <div class="showcase__inner">
+      <!-- Illustration-ish inline SVG: a contact card + orbiting avatars -->
+      <div class="showcase__art" aria-hidden="true">
+        <span class="showcase__halo"></span>
+        <svg class="showcase__illus" viewBox="0 0 220 180" fill="none">
+          <defs>
+            <linearGradient id="cg1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#2563eb" />
+              <stop offset="1" stop-color="#8b5cf6" />
+            </linearGradient>
+            <linearGradient id="cg2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#06b6d4" />
+              <stop offset="1" stop-color="#2563eb" />
+            </linearGradient>
+          </defs>
+          <!-- central card -->
+          <rect x="58" y="44" width="104" height="92" rx="16" fill="var(--surface)" stroke="var(--border-subtle)" stroke-width="2" />
+          <circle cx="110" cy="72" r="17" fill="url(#cg1)" />
+          <path d="M96 96a14 14 0 0 1 28 0" fill="url(#cg1)" opacity="0.9" />
+          <rect x="80" y="112" width="60" height="6" rx="3" fill="var(--border-subtle)" />
+          <rect x="90" y="124" width="40" height="5" rx="2.5" fill="var(--border-soft)" />
+          <!-- orbiting mini avatars -->
+          <g class="showcase__orbit showcase__orbit--1">
+            <circle cx="34" cy="40" r="13" fill="url(#cg2)" />
+            <path d="M34 40m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0" fill="#fff" opacity="0.85" />
+          </g>
+          <g class="showcase__orbit showcase__orbit--2">
+            <circle cx="188" cy="52" r="11" fill="#8b5cf6" />
+          </g>
+          <g class="showcase__orbit showcase__orbit--3">
+            <circle cx="176" cy="140" r="10" fill="#22c55e" />
+          </g>
+          <g class="showcase__orbit showcase__orbit--4">
+            <circle cx="40" cy="132" r="9" fill="#f59e0b" />
+          </g>
+        </svg>
+      </div>
+
+      <h2 class="showcase__title">{{ t('contactsEmptyTitle') }}</h2>
+      <p class="showcase__desc">{{ t('contactsEmptyDesc') }}</p>
+
+      <div class="showcase__actions">
+        <button type="button" class="ui-btn ui-btn--primary">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+          {{ t('addContact') }}
+        </button>
+        <button type="button" class="ui-btn ui-btn--ghost">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" /><path d="M12 15V3" /></svg>
+          {{ t('contactsImportCta') }}
+        </button>
+      </div>
+
+      <!-- Capability chips: what this space becomes -->
+      <div class="showcase__feats">
+        <div class="showcase__feat">
+          <span class="showcase__feat-ico showcase__feat-ico--primary">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2" /></svg>
+          </span>
+          <div>
+            <span class="showcase__feat-title">{{ t('contactsFeatSegments') }}</span>
+            <span class="showcase__feat-desc">{{ t('contactsFeatSegmentsDesc') }}</span>
+          </div>
+        </div>
+        <div class="showcase__feat">
+          <span class="showcase__feat-ico showcase__feat-ico--accent">
+            <svg viewBox="0 0 24 24"><path d="M12 8v4l3 2" /><circle cx="12" cy="12" r="9" /></svg>
+          </span>
+          <div>
+            <span class="showcase__feat-title">{{ t('contactsFeatHistory') }}</span>
+            <span class="showcase__feat-desc">{{ t('contactsFeatHistoryDesc') }}</span>
+          </div>
+        </div>
+        <div class="showcase__feat">
+          <span class="showcase__feat-ico showcase__feat-ico--warning">
+            <svg viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.9l1.1-6.5L2.6 9.8l6.5-.9z" /></svg>
+          </span>
+          <div>
+            <span class="showcase__feat-title">{{ t('contactsFeatVip') }}</span>
+            <span class="showcase__feat-desc">{{ t('contactsFeatVipDesc') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

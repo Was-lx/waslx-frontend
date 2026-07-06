@@ -1,0 +1,222 @@
+<section class="feature-page perms" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow">{{ c().eyebrow }}</span>
+      <h1>{{ c().title }}</h1>
+      <p class="perms__subtitle">{{ c().subtitle }}</p>
+    </div>
+
+    <div class="feature-page__actions">
+      @if (hasEdits()) {
+        <span class="ui-pill ui-pill--info ui-pill--dot">{{ c().unsaved(editCount()) }}</span>
+      }
+      <button
+        type="button"
+        class="ui-btn ui-btn--ghost"
+        [disabled]="!hasEdits() || saving()"
+        (click)="discard()"
+      >
+        {{ c().discard }}
+      </button>
+      <button
+        type="button"
+        class="ui-btn ui-btn--primary"
+        [disabled]="!hasEdits() || saving()"
+        (click)="save()"
+      >
+        <app-icon name="check" [size]="15" />
+        {{ saving() ? c().saving : c().save }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Loading ── -->
+  @if (loading()) {
+    <div class="ui-loading">
+      <span class="ui-spinner" aria-hidden="true"></span>
+      <p>{{ c().loading }}</p>
+    </div>
+  }
+
+  <!-- ── Error ── -->
+  @else if (error()) {
+    <div class="ui-card perms__error">
+      <div class="perms__error-icon">
+        <app-icon name="shield" [size]="26" />
+      </div>
+      <h3>{{ c().errorTitle }}</h3>
+      <p>{{ c().errorBody }}</p>
+      <button type="button" class="ui-btn ui-btn--primary" (click)="load()">
+        {{ c().retry }}
+      </button>
+    </div>
+  }
+
+  <!-- ── Matrix ── -->
+  @else if (matrix(); as m) {
+    <!-- Legend -->
+    <div class="ui-card perms__legend">
+      <div class="perms__legend-head">
+        <span class="perms__legend-glyph" aria-hidden="true">
+          <app-icon name="sliders" [size]="16" />
+        </span>
+        <span class="ui-sectiontitle">{{ c().legendTitle }}</span>
+      </div>
+      <div class="perms__legend-items">
+        <div class="perms__legend-item">
+          <span class="perms__tier-chip perms__tier-chip--configurable">
+            <app-icon name="check" [size]="13" />
+          </span>
+          <div>
+            <strong>{{ c().legendConfigurable }}</strong>
+            <span>{{ c().legendConfigurableDesc }}</span>
+          </div>
+        </div>
+        <div class="perms__legend-item">
+          <span class="perms__tier-chip perms__tier-chip--manager">
+            <app-icon name="users" [size]="13" />
+          </span>
+          <div>
+            <strong>{{ c().legendManager }}</strong>
+            <span>{{ c().legendManagerDesc }}</span>
+          </div>
+        </div>
+        <div class="perms__legend-item">
+          <span class="perms__tier-chip perms__tier-chip--admin">
+            <app-icon name="lock" [size]="13" />
+          </span>
+          <div>
+            <strong>{{ c().legendAdmin }}</strong>
+            <span>{{ c().legendAdminDesc }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="ui-card perms__table-wrap">
+      <table class="perms__table">
+        <thead>
+          <tr>
+            <th class="perms__th perms__th--perm">
+              <span class="perms__th-label">{{ c().permissionCol }}</span>
+            </th>
+            @for (role of m.roles; track trackRole($index, role)) {
+              <th
+                class="perms__th perms__th--role"
+                [attr.data-tint]="roleTint(role)"
+              >
+                <span class="perms__rolehead perms__rolehead--{{ roleTint(role) }}">
+                  <span class="perms__rolehead-glyph" aria-hidden="true">
+                    <app-icon [name]="roleGlyph(role)" [size]="15" />
+                  </span>
+                  <span class="perms__rolehead-name">{{ roleLabel(role) }}</span>
+                </span>
+              </th>
+            }
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (category of m.categories; track trackCategory($index, category)) {
+            <!-- Category header row -->
+            <tr class="perms__cat-row">
+              <td [attr.colspan]="m.roles.length + 1">
+                <button
+                  type="button"
+                  class="perms__cat"
+                  [class.perms__cat--collapsed]="isCollapsed(category.name)"
+                  (click)="toggleCategory(category.name)"
+                  [attr.aria-expanded]="!isCollapsed(category.name)"
+                >
+                  <span class="perms__cat-chevron">
+                    <app-icon name="chevron-down" [size]="16" />
+                  </span>
+                  <span class="perms__cat-name">{{ category.name }}</span>
+                  <span
+                    class="perms__cat-ring"
+                    [style.--ring]="categoryPercent(category) + '%'"
+                    aria-hidden="true"
+                  >
+                    <span class="perms__cat-ring-core">{{ categoryPercent(category) }}</span>
+                  </span>
+                  <span class="ui-pill perms__cat-count">
+                    {{ categoryGrantedCount(category) }}/{{ categoryTotalCount(category) }}
+                  </span>
+                </button>
+              </td>
+            </tr>
+
+            <!-- Permission rows -->
+            @if (!isCollapsed(category.name)) {
+              @for (row of category.permissions; track trackRow($index, row)) {
+                <tr class="perms__row">
+                  <td class="perms__cell perms__cell--perm">
+                    <span class="perms__perm-name">{{ row.description }}</span>
+                    <span class="perms__perm-code">{{ row.code }}</span>
+                  </td>
+
+                  @for (role of m.roles; track trackRole($index, role)) {
+                    <td class="perms__cell perms__cell--role">
+                      @if (row.cells[role]; as cell) {
+                        <!-- Locked -->
+                        @if (cell.locked) {
+                          <span
+                            class="perms__lock"
+                            [class.perms__lock--on]="cell.granted"
+                            [title]="lockTooltip(row, role)"
+                            [attr.aria-label]="lockTooltip(row, role)"
+                          >
+                            <app-icon name="lock" [size]="13" />
+                          </span>
+                        }
+                        <!-- Scope select -->
+                        @else if (row.isScope) {
+                          <div class="ui-field ui-field--sm perms__scope-field">
+                            <select
+                              class="ui-select perms__scope"
+                              [class.perms__scope--edited]="isCellEdited(row, role)"
+                              [attr.aria-label]="row.description + ' — ' + roleLabel(role)"
+                              [value]="effectiveScope(row, role)"
+                              (change)="onScopeChange(row, role, $event)"
+                            >
+                              @for (opt of scopeOptions(row); track opt.value) {
+                                <option
+                                  [value]="opt.value"
+                                  [selected]="opt.value === effectiveScope(row, role)"
+                                >
+                                  {{ opt.label }}
+                                </option>
+                              }
+                            </select>
+                          </div>
+                        }
+                        <!-- Toggle -->
+                        @else {
+                          <button
+                            type="button"
+                            role="switch"
+                            class="ui-toggle perms__toggle"
+                            [class.is-on]="effectiveGranted(row, role)"
+                            [class.perms__toggle--edited]="isCellEdited(row, role)"
+                            [attr.aria-checked]="effectiveGranted(row, role)"
+                            [attr.aria-label]="
+                              row.description + ' — ' + roleLabel(role) + ': ' +
+                              (effectiveGranted(row, role) ? c().on : c().off)
+                            "
+                            (click)="onToggle(row, role)"
+                          ></button>
+                        }
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

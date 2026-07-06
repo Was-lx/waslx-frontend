@@ -3,43 +3,81 @@
     <div>
       <span class="feature-page__eyebrow">{{ t('users') }}</span>
       <h1>{{ t('inviteUserTitle') }}</h1>
-      <p style="color: var(--text-secondary); margin-top: 0.5rem;">{{ t('inviteUserLead') }}</p>
+      <p class="create-user__lead">{{ t('inviteUserLead') }}</p>
     </div>
   </header>
 
-  <div class="form-container">
-    <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()" class="invite-form">
-      
-      <div class="form-group">
-        <label for="email">{{ t('emailAddress') }}</label>
-        <input 
-          id="email" 
-          type="email" 
-          formControlName="email" 
-          class="form-control" 
-          [placeholder]="'name@company.com'"
+  <div class="create-user__wrap">
+    <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()" class="ui-card create-user__card">
+      <span class="create-user__accent" aria-hidden="true"></span>
+
+      <div class="create-user__intro">
+        <span class="create-user__tile" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+            <path d="M19 8v6M22 11h-6" />
+          </svg>
+        </span>
+        <div class="create-user__intro-copy">
+          <strong>{{ t('inviteHintTitle') }}</strong>
+          <p>{{ t('inviteHintBody') }}</p>
+        </div>
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label" for="fullName">{{ t('fullName') }}</label>
+        <input
+          id="fullName"
+          type="text"
+          formControlName="fullName"
+          class="ui-input"
+          [placeholder]="t('fullNamePlaceholder')"
         />
-        @if (inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched) {
-          <div class="error-message">{{ t('emailInvalid') }}</div>
+        @if (inviteForm.get('fullName')?.invalid && inviteForm.get('fullName')?.touched) {
+          <span class="ui-error">{{ t('fullName') }}</span>
         }
       </div>
 
-      <div class="form-group">
-        <label for="role">{{ t('userRole') }}</label>
-        <select id="role" formControlName="role" class="form-control">
-          <option value="Admin">Admin</option>
-          <option value="Manager">Manager</option>
-          <option value="Agent">Agent</option>
-          <option value="Viewer">Viewer</option>
-        </select>
+      <div class="ui-field">
+        <label class="ui-label" for="email">{{ t('emailAddress') }}</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="ui-input"
+          [placeholder]="'name@company.com'"
+        />
+        @if (inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched) {
+          <span class="ui-error">{{ t('emailInvalid') }}</span>
+        }
       </div>
 
-      <div class="form-actions">
-        <a routerLink="../" class="btn btn-secondary">{{ t('cancel') }}</a>
-        <button type="submit" class="btn btn-primary" [disabled]="inviteForm.invalid || loading()">
+      <div class="ui-field">
+        <label class="ui-label" for="role">{{ t('userRole') }}</label>
+        <div class="role-select create-user__role" [attr.data-role]="inviteForm.get('role')?.value">
+          <select id="role" formControlName="role" class="ui-select">
+            <option value="Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="Agent">Agent</option>
+          </select>
+        </div>
+        <p class="create-user__role-hint">
+          @switch (inviteForm.get('role')?.value) {
+            @case ('Admin') { {{ t('roleAdminDesc') }} }
+            @case ('Manager') { {{ t('roleManagerDesc') }} }
+            @default { {{ t('roleAgentDesc') }} }
+          }
+        </p>
+      </div>
+
+      <div class="create-user__actions">
+        <a routerLink="../" class="ui-btn ui-btn--ghost">{{ t('cancel') }}</a>
+        <button type="submit" class="ui-btn ui-btn--primary" [disabled]="inviteForm.invalid || loading()">
           @if (loading()) {
+            <span class="ui-spinner"></span>
             {{ t('loading') }}
           } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13" /><path d="M22 2 15 22l-4-9-9-4Z" /></svg>
             {{ t('invite') }}
           }
         </button>

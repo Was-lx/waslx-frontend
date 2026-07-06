@@ -45,6 +45,13 @@ export class AgentLayoutComponent {
           { id: 'inbox', label: t('inbox'), description: t('inboxDesc'), icon: 'message', routerLink: '/app/inbox', badge: t('live') },
           { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' }
         ]
+      },
+      {
+        id: 'system',
+        label: t('system'),
+        items: [
+          { id: 'settings', label: t('settings'), description: t('settingsDesc'), icon: 'sliders', routerLink: '/app/settings' }
+        ]
       }
     ];
   });

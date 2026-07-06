@@ -1,70 +1,162 @@
-.form-container {
-  max-width: 600px;
-  margin-top: 2rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 2rem;
+/* ============================================================================
+   Create / invite user — bespoke "operations cockpit" character on top of the
+   shared primitives. Card, fields, inputs, select, buttons and spinner come
+   from the global system (app-ui.css / .ui-*). Page-specific polish only.
+   ============================================================================ */
+
+.create-user__lead {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  max-width: 48ch;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--bg-body);
-  color: var(--text-primary);
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-.error-message {
-  color: var(--error-color);
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-}
-
-.form-actions {
+.create-user__wrap {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  justify-content: center;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  text-decoration: none;
-  display: inline-block;
+/* ── The card: inviting, layered, with a branded top hairline + soft glow ── */
+.create-user__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 540px;
+  padding: 30px 30px 28px;
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 80% at 100% 0%,
+      color-mix(in srgb, var(--accent) 5%, transparent), transparent 60%),
+    radial-gradient(110% 70% at 0% 0%,
+      color-mix(in srgb, var(--primary) 5%, transparent), transparent 58%),
+    var(--surface);
 }
 
-.btn-primary {
-  background: var(--primary-color);
-  color: white;
+/* top accent hairline */
+.create-user__accent {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--cyan));
+  background-size: 200% auto;
+  animation: cu-accent 8s linear infinite;
+}
+@keyframes cu-accent { to { background-position: 200% center; } }
+
+/* ── Header intro: gradient icon tile + helpful hint copy ───────────────── */
+.create-user__intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 15px 16px;
+  border-radius: 15px;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border-subtle));
+  background:
+    linear-gradient(color-mix(in srgb, var(--primary) 5%, var(--surface)),
+      color-mix(in srgb, var(--accent) 4%, var(--surface)));
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.create-user__tile {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(140deg, var(--primary), color-mix(in srgb, var(--accent) 70%, var(--primary)));
+  box-shadow:
+    0 8px 18px color-mix(in srgb, var(--primary) 30%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.3);
 }
+.create-user__tile svg { width: 21px; height: 21px; }
 
-.btn-secondary {
-  background: transparent;
-  border: 1px solid var(--border-color);
+.create-user__intro-copy strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
+}
+.create-user__intro-copy p {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* ── Refined role select with a leading role-tinted dot ─────────────────── */
+.role-select {
+  position: relative;
+  display: block;
+}
+.role-select .ui-select {
+  padding-inline-start: 34px;
+  font-weight: 600;
+}
+.role-select::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 15px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  pointer-events: none;
+  background: var(--cyan);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 20%, transparent);
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+.role-select[data-role='Admin']::before { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+.role-select[data-role='Manager']::before { background: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
+.role-select[data-role='Agent']::before { background: var(--cyan); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 20%, transparent); }
+
+.create-user__role-hint {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ── Actions ────────────────────────────────────────────────────────────── */
+.create-user__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.create-user__actions .ui-btn {
+  min-width: 116px;
+}
+.create-user__actions .ui-btn--primary svg { width: 16px; height: 16px; }
+
+.create-user__card .ui-spinner {
+  width: 17px;
+  height: 17px;
+  border-width: 2px;
+  border-color: rgb(255 255 255 / 0.35);
+  border-top-color: #fff;
+}
+
+@media (max-width: 520px) {
+  .create-user__card { padding: 24px 20px 22px; }
+  .create-user__actions {
+    flex-direction: column-reverse;
+  }
+  .create-user__actions .ui-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .create-user__accent { animation: none; }
 }

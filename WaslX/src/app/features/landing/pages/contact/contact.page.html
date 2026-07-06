@@ -1,0 +1,115 @@
+<!-- Page hero (split) -->
+<section class="phx phx--contact">
+  <span class="phx__grid" aria-hidden="true"></span>
+  <span class="phx__seam" aria-hidden="true"></span>
+  <div class="lp-container phx__inner">
+    <div class="phx__copy">
+      <span class="phx__rule" aria-hidden="true"></span>
+      <span class="lp-badge phx__badge" appReveal="fade"><span class="lp-badge__dot"></span> {{ c().contactPage.badge }}</span>
+      <h1 class="phx__title" appReveal [revealDelay]="80">{{ c().contactPage.title }}</h1>
+      <p class="phx__sub" appReveal [revealDelay]="160">{{ c().contactPage.subtitle }}</p>
+    </div>
+
+    <aside class="phx__visual phx-contact" appReveal="scale" [revealDelay]="220" aria-hidden="true">
+      <div class="phx__tilt" appTilt>
+        <div class="phx-contact__card lp-card">
+          <div class="phx-contact__row phx-contact__row--in">
+            <span class="phx-contact__av"></span>
+            <span class="phx-contact__bub">{{ c().contactPage.subtitle }}</span>
+          </div>
+          <div class="phx-contact__row phx-contact__row--out">
+            <span class="phx-contact__bub phx-contact__bub--me">
+              <span class="phx-contact__typing"><i></i><i></i><i></i></span>
+            </span>
+          </div>
+          <div class="phx-contact__meta"><span class="phx-dot"></span> {{ c().contactPage.responseNote }}</div>
+        </div>
+        <span class="phx__chip phx-contact__chip"><app-icon name="clock" [size]="13" /> {{ c().contactPage.responseNote }}</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- Form + info -->
+<section class="lp-section lp-section--tight lp-band--paper">
+  <div class="lp-container ct__grid">
+    <!-- Form -->
+    <div class="ct__formCard lp-card" appReveal="up">
+      @if (submitted()) {
+        <div class="ct__success">
+          <span class="ct__successIcon"><app-icon name="check-circle" [size]="30" /></span>
+          <h3>{{ c().contactPage.formSuccess }}</h3>
+          <button type="button" class="lp-btn lp-btn--ghost" (click)="submitted.set(false)">
+            <app-icon name="arrow-right" [size]="16" /> {{ c().contactPage.formSubmit }}
+          </button>
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="ct__field">
+            <label for="ct-name">{{ c().contactPage.formName }}</label>
+            <input id="ct-name" type="text" formControlName="name" [class.is-err]="invalid('name')" autocomplete="name" />
+          </div>
+          <div class="ct__row">
+            <div class="ct__field">
+              <label for="ct-email">{{ c().contactPage.formEmail }}</label>
+              <input id="ct-email" type="email" formControlName="email" [class.is-err]="invalid('email')" autocomplete="email" />
+            </div>
+            <div class="ct__field">
+              <label for="ct-company">{{ c().contactPage.formCompany }}</label>
+              <input id="ct-company" type="text" formControlName="company" autocomplete="organization" />
+            </div>
+          </div>
+          <div class="ct__field">
+            <label for="ct-msg">{{ c().contactPage.formMessage }}</label>
+            <textarea id="ct-msg" rows="5" formControlName="message" [class.is-err]="invalid('message')"></textarea>
+          </div>
+          <button type="submit" class="lp-btn lp-btn--lg lp-btn--primary ct__submit">
+            <app-icon name="send" [size]="17" /> {{ c().contactPage.formSubmit }}
+          </button>
+        </form>
+      }
+    </div>
+
+    <!-- Info -->
+    <aside class="ct__info lp-card" appReveal="up" [revealDelay]="120">
+      <span class="ct__infoGlow" aria-hidden="true"></span>
+      <h3 class="ct__infoTitle">{{ c().contactPage.infoTitle }}</h3>
+      <a class="ct__infoItem" [href]="'mailto:' + c().contactPage.email">
+        <span class="lp-icon-tile lp-icon-tile--soft"><app-icon name="mail" [size]="20" /></span>
+        <div><small>Email</small><b>{{ c().contactPage.email }}</b></div>
+      </a>
+      <div class="ct__infoItem">
+        <span class="lp-icon-tile lp-icon-tile--soft"><app-icon name="phone" [size]="20" /></span>
+        <div><small>Phone</small><b>{{ c().contactPage.phone }}</b></div>
+      </div>
+      <div class="ct__infoItem">
+        <span class="lp-icon-tile lp-icon-tile--soft"><app-icon name="map-pin" [size]="20" /></span>
+        <div><small>Location</small><b>{{ c().contactPage.location }}</b></div>
+      </div>
+      <div class="ct__note">
+        <app-icon name="clock" [size]="16" /> {{ c().contactPage.responseNote }}
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- What happens after you reach out -->
+<section class="lp-section lp-band--sunken">
+  <div class="lp-container">
+    <div class="lp-head">
+      <span class="lp-eyebrow" appReveal="up"><app-icon name="sparkles" [size]="15" /> {{ c().contactPage.promiseTitle }}</span>
+      <h2 class="lp-h2" appReveal="up" [revealDelay]="80">{{ c().contactPage.promiseTitle }}</h2>
+    </div>
+    <div class="ct__promise lp-tiles-multi" appStagger [staggerStep]="90">
+      @for (step of c().contactPage.promise; track step.title) {
+        <article class="ct__step lp-card">
+          <div class="lp-icon-tile">
+            <app-icon [name]="step.icon" [size]="22" />
+          </div>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.desc }}</p>
+        </article>
+      }
+    </div>
+  </div>
+</section>

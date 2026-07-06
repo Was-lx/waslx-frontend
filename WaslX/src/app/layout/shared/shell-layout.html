@@ -10,31 +10,15 @@
     (closeMobile)="closeMobileMenu()"
   />
 
-  <div class="shell__main" [class.shell__main--expanded]="sidebarCollapsed()">
-    <app-navbar
-      class="shell__navbar"
-      [brandName]="brandName()"
-      [brandSubtitle]="brandSubtitle()"
-      [searchPlaceholder]="searchPlaceholder()"
-      [notificationLabel]="notificationLabel()"
-      [profileLabel]="profileLabel()"
-      [themeLabel]="themeLabel()"
-      [languageLabel]="languageLabel()"
-      (menuTriggered)="toggleMobileMenu()"
-      (notificationTriggered)="handleNotifications()"
-      (profileTriggered)="handleProfile()"
-      (themeTriggered)="handleTheme()"
-      (languageTriggered)="handleLanguage()"
-    />
+  <div class="shell__main">
+    <app-navbar class="shell__navbar" (menuTriggered)="toggleMobileMenu()" />
 
     <main class="shell__content">
       <ng-content />
     </main>
-
-    <app-footer class="shell__footer" [footerLabel]="footerLabel()" />
   </div>
 
   @if (mobileMenuOpen()) {
-  <div class="shell__backdrop" (click)="closeMobileMenu()" aria-hidden="true"></div>
+    <div class="shell__backdrop" (click)="closeMobileMenu()" aria-hidden="true"></div>
   }
 </div>
