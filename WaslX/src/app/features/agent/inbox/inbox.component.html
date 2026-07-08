@@ -161,10 +161,10 @@
         </span>
         <h3 class="inbox-connect__title">{{ t('inboxConnectTitle') }}</h3>
         <p class="inbox-connect__desc">{{ t('inboxConnectDesc') }}</p>
-        <button type="button" class="ui-btn ui-btn--primary inbox-connect__cta">
+        <a routerLink="/app/channels" class="ui-btn ui-btn--primary inbox-connect__cta">
           <svg viewBox="0 0 24 24"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
           {{ t('inboxConnectCta') }}
-        </button>
+        </a>
         <span class="inbox-connect__note">{{ t('inboxPreviewNote') }}</span>
       </div>
     </div>

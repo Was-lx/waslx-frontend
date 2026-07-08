@@ -1,10 +1,12 @@
 import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { LanguageService, type TranslationKey } from '../../../core/services/language.service';
 
 @Component({
   selector: 'app-agent-inbox',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './inbox.component.html',
   styleUrl: './inbox.component.css'
 })
