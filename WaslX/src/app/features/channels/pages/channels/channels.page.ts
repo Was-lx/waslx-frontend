@@ -1,6 +1,11 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Subscription as RxSubscription } from 'rxjs';
 
+import { WhatsAppApiService } from '../../../../core/api/whatsapp-api.service';
+import { FacebookSdkService } from '../../../../core/services/facebook-sdk.service';
 import { LanguageService } from '../../../../core/services/language.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import type { WhatsAppAccount } from '../../../../core/models/platform.models';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 const CONTENT = {
@@ -32,6 +37,16 @@ const CONTENT = {
     liveLabel: 'Connection ready',
     previewName: 'Your business',
     previewMsg: 'Route every WhatsApp chat to the right agent.',
+    connecting: 'Connecting…',
+    loading: 'Loading your connection…',
+    connectedStatus: 'Connected',
+    disconnectedStatus: 'Disconnected',
+    expiredStatus: 'Token expired',
+    disconnect: 'Disconnect',
+    connectErrorTitle: 'Connection failed',
+    disconnectErrorTitle: 'Disconnect failed',
+    disconnectedToastTitle: 'Number disconnected',
+    disconnectedToastMsg: 'Your WhatsApp number has been disconnected.',
   },
   ar: {
     eyebrow: 'القنوات',
@@ -61,6 +76,16 @@ const CONTENT = {
     liveLabel: 'جاهز للربط',
     previewName: 'نشاطك التجاري',
     previewMsg: 'وجّه كل محادثات واتساب للموظف المناسب.',
+    connecting: 'جاري الربط…',
+    loading: 'بنجيب حالة الاتصال…',
+    connectedStatus: 'متصل',
+    disconnectedStatus: 'غير متصل',
+    expiredStatus: 'انتهت صلاحية الاتصال',
+    disconnect: 'قطع الاتصال',
+    connectErrorTitle: 'فشل الربط',
+    disconnectErrorTitle: 'فشل قطع الاتصال',
+    disconnectedToastTitle: 'تم فصل الرقم',
+    disconnectedToastMsg: 'تم قطع اتصال رقم الواتساب بنجاح.',
   },
 } as const;
 
@@ -76,12 +101,13 @@ const CONTENT = {
           <h1>{{ c().title }}</h1>
           <p class="channels__lead">{{ c().lead }}</p>
         </div>
-        <button class="feature-page__btn" type="button">
-          <app-icon name="link" [size]="17" /> {{ c().connect }}
+        <button class="feature-page__btn" type="button" [disabled]="connecting() || !!account()" (click)="connect()">
+          <app-icon name="link" [size]="17" /> {{ connecting() ? c().connecting : c().connect }}
         </button>
       </header>
 
-      <!-- Connect hero -->
+      <!-- Connect hero (only while no number is connected yet) -->
+      @if (!account()) {
       <div class="ui-card channels__hero">
         <div class="channels__hero-glow" aria-hidden="true"></div>
         <div class="channels__hero-grid" aria-hidden="true"></div>
@@ -99,8 +125,8 @@ const CONTENT = {
             <span><app-icon name="zap" [size]="15" /> {{ c().f3 }}</span>
           </div>
           <div class="channels__hero-actions">
-            <button class="ui-btn ui-btn--primary channels__connect-btn" type="button">
-              {{ c().heroCta }} <app-icon name="arrow-right" [size]="16" />
+            <button class="ui-btn ui-btn--primary channels__connect-btn" type="button" [disabled]="connecting()" (click)="connect()">
+              {{ connecting() ? c().connecting : c().heroCta }} <app-icon name="arrow-right" [size]="16" />
             </button>
             <span class="channels__hero-note"><app-icon name="lock" [size]="13" /> {{ c().guide }}</span>
           </div>
@@ -123,6 +149,7 @@ const CONTENT = {
           </div>
         </div>
       </div>
+      }
 
       <!-- How it works — 3-step strip -->
       <div class="channels__steps">
@@ -149,17 +176,43 @@ const CONTENT = {
         </div>
       </div>
 
-      <!-- Connected numbers (empty) -->
+      <!-- Connected numbers -->
       <div class="channels__list">
         <span class="ui-sectiontitle">{{ c().listTitle }}</span>
+
+        @if (account(); as acc) {
+        <div class="ui-card channels__number-card">
+          <div class="channels__number-icon"><app-icon name="phone" [size]="20" /></div>
+          <div class="channels__number-info">
+            <strong>{{ acc.phoneNumber }}</strong>
+            <span
+              class="ui-pill"
+              [class.ui-pill--success]="acc.status === 'Connected'"
+              [class.ui-pill--warning]="acc.status === 'Expired'"
+              [class.ui-pill--muted]="acc.status === 'Disconnected'"
+            >
+              {{ acc.status === 'Connected' ? c().connectedStatus : acc.status === 'Expired' ? c().expiredStatus : c().disconnectedStatus }}
+            </span>
+          </div>
+          <button class="ui-btn ui-btn--ghost ui-btn--sm" type="button" [disabled]="disconnecting()" (click)="disconnect()">
+            {{ c().disconnect }}
+          </button>
+        </div>
+        } @else if (loading()) {
+        <div class="feature-page__empty channels__empty">
+          <app-icon name="phone" [size]="26" />
+          <p>{{ c().loading }}</p>
+        </div>
+        } @else {
         <div class="feature-page__empty channels__empty">
           <app-icon name="phone" [size]="26" />
           <h3>{{ c().emptyTitle }}</h3>
           <p>{{ c().emptyText }}</p>
-          <button class="ui-btn ui-btn--ghost ui-btn--sm channels__empty-cta" type="button">
-            <app-icon name="link" [size]="15" /> {{ c().emptyCta }}
+          <button class="ui-btn ui-btn--ghost ui-btn--sm channels__empty-cta" type="button" [disabled]="connecting()" (click)="connect()">
+            <app-icon name="link" [size]="15" /> {{ connecting() ? c().connecting : c().emptyCta }}
           </button>
         </div>
+        }
       </div>
     </section>
   `,
@@ -287,6 +340,16 @@ const CONTENT = {
     .channels__step h4 { margin: 6px 0 0; font-size: 0.98rem; font-weight: 750; letter-spacing: -0.01em; color: var(--text-primary); }
     .channels__step p { margin: 0; font-size: 0.85rem; line-height: 1.55; color: var(--text-muted); }
 
+    /* ── Connected number card ── */
+    .channels__number-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+    .channels__number-icon {
+      display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; flex: 0 0 auto;
+      color: var(--wa-deep); background: color-mix(in srgb, var(--wa) 12%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--wa) 22%, transparent);
+    }
+    .channels__number-info { display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; min-width: 0; }
+    .channels__number-info strong { font-size: 0.95rem; color: var(--text-primary); }
+
     /* ── Empty state (numbers) ── */
     .channels__list { display: flex; flex-direction: column; gap: 12px; }
     .channels__empty svg { color: var(--wa-deep); }
@@ -309,8 +372,97 @@ const CONTENT = {
     }
   `],
 })
-export class ChannelsPageComponent {
+export class ChannelsPageComponent implements OnInit, OnDestroy {
   private readonly languageService = inject(LanguageService);
+  private readonly whatsAppApi = inject(WhatsAppApiService);
+  private readonly facebookSdk = inject(FacebookSdkService);
+  private readonly toast = inject(ToastService);
+
   readonly c = computed(() => CONTENT[this.languageService.language()]);
   readonly direction = () => this.languageService.getDirection();
+
+  readonly account = signal<WhatsAppAccount | null>(null);
+  readonly loading = signal(true);
+  readonly connecting = signal(false);
+  readonly disconnecting = signal(false);
+
+  private subs: RxSubscription[] = [];
+
+  ngOnInit(): void {
+    this.loading.set(true);
+    this.subs.push(
+      this.whatsAppApi.getAccount().subscribe({
+        next: (account) => {
+          this.account.set(account);
+          this.loading.set(false);
+        },
+        error: () => {
+          // 404 (no account connected yet) and any other lookup failure both
+          // resolve to the "not connected" empty state.
+          this.account.set(null);
+          this.loading.set(false);
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach((sub) => sub.unsubscribe());
+  }
+
+  connect(): void {
+    if (this.connecting()) {
+      return;
+    }
+    this.connecting.set(true);
+
+    this.subs.push(
+      this.facebookSdk.launchWhatsAppEmbeddedSignup().subscribe({
+        next: ({ code, wabaId }) => {
+          this.subs.push(
+            this.whatsAppApi.connect(code, wabaId).subscribe({
+              next: (account) => {
+                this.account.set(account);
+                this.connecting.set(false);
+              },
+              error: (err) => {
+                this.connecting.set(false);
+                this.toast.error(this.c().connectErrorTitle, this.extractError(err));
+              }
+            })
+          );
+        },
+        error: (err: Error) => {
+          this.connecting.set(false);
+          this.toast.error(this.c().connectErrorTitle, err.message);
+        }
+      })
+    );
+  }
+
+  disconnect(): void {
+    if (this.disconnecting()) {
+      return;
+    }
+    this.disconnecting.set(true);
+
+    this.subs.push(
+      this.whatsAppApi.disconnect().subscribe({
+        next: () => {
+          this.account.set(null);
+          this.disconnecting.set(false);
+          this.toast.success(this.c().disconnectedToastTitle, this.c().disconnectedToastMsg);
+        },
+        error: (err) => {
+          this.disconnecting.set(false);
+          this.toast.error(this.c().disconnectErrorTitle, this.extractError(err));
+        }
+      })
+    );
+  }
+
+  private extractError(err: unknown): string {
+    const httpError = err as { error?: { errors?: string[] } };
+    return httpError?.error?.errors?.[1] ?? httpError?.error?.errors?.[0] ?? 'Something went wrong.';
+  }
 }

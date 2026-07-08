@@ -65,7 +65,9 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "port": 4300
+            "host": "waslx-dev.com",
+            "port": 4300,
+            "ssl": true
           },
           "configurations": {
             "production": {

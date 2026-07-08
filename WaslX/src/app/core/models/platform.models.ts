@@ -195,6 +195,30 @@ export interface PermissionUpdateItem {
   scope: string | null;
 }
 
+// ── WhatsApp channels ──
+export type WhatsAppAccountStatus = 'Connected' | 'Disconnected' | 'Expired';
+
+export interface WhatsAppAccount {
+  id: number;
+  phoneNumber: string;
+  phoneNumberId: string;
+  whatsAppBusinessAccountId: string;
+  status: WhatsAppAccountStatus;
+  connectedAt: string;
+  tokenExpiresAt: string | null;
+}
+
+export interface SendWhatsAppText {
+  toPhone: string;
+  text: string;
+}
+
+export interface SendWhatsAppTemplate {
+  toPhone: string;
+  templateName: string;
+  languageCode: string;
+}
+
 // ── Me (own profile + resolved permissions) ──
 export interface Me {
   id: string;
