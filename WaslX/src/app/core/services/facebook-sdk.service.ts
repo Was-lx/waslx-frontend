@@ -7,7 +7,7 @@ import { environment } from '../../../environments/environment';
 declare global {
   interface Window {
     FB?: {
-      init(params: { appId: string; xfbml: boolean; version: string }): void;
+      init(params: { appId: string; cookie: boolean; xfbml: boolean; version: string }): void;
       login(
         callback: (response: { authResponse?: { code: string } | null; status?: string }) => void,
         params: {
@@ -29,7 +29,6 @@ export interface WhatsAppSignupResult {
 
 const SDK_SCRIPT_ID = 'facebook-jssdk';
 const SDK_SRC = 'https://connect.facebook.net/en_US/sdk.js';
-const SESSION_MESSAGE_GRACE_MS = 2000;
 
 @Injectable({ providedIn: 'root' })
 export class FacebookSdkService {
@@ -46,6 +45,7 @@ export class FacebookSdkService {
       window.fbAsyncInit = () => {
         window.FB!.init({
           appId: environment.facebookAppId,
+          cookie: true,
           xfbml: false,
           version: environment.facebookApiVersion
         });
@@ -75,7 +75,6 @@ export class FacebookSdkService {
     return new Observable<WhatsAppSignupResult>((observer) => {
       let wabaId: string | null = null;
       let settled = false;
-      let graceTimer: ReturnType<typeof setTimeout> | null = null;
 
       const onMessage = (event: MessageEvent) => {
         if (typeof event.origin !== 'string' || !event.origin.endsWith('facebook.com')) {
@@ -102,9 +101,6 @@ export class FacebookSdkService {
 
       const cleanup = () => {
         window.removeEventListener('message', onMessage);
-        if (graceTimer) {
-          clearTimeout(graceTimer);
-        }
       };
 
       window.addEventListener('message', onMessage);
@@ -123,17 +119,12 @@ export class FacebookSdkService {
               return;
             }
 
-            // The waba_id arrives asynchronously via postMessage; give it a short grace
-            // period, otherwise proceed without it (the backend can resolve it via debug_token).
-            graceTimer = setTimeout(() => {
-              if (settled) {
-                return;
-              }
-              settled = true;
-              cleanup();
-              observer.next({ code, wabaId });
-              observer.complete();
-            }, SESSION_MESSAGE_GRACE_MS);
+            // Redeem the code immediately — it's short-lived. wabaId (from postMessage) is
+            // optional; the backend can resolve it later via debug_token if it hasn't arrived yet.
+            settled = true;
+            cleanup();
+            observer.next({ code, wabaId });
+            observer.complete();
           },
           {
             config_id: environment.whatsAppEmbeddedSignupConfigId,
