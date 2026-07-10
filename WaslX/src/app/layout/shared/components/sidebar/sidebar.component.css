@@ -223,6 +223,12 @@
   text-transform: uppercase;
 }
 
+/* Channel offline — muted, no green "live" accent. */
+.side__badge--off {
+  background: color-mix(in srgb, var(--text-muted) 14%, var(--surface));
+  color: var(--text-muted);
+}
+
 /* ── Collapsed (desktop) ── */
 .side--collapsed { width: var(--shell-sidebar-collapsed-w); }
 

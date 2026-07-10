@@ -42,7 +42,7 @@ export class ManagerLayoutComponent {
         label: t('main'),
         items: [
           { id: 'dashboard', label: t('dashboard'), description: t('dashboardDesc'), icon: 'grid', routerLink: '/app/dashboard' },
-          { id: 'inbox', label: t('inbox'), description: t('inboxDesc'), icon: 'message', routerLink: '/app/inbox', badge: t('live') },
+          { id: 'inbox', label: t('inbox'), description: t('inboxDesc'), icon: 'message', routerLink: '/app/inbox' },
           { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' },
           { id: 'whatsapp', label: t('whatsapp'), description: t('whatsappDesc'), icon: 'phone', routerLink: '/app/channels' }
         ]

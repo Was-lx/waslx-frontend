@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { Subscription as RxSubscription } from 'rxjs';
 
 import { WhatsAppApiService } from '../../../../core/api/whatsapp-api.service';
+import { ChannelStatusService } from '../../../../core/services/channel-status.service';
 import { FacebookSdkService } from '../../../../core/services/facebook-sdk.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -375,6 +376,7 @@ const CONTENT = {
 export class ChannelsPageComponent implements OnInit, OnDestroy {
   private readonly languageService = inject(LanguageService);
   private readonly whatsAppApi = inject(WhatsAppApiService);
+  private readonly channelStatus = inject(ChannelStatusService);
   private readonly facebookSdk = inject(FacebookSdkService);
   private readonly toast = inject(ToastService);
 
@@ -423,6 +425,7 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
             this.whatsAppApi.connect(code, wabaId).subscribe({
               next: (account) => {
                 this.account.set(account);
+                this.channelStatus.set(account.status); // flip the sidebar live badge instantly
                 this.connecting.set(false);
               },
               error: (err) => {
@@ -450,6 +453,7 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
       this.whatsAppApi.disconnect().subscribe({
         next: () => {
           this.account.set(null);
+          this.channelStatus.set('none'); // flip the sidebar badge to Offline instantly
           this.disconnecting.set(false);
           this.toast.success(this.c().disconnectedToastTitle, this.c().disconnectedToastMsg);
         },
