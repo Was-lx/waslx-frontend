@@ -50,21 +50,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/agent/dashboard/dashboard.routes').then((m) => m.agentDashboardRoutes)
       },
 
-      // --- INBOX (Role-based canMatch) ---
+      // --- INBOX (shared; role visibility enforced server-side by the query) ---
       {
         path: 'inbox',
-        canMatch: [roleMatchGuard(['Admin'])],
-        loadChildren: () => import('./features/admin/inbox/inbox.routes').then((m) => m.adminInboxRoutes)
-      },
-      {
-        path: 'inbox',
-        canMatch: [roleMatchGuard(['Manager'])],
-        loadChildren: () => import('./features/manager/inbox/inbox.routes').then((m) => m.managerInboxRoutes)
-      },
-      {
-        path: 'inbox',
-        canMatch: [roleMatchGuard(['Agent'])],
-        loadChildren: () => import('./features/agent/inbox/inbox.routes').then((m) => m.agentInboxRoutes)
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager', 'Agent'] },
+        loadChildren: () => import('./features/inbox/inbox.routes').then((m) => m.inboxRoutes)
       },
       // --- SHARED FEATURES ---
       {

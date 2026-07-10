@@ -1,0 +1,89 @@
+/* ============================================================================
+   WaslX — Shared Inbox (live). Token-driven, bilingual, RTL-safe (logical props).
+   Master-detail: conversation rail + thread pane inside one card.
+   ========================================================================== */
+
+:host { display: block; }
+
+.inbox__lead {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  max-width: 56ch;
+}
+
+.inbox__cockpit {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  height: min(72vh, 720px);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ── Rail ─────────────────────────────────────────────────────────────────── */
+.inbox__rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-inline-end: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 4%, var(--surface)), var(--surface) 120px);
+}
+
+.inbox__search { padding: 14px 14px 8px; }
+.inbox__search-field {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-soft);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.85rem;
+}
+.inbox__search-field:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border-soft));
+  box-shadow: var(--focus-ring);
+}
+
+.inbox__list {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px 10px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.inbox__state {
+  margin: 24px auto;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+.inbox__empty { margin: 12px 4px; }
+
+/* ── Thread pane ──────────────────────────────────────────────────────────── */
+.inbox__thread { min-width: 0; min-height: 0; display: flex; }
+.inbox__thread > app-chat-view { flex: 1 1 auto; min-width: 0; }
+
+.inbox__placeholder {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 60%),
+    var(--surface-soft);
+}
+.inbox__placeholder-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ── Responsive: stack to the list, hide thread until a row is chosen ──────── */
+@media (max-width: 860px) {
+  .inbox__cockpit { grid-template-columns: 1fr; height: auto; }
+  .inbox__rail { border-inline-end: 0; }
+  .inbox__thread { display: none; }
+}
