@@ -32,7 +32,19 @@ export type InboxKey =
   | 'inboxThreadBubbleIn'
   | 'inboxThreadBubbleOut'
   | 'inboxThreadSuggestion'
-  | 'inboxComposerPlaceholder';
+  | 'inboxComposerPlaceholder'
+  // Live shared-inbox (real, wired)
+  | 'inboxTitle'
+  | 'inboxLead'
+  | 'inboxEmptyTitle'
+  | 'inboxEmptyDesc'
+  | 'inboxSelectPrompt'
+  | 'inboxThreadEmpty'
+  | 'inboxLoadOlder'
+  | 'inboxLoading'
+  | 'inboxSendErrorTitle'
+  | 'inboxSendErrorMsg'
+  | 'inboxRetry';
 
 export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = {
   en: {
@@ -66,6 +78,17 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxThreadBubbleOut: 'Hello Layla! Yes, it is out for delivery and should reach you by 6 PM.',
     inboxThreadSuggestion: 'Your order #4821 is out for delivery, arriving by 6 PM today.',
     inboxComposerPlaceholder: 'Type a reply…',
+    inboxTitle: 'Shared Inbox',
+    inboxLead: 'Every WhatsApp conversation your team handles, in one place.',
+    inboxEmptyTitle: 'No conversations yet',
+    inboxEmptyDesc: 'Incoming WhatsApp messages will appear here as customers reach out.',
+    inboxSelectPrompt: 'Select a conversation to view the thread',
+    inboxThreadEmpty: 'No messages in this conversation yet',
+    inboxLoadOlder: 'Load older messages',
+    inboxLoading: 'Loading…',
+    inboxSendErrorTitle: 'Message not sent',
+    inboxSendErrorMsg: 'Could not send your reply. Please try again.',
+    inboxRetry: 'Retry',
   },
   ar: {
     allConversations: 'كل المحادثات',
@@ -98,5 +121,16 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxThreadBubbleOut: 'أهلاً ليلى! نعم، الطلب في الطريق وسيصلك قبل الساعة 6 مساءً.',
     inboxThreadSuggestion: 'طلبك رقم 4821 في طريقه إليك وسيصل قبل الساعة 6 مساءً اليوم.',
     inboxComposerPlaceholder: 'اكتب رداً…',
+    inboxTitle: 'البريد المشترك',
+    inboxLead: 'كل محادثات واتساب اللي فريقك بيتعامل معاها، في مكان واحد.',
+    inboxEmptyTitle: 'لا توجد محادثات بعد',
+    inboxEmptyDesc: 'رسائل واتساب الواردة هتظهر هنا أول ما العملاء يتواصلوا.',
+    inboxSelectPrompt: 'اختر محادثة لعرض الرسائل',
+    inboxThreadEmpty: 'لا توجد رسائل في هذه المحادثة بعد',
+    inboxLoadOlder: 'تحميل رسائل أقدم',
+    inboxLoading: 'جاري التحميل…',
+    inboxSendErrorTitle: 'لم يتم إرسال الرسالة',
+    inboxSendErrorMsg: 'تعذّر إرسال ردّك. حاول مرة أخرى.',
+    inboxRetry: 'إعادة المحاولة',
   },
 };

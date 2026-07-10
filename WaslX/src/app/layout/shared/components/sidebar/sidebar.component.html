@@ -42,7 +42,9 @@
                 <app-icon [name]="item.icon" [size]="18" />
               </span>
               <span class="side__label">{{ item.label }}</span>
-              @if (item.badge) {
+              @if (item.routerLink === '/app/inbox') {
+                <span class="side__badge" [class.side__badge--off]="!channelLive()">{{ channelBadgeLabel() }}</span>
+              } @else if (item.badge) {
                 <span class="side__badge">{{ item.badge }}</span>
               }
             </a>

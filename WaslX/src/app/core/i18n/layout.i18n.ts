@@ -11,6 +11,7 @@ export type LayoutKey =
   | 'toggleTheme'
   | 'toggleLanguage'
   | 'live'
+  | 'channelOffline'
   | 'footerLabel'
   | 'collapseSidebar'
   | 'expandSidebar'
@@ -63,6 +64,7 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     toggleTheme: 'Toggle theme',
     toggleLanguage: 'Switch language',
     live: 'Live',
+    channelOffline: 'Offline',
     footerLabel: '© 2026 WaslX. All rights reserved.',
     collapseSidebar: 'Collapse sidebar',
     expandSidebar: 'Expand sidebar',
@@ -114,6 +116,7 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     toggleTheme: 'تبديل المظهر',
     toggleLanguage: 'تغيير اللغة',
     live: 'مباشر',
+    channelOffline: 'غير متصل',
     footerLabel: '© 2026 WaslX. جميع الحقوق محفوظة.',
     collapseSidebar: 'طي الشريط الجانبي',
     expandSidebar: 'توسيع الشريط الجانبي',
