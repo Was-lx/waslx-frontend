@@ -27,4 +27,22 @@ export class ConversationsApiService {
   sendText(conversationId: number, text: string): Observable<SendMessageResult> {
     return this.api.post<SendMessageResult>(`/conversations/${conversationId}/messages`, { text });
   }
+
+  /** Marks a conversation read (clears its unread count). Internal only — no WhatsApp read receipt. */
+  markRead(conversationId: number): Observable<void> {
+    return this.api.post<void>(`/conversations/${conversationId}/read`, {});
+  }
+
+  /** Soft-deletes a conversation; a future inbound message from the same customer starts a new one. */
+  delete(conversationId: number): Observable<void> {
+    return this.api.delete<void>(`/conversations/${conversationId}`);
+  }
+
+  /** Uploads a file (image/video/document) and sends it as a reply. */
+  sendMedia(conversationId: number, file: File, caption: string): Observable<SendMessageResult> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    if (caption) form.append('caption', caption);
+    return this.api.post<SendMessageResult>(`/conversations/${conversationId}/media`, form);
+  }
 }

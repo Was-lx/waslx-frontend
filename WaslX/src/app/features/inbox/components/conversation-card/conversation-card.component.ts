@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 
+import { LanguageService } from '../../../../core/services/language.service';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import type { ConversationListItem } from '../../models/conversation.model';
 
 /** One row in the inbox conversation list. */
@@ -8,13 +10,16 @@ import type { ConversationListItem } from '../../models/conversation.model';
   selector: 'app-conversation-card',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AvatarComponent],
+  imports: [AvatarComponent, IconComponent],
   template: `
-    <button
-      type="button"
+    <div
       class="conv"
+      role="button"
+      tabindex="0"
       [class.conv--active]="selected()"
+      [class.conv--unread]="hasUnread()"
       (click)="selectCard.emit(item().id)"
+      (keydown.enter)="selectCard.emit(item().id)"
     >
       <app-avatar [name]="item().customerName" [size]="40" />
       <span class="conv__body">
@@ -24,10 +29,21 @@ import type { ConversationListItem } from '../../models/conversation.model';
         </span>
         <span class="conv__bottom">
           <span class="conv__preview">{{ item().lastMessagePreview || '—' }}</span>
-          <span class="ui-pill" [class]="statusClass()">{{ item().status }}</span>
+          @if (hasUnread()) {
+            <span class="conv__unread" [attr.aria-label]="unreadLabel()">{{ item().unreadCount }}</span>
+          }
         </span>
       </span>
-    </button>
+      <button
+        type="button"
+        class="conv__delete"
+        [attr.aria-label]="deleteLabel()"
+        [title]="deleteLabel()"
+        (click)="onDeleteClick($event)"
+      >
+        <app-icon name="trash" [size]="15" />
+      </button>
+    </div>
   `,
   styles: [`
     .conv {
@@ -71,25 +87,55 @@ import type { ConversationListItem } from '../../models/conversation.model';
       font-size: 0.82rem; color: var(--text-muted);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1 1 auto;
     }
-    .conv__bottom .ui-pill { flex: 0 0 auto; font-size: 0.66rem; padding: 2px 8px; }
+    /* WhatsApp-style unread count badge. */
+    .conv__unread {
+      flex: 0 0 auto;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; padding: 0 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.68rem; font-weight: 700; line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    /* Unread conversations get emphasised name + preview (WhatsApp cue). */
+    .conv--unread .conv__name { font-weight: 750; }
+    .conv--unread .conv__preview { color: var(--text-primary); font-weight: 550; }
+    .conv__delete {
+      flex: 0 0 auto;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .conv:hover .conv__delete,
+    .conv:focus-within .conv__delete { display: inline-flex; }
+    .conv__delete:hover { background: color-mix(in srgb, var(--danger, #ef4444) 12%, transparent); color: var(--danger, #ef4444); }
   `]
 })
 export class ConversationCardComponent {
+  private readonly language = inject(LanguageService);
+
   readonly item = input.required<ConversationListItem>();
   readonly selected = input(false);
   readonly selectCard = output<number>();
+  readonly deleteCard = output<number>();
 
-  protected readonly statusClass = computed(() => {
-    switch (this.item().status) {
-      case 'Resolved': return 'ui-pill--success';
-      case 'Pending': return 'ui-pill--warning';
-      case 'New':
-      case 'Reopened': return 'ui-pill--info';
-      default: return 'ui-pill--muted';
-    }
-  });
+  protected readonly hasUnread = computed(() => this.item().unreadCount > 0);
+  protected readonly unreadLabel = computed(() => `${this.item().unreadCount} ${this.language.text('inboxUnread')}`);
+  protected readonly deleteLabel = computed(() => this.language.text('inboxDeleteChat'));
 
   protected readonly relativeTime = computed(() => formatRelative(this.item().lastMessageAt));
+
+  protected onDeleteClick(event: Event): void {
+    event.stopPropagation();
+    this.deleteCard.emit(this.item().id);
+  }
 }
 
 /** Compact relative time for the list ("2m", "3h", "Jul 9"). */

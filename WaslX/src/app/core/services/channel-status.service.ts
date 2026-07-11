@@ -1,6 +1,10 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { WhatsAppApiService } from '../api/whatsapp-api.service';
+
+/** How long to wait before retrying after a transient failure (backend restart, network blip). */
+const RETRY_DELAY_MS = 3000;
 
 /**
  * App-global source of truth for whether the tenant's WhatsApp channel is live.
@@ -24,8 +28,16 @@ export class ChannelStatusService {
   refresh(): void {
     this.whatsAppApi.getAccount().subscribe({
       next: (account) => this.status.set(account.status),
-      // 404 (no account connected yet) and any other lookup failure → offline.
-      error: () => this.status.set('none')
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 404) {
+          // No WhatsApp account connected yet — genuinely offline.
+          this.status.set('none');
+          return;
+        }
+        // Transient failure (backend restarting, network blip, auth still loading, etc.) —
+        // don't stomp a known-good status; just retry shortly so the badge self-heals.
+        setTimeout(() => this.refresh(), RETRY_DELAY_MS);
+      }
     });
   }
 

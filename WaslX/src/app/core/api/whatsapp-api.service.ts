@@ -8,8 +8,8 @@ import type { SendWhatsAppTemplate, SendWhatsAppText, WhatsAppAccount } from '..
 export class WhatsAppApiService {
   private readonly api = inject(ApiClientService);
 
-  connect(authorizationCode: string, wabaId: string | null): Observable<WhatsAppAccount> {
-    return this.api.post<WhatsAppAccount>('/whatsapp/connect', { authorizationCode, wabaId });
+  connect(authorizationCode: string, wabaId: string | null, redirectUri?: string): Observable<WhatsAppAccount> {
+    return this.api.post<WhatsAppAccount>('/whatsapp/connect', { authorizationCode, wabaId, redirectUri });
   }
 
   getAccount(): Observable<WhatsAppAccount> {

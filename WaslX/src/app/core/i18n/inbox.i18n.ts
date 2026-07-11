@@ -44,7 +44,18 @@ export type InboxKey =
   | 'inboxLoading'
   | 'inboxSendErrorTitle'
   | 'inboxSendErrorMsg'
-  | 'inboxRetry';
+  | 'inboxRetry'
+  | 'inboxUnread'
+  | 'inboxDeleteChat'
+  | 'inboxDeleteConfirm'
+  | 'inboxDeleteErrorTitle'
+  | 'inboxDeleteErrorMsg'
+  | 'inboxMediaUnavailable'
+  | 'inboxAttachFile'
+  | 'inboxRemoveAttachment'
+  | 'inboxCaptionPlaceholder'
+  | 'inboxFileTooLarge'
+  | 'inboxMediaSendErrorMsg';
 
 export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = {
   en: {
@@ -89,6 +100,17 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxSendErrorTitle: 'Message not sent',
     inboxSendErrorMsg: 'Could not send your reply. Please try again.',
     inboxRetry: 'Retry',
+    inboxUnread: 'unread messages',
+    inboxDeleteChat: 'Delete chat',
+    inboxDeleteConfirm: 'Delete this conversation? It will disappear from your inbox.',
+    inboxDeleteErrorTitle: 'Could not delete',
+    inboxDeleteErrorMsg: 'Something went wrong deleting the conversation. Please try again.',
+    inboxMediaUnavailable: 'Media unavailable',
+    inboxAttachFile: 'Attach a file',
+    inboxRemoveAttachment: 'Remove attachment',
+    inboxCaptionPlaceholder: 'Add a caption…',
+    inboxFileTooLarge: 'File is too large (max 20 MB)',
+    inboxMediaSendErrorMsg: 'Could not send the file. Please try again.',
   },
   ar: {
     allConversations: 'كل المحادثات',
@@ -132,5 +154,16 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxSendErrorTitle: 'لم يتم إرسال الرسالة',
     inboxSendErrorMsg: 'تعذّر إرسال ردّك. حاول مرة أخرى.',
     inboxRetry: 'إعادة المحاولة',
+    inboxUnread: 'رسائل غير مقروءة',
+    inboxDeleteChat: 'حذف المحادثة',
+    inboxDeleteConfirm: 'هل تريد حذف هذه المحادثة؟ ستختفي من صندوق الوارد.',
+    inboxDeleteErrorTitle: 'تعذّر الحذف',
+    inboxDeleteErrorMsg: 'حدث خطأ أثناء حذف المحادثة. حاول مرة أخرى.',
+    inboxMediaUnavailable: 'الوسائط غير متاحة',
+    inboxAttachFile: 'إرفاق ملف',
+    inboxRemoveAttachment: 'إزالة المرفق',
+    inboxCaptionPlaceholder: 'أضف تعليق…',
+    inboxFileTooLarge: 'حجم الملف كبير جدًا (الحد الأقصى 20 ميجابايت)',
+    inboxMediaSendErrorMsg: 'تعذّر إرسال الملف. حاول مرة أخرى.',
   },
 };

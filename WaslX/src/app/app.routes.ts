@@ -19,6 +19,13 @@ export const routes: Routes = [
     loadChildren: () => import('./features/onboarding/onboarding.routes').then(m => m.onboardingRoutes)
   },
   {
+    // Must match FacebookSdkService.META_OAUTH_CALLBACK_PATH exactly, and be registered
+    // verbatim under the Meta App's "Valid OAuth Redirect URIs".
+    path: 'auth/meta-callback',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/auth/pages/meta-callback/meta-callback.page').then((m) => m.MetaCallbackPageComponent)
+  },
+  {
     path: 'app',
     canActivate: [authGuard],
     loadComponent: () => import('./layout/base-layout/base-layout.component').then((m) => m.BaseLayoutComponent),

@@ -42,15 +42,25 @@ import type { ConversationMessage } from '../../models/message.model';
           <div class="chat__state">{{ t('inboxThreadEmpty') }}</div>
         } @else {
           @for (m of messages(); track m.id) {
-            <app-message-bubble [message]="m" [retryLabel]="t('inboxRetry')" (retry)="retry.emit($event)" />
+            <app-message-bubble
+              [message]="m"
+              [retryLabel]="t('inboxRetry')"
+              [mediaUnavailableLabel]="t('inboxMediaUnavailable')"
+              (retry)="retry.emit($event)"
+            />
           }
         }
       </div>
 
       <app-message-composer
         [placeholder]="t('inboxComposerPlaceholder')"
+        [captionPlaceholder]="t('inboxCaptionPlaceholder')"
+        [attachLabel]="t('inboxAttachFile')"
+        [removeAttachmentLabel]="t('inboxRemoveAttachment')"
         [sending]="sending()"
         (send)="send.emit($event)"
+        (sendMedia)="sendMedia.emit($event)"
+        (attachError)="attachError.emit($event)"
       />
     </section>
   `,
@@ -99,32 +109,76 @@ export class ChatViewComponent implements AfterViewChecked {
 
   readonly customerName = input('');
   readonly customerPhone = input('');
+  readonly conversationId = input<number | null>(null);
+  /** Unread count captured at the moment this conversation was opened (0 = no override). */
+  readonly initialUnreadCount = input(0);
   readonly messages = input<ConversationMessage[]>([]);
   readonly loading = input(false);
   readonly sending = input(false);
   readonly hasMore = input(false);
 
   readonly send = output<string>();
+  readonly sendMedia = output<{ file: File; caption: string }>();
+  readonly attachError = output<'too-large'>();
   readonly loadOlder = output<void>();
   readonly retry = output<number>();
 
   private readonly scrollRef = viewChild<ElementRef<HTMLElement>>('scroll');
   private lastCount = 0;
+  private lastConversationId: number | null = null;
+  private armedUnread = 0;
 
   protected t = (key: TranslationKey): string => this.language.text(key);
 
   // Keep the thread pinned to the latest message when new ones arrive and the agent
   // was already near the bottom (don't yank their position while reading history).
+  // On first opening a conversation with unread messages, scroll to the earliest unread
+  // one instead (WhatsApp-style) rather than always landing at the top of the whole thread.
   ngAfterViewChecked(): void {
     const el = this.scrollRef()?.nativeElement;
     if (!el) return;
+
+    const convId = this.conversationId();
+    if (convId !== this.lastConversationId) {
+      this.lastConversationId = convId;
+      this.lastCount = 0;
+      this.armedUnread = this.initialUnreadCount();
+    }
+
     const count = this.messages().length;
     if (count === this.lastCount) return;
     const grew = count > this.lastCount;
-    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 160;
     this.lastCount = count;
+
+    if (grew && count > 0 && this.armedUnread > 0) {
+      const unread = this.armedUnread;
+      this.armedUnread = 0; // one-shot
+      const targetId = this.findFirstUnreadId(unread);
+      const target = targetId != null ? (el.querySelector(`[data-mid="${targetId}"]`) as HTMLElement | null) : null;
+      if (target) {
+        target.scrollIntoView({ block: 'start' });
+      } else {
+        el.scrollTop = el.scrollHeight;
+      }
+      return;
+    }
+
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 160;
     if (grew && nearBottom) {
       el.scrollTop = el.scrollHeight;
     }
+  }
+
+  /** Walks messages (oldest→newest) from the end to find the earliest of the last N inbound (Customer) messages. */
+  private findFirstUnreadId(unreadCount: number): number | null {
+    const msgs = this.messages();
+    let seen = 0;
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].senderType === 'Customer') {
+        seen++;
+        if (seen === unreadCount) return msgs[i].id;
+      }
+    }
+    return null;
   }
 }

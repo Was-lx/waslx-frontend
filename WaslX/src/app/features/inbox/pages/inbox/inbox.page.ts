@@ -32,6 +32,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   protected readonly sending = signal(false);
   protected readonly hasMore = signal(false);
   protected readonly search = signal('');
+  protected readonly scrollUnreadCount = signal(0);
 
   protected readonly selected = computed(() =>
     this.conversations().find((c) => c.id === this.selectedId()) ?? null
@@ -68,9 +69,28 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
   protected select(id: number): void {
     if (this.selectedId() === id) return;
+    // Capture the unread count before markRead() zeroes it, so the chat view can scroll
+    // to the first unread message instead of always landing at the top of the thread.
+    this.scrollUnreadCount.set(this.conversations().find((c) => c.id === id)?.unreadCount ?? 0);
     this.selectedId.set(id);
     this.messages.set([]);
     this.loadMessages(id);
+    this.markRead(id);
+  }
+
+  /** Advances the server read-cursor and optimistically zeroes the local unread badge. */
+  private markRead(id: number): void {
+    this.zeroUnread(id);
+    this.api.markRead(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      // Best-effort: on failure the next poll re-derives the true count from the server.
+      error: () => {}
+    });
+  }
+
+  private zeroUnread(id: number): void {
+    this.conversations.update((list) =>
+      list.map((c) => (c.id === id && c.unreadCount > 0 ? { ...c, unreadCount: 0 } : c))
+    );
   }
 
   protected onSend(text: string): void {
@@ -85,7 +105,10 @@ export class InboxPageComponent implements OnInit, OnDestroy {
       messageType: 'Text',
       status: 'Queued',
       timestamp: new Date().toISOString(),
-      senderUserId: null
+      senderUserId: null,
+      mediaUrl: null,
+      mediaMimeType: null,
+      mediaFileName: null
     };
     this.messages.update((m) => [...m, temp]);
     this.sending.set(true);
@@ -106,6 +129,49 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  protected onSendMedia({ file, caption }: { file: File; caption: string }): void {
+    const id = this.selectedId();
+    if (id == null || this.sending()) return;
+
+    const previewUrl = URL.createObjectURL(file);
+    const temp: ConversationMessage = {
+      id: -Date.now(),
+      senderType: 'Agent',
+      content: caption,
+      messageType: mapMediaKind(file.type),
+      status: 'Queued',
+      timestamp: new Date().toISOString(),
+      senderUserId: null,
+      mediaUrl: previewUrl,
+      mediaMimeType: file.type,
+      mediaFileName: file.name
+    };
+    this.messages.update((m) => [...m, temp]);
+    this.sending.set(true);
+
+    this.api.sendMedia(id, file, caption).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.sending.set(false);
+        URL.revokeObjectURL(previewUrl);
+        this.loadMessages(id); // reconcile with the persisted message
+        this.loadList(false); // bump the conversation up the list
+      },
+      error: () => {
+        this.sending.set(false);
+        this.messages.update((list) =>
+          list.map((msg) => (msg.id === temp.id ? { ...msg, status: 'Failed' } : msg))
+        );
+        this.toast.error(this.t('inboxSendErrorTitle'), this.t('inboxMediaSendErrorMsg'));
+      }
+    });
+  }
+
+  protected onAttachError(kind: 'too-large'): void {
+    if (kind === 'too-large') {
+      this.toast.error(this.t('inboxSendErrorTitle'), this.t('inboxFileTooLarge'));
+    }
+  }
+
   protected onLoadOlder(): void {
     const id = this.selectedId();
     const current = this.messages();
@@ -121,6 +187,21 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  protected onDelete(id: number): void {
+    if (!confirm(this.t('inboxDeleteConfirm'))) return;
+
+    this.api.delete(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.conversations.update((list) => list.filter((c) => c.id !== id));
+        if (this.selectedId() === id) {
+          this.selectedId.set(null);
+          this.messages.set([]);
+        }
+      },
+      error: () => this.toast.error(this.t('inboxDeleteErrorTitle'), this.t('inboxDeleteErrorMsg'))
+    });
+  }
+
   protected onRetry(): void {
     // Retrying a failed send re-uses the composer path; for the slice, prompt a fresh reply.
     const id = this.selectedId();
@@ -132,6 +213,9 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.api.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (page) => {
         this.conversations.set(page.items);
+        // The open thread is being read live, so don't let a stale server count re-show its badge.
+        const openId = this.selectedId();
+        if (openId != null) this.zeroUnread(openId);
         this.listLoading.set(false);
       },
       error: () => this.listLoading.set(false)
@@ -154,6 +238,17 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   private refresh(): void {
     this.loadList(false);
     const id = this.selectedId();
-    if (id != null && !this.sending()) this.loadMessages(id);
+    if (id != null && !this.sending()) {
+      this.loadMessages(id);
+      // Keep the open thread at zero unread as new inbound messages arrive.
+      this.markRead(id);
+    }
   }
+}
+
+/** Local guess at the message kind for the optimistic bubble (server re-derives it authoritatively). */
+function mapMediaKind(mimeType: string): string {
+  if (mimeType.startsWith('image/')) return 'Image';
+  if (mimeType.startsWith('video/')) return 'Video';
+  return 'Document';
 }

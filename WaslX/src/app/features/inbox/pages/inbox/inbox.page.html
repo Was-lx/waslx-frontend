@@ -34,6 +34,7 @@
               [item]="c"
               [selected]="c.id === selectedId()"
               (selectCard)="select($event)"
+              (deleteCard)="onDelete($event)"
             />
           }
         }
@@ -46,11 +47,15 @@
         <app-chat-view
           [customerName]="conv.customerName"
           [customerPhone]="conv.customerPhone"
+          [conversationId]="selectedId()"
+          [initialUnreadCount]="scrollUnreadCount()"
           [messages]="messages()"
           [loading]="threadLoading()"
           [sending]="sending()"
           [hasMore]="hasMore()"
           (send)="onSend($event)"
+          (sendMedia)="onSendMedia($event)"
+          (attachError)="onAttachError($event)"
           (loadOlder)="onLoadOlder()"
           (retry)="onRetry()"
         />

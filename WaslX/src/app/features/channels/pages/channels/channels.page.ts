@@ -1,6 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Subscription as RxSubscription } from 'rxjs';
 
+import { environment } from '../../../../../environments/environment';
 import { WhatsAppApiService } from '../../../../core/api/whatsapp-api.service';
 import { ChannelStatusService } from '../../../../core/services/channel-status.service';
 import { FacebookSdkService } from '../../../../core/services/facebook-sdk.service';
@@ -392,17 +394,26 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loading.set(true);
+    this.loadAccount();
+  }
+
+  private loadAccount(): void {
     this.subs.push(
       this.whatsAppApi.getAccount().subscribe({
         next: (account) => {
           this.account.set(account);
           this.loading.set(false);
         },
-        error: () => {
-          // 404 (no account connected yet) and any other lookup failure both
-          // resolve to the "not connected" empty state.
-          this.account.set(null);
-          this.loading.set(false);
+        error: (err: HttpErrorResponse) => {
+          if (err.status === 404) {
+            // No account connected yet — genuinely the "not connected" empty state.
+            this.account.set(null);
+            this.loading.set(false);
+            return;
+          }
+          // Transient failure (backend restarting, network blip) — keep showing the
+          // loading state and retry shortly instead of flashing a false "disconnected".
+          setTimeout(() => this.loadAccount(), 3000);
         }
       })
     );
@@ -412,34 +423,16 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
     this.subs.forEach((sub) => sub.unsubscribe());
   }
 
+  /** Navigates the whole page to Meta's OAuth dialog; the flow completes on /auth/meta-callback. */
   connect(): void {
     if (this.connecting()) {
       return;
     }
     this.connecting.set(true);
-
-    this.subs.push(
-      this.facebookSdk.launchWhatsAppEmbeddedSignup().subscribe({
-        next: ({ code, wabaId }) => {
-          this.subs.push(
-            this.whatsAppApi.connect(code, wabaId).subscribe({
-              next: (account) => {
-                this.account.set(account);
-                this.channelStatus.set(account.status); // flip the sidebar live badge instantly
-                this.connecting.set(false);
-              },
-              error: (err) => {
-                this.connecting.set(false);
-                this.toast.error(this.c().connectErrorTitle, this.extractError(err));
-              }
-            })
-          );
-        },
-        error: (err: Error) => {
-          this.connecting.set(false);
-          this.toast.error(this.c().connectErrorTitle, err.message);
-        }
-      })
+    this.facebookSdk.beginWhatsAppEmbeddedSignupRedirect(
+      environment.facebookAppId,
+      environment.whatsAppEmbeddedSignupConfigId,
+      environment.facebookApiVersion
     );
   }
 
