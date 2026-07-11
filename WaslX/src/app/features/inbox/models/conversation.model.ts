@@ -12,6 +12,7 @@ export interface ConversationListItem {
   lastMessagePreview: string | null;
   lastMessageAt: string | null;
   assignedUserId: number | null;
+  unreadCount: number;
 }
 
 /** Cursor-paginated slice returned by the inbox read endpoints. */
