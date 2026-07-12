@@ -263,9 +263,14 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   // ── Realtime handlers ───────────────────────────────────────────────────────
   private onRealtimeMessage(m: RealtimeMessage): void {
     this.loadList(false);
-    if (m.conversationId === this.selectedId() && !this.sending()) {
-      this.loadMessages(m.conversationId);
-      this.markRead(m.conversationId);
+    if (m.conversationId === this.selectedId()) {
+      // Refresh the 24h-window anchor (lastInboundAt) + status the instant a message arrives, so a
+      // customer reply unlocks the composer immediately — no manual/hard refresh required.
+      this.loadDetail(m.conversationId);
+      if (!this.sending()) {
+        this.loadMessages(m.conversationId);
+        this.markRead(m.conversationId);
+      }
     }
   }
 
@@ -361,6 +366,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
 /** Local guess at the message kind for the optimistic bubble (server re-derives it authoritatively). */
 function mapMediaKind(mimeType: string): string {
+  if (mimeType === 'image/webp') return 'Sticker';
   if (mimeType.startsWith('image/')) return 'Image';
   if (mimeType.startsWith('video/')) return 'Video';
   return 'Document';
