@@ -29,6 +29,10 @@ export interface ConversationDetail {
   createdAt: string;
   lastMessageAt: string | null;
   lastInboundAt: string | null;
+  // WhatsApp 24-hour window close time (customer's last inbound + 24h); null = never opened.
+  // The composer locks to templates-only once now passes this instant.
+  windowExpiresAt: string | null;
+  isWindowOpen: boolean;
   messageCount: number;
 }
 

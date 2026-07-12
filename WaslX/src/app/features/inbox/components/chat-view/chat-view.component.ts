@@ -21,8 +21,6 @@ import { TemplatePickerComponent, type TemplateSendPayload } from '../template-p
 import type { ConversationDetail, ConversationNote } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
 
-const WINDOW_MS = 24 * 60 * 60 * 1000;
-
 /** Right pane: conversation header, message thread, composer, template picker, and context panel. */
 @Component({
   selector: 'app-chat-view',
@@ -181,11 +179,15 @@ export class ChatViewComponent implements AfterViewChecked {
     destroyRef.onDestroy(() => clearInterval(timer));
   }
 
-  /** 24-hour window is closed when the customer hasn't messaged in the last 24h (or never has). */
+  /**
+   * 24-hour window is closed once now passes the server's WindowExpiresAt (customer's last inbound
+   * + 24h), or when it was never opened. This mirrors the backend's send-time enforcement exactly,
+   * so the composer locks on the same value the API blocks on.
+   */
   protected readonly windowClosed = computed(() => {
     const d = this.detail();
-    if (!d || !d.lastInboundAt) return true;
-    return this.nowTick() - new Date(d.lastInboundAt).getTime() >= WINDOW_MS;
+    if (!d || !d.windowExpiresAt) return true;
+    return this.nowTick() >= new Date(d.windowExpiresAt).getTime();
   });
 
   private readonly scrollRef = viewChild<ElementRef<HTMLElement>>('scroll');
