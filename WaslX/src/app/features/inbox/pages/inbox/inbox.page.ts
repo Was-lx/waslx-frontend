@@ -5,7 +5,7 @@ import { LanguageService, type TranslationKey } from '../../../../core/services/
 import { ToastService } from '../../../../core/services/toast.service';
 import { InboxRealtimeService, type RealtimeConversation, type RealtimeMessage, type RealtimeNote, type RealtimeStatus } from '../../../../core/services/inbox-realtime.service';
 import { WhatsAppApiService } from '../../../../core/api/whatsapp-api.service';
-import { apiErrorMessage } from '../../../../core/utils/api-error';
+import { apiError, apiErrorMessage } from '../../../../core/utils/api-error';
 import { ConversationCardComponent } from '../../components/conversation-card/conversation-card.component';
 import { ChatViewComponent } from '../../components/chat-view/chat-view.component';
 import { ConversationsApiService } from '../../services/conversations-api.service';
@@ -123,10 +123,11 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
     this.api.sendText(id, text).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => { this.sending.set(false); this.loadMessages(id); this.loadList(false); },
-      error: () => {
+      error: (err) => {
         this.sending.set(false);
         this.markTempFailed(temp.id);
-        this.toast.error(this.t('inboxSendErrorTitle'), this.t('inboxSendErrorMsg'));
+        if (!this.handledWindowClosed(err, id))
+          this.toast.error(this.t('inboxSendErrorTitle'), this.t('inboxSendErrorMsg'));
       }
     });
   }
@@ -153,11 +154,12 @@ export class InboxPageComponent implements OnInit, OnDestroy {
         this.loadMessages(id);
         this.loadList(false);
       },
-      error: () => {
+      error: (err) => {
         this.sending.set(false);
         this.uploadProgress.set(null);
         this.markTempFailed(temp.id);
-        this.toast.error(this.t('inboxSendErrorTitle'), this.t('inboxMediaSendErrorMsg'));
+        if (!this.handledWindowClosed(err, id))
+          this.toast.error(this.t('inboxSendErrorTitle'), this.t('inboxMediaSendErrorMsg'));
       }
     });
   }
@@ -340,6 +342,19 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
+  /**
+   * If a send failed because the server reports the 24-hour window is closed, refresh the detail
+   * (so the composer locks on the fresh WindowExpiresAt) and show the window-closed message.
+   * Returns true when handled, so callers skip the generic send-error toast. Backstops the
+   * proactive client-side lock for the edge case where the client still thought the window was open.
+   */
+  private handledWindowClosed(err: unknown, conversationId: number): boolean {
+    if (apiError(err).code !== 'WhatsApp.WindowClosed') return false;
+    this.loadDetail(conversationId);
+    this.toast.error(this.t('windowClosedTitle'), this.t('windowClosedHint'));
+    return true;
+  }
+
   private optimistic(content: string, kind: string): ConversationMessage {
     return {
       id: -Date.now(),
