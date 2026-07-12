@@ -2,6 +2,7 @@ import {
   AfterViewChecked,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   computed,
   inject,
@@ -169,11 +170,22 @@ export class ChatViewComponent implements AfterViewChecked {
 
   protected readonly showPicker = signal(false);
 
+  // Ticks on an interval so the 24h window also CLOSES on its own the moment it expires — without
+  // needing a new server event or a manual refresh. The instant a customer reply arrives, the parent
+  // reloads `detail` (fresh lastInboundAt), which re-opens the window immediately.
+  private readonly nowTick = signal(Date.now());
+
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+    const timer = setInterval(() => this.nowTick.set(Date.now()), 30_000);
+    destroyRef.onDestroy(() => clearInterval(timer));
+  }
+
   /** 24-hour window is closed when the customer hasn't messaged in the last 24h (or never has). */
   protected readonly windowClosed = computed(() => {
     const d = this.detail();
     if (!d || !d.lastInboundAt) return true;
-    return Date.now() - new Date(d.lastInboundAt).getTime() >= WINDOW_MS;
+    return this.nowTick() - new Date(d.lastInboundAt).getTime() >= WINDOW_MS;
   });
 
   private readonly scrollRef = viewChild<ElementRef<HTMLElement>>('scroll');
