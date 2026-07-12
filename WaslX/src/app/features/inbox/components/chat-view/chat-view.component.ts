@@ -3,70 +3,103 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  computed,
   inject,
   input,
   output,
+  signal,
   viewChild
 } from '@angular/core';
 
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
-import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { MessageBubbleComponent } from '../message-bubble/message-bubble.component';
 import { MessageComposerComponent } from '../message-composer/message-composer.component';
+import { ContextPanelComponent } from '../context-panel/context-panel.component';
+import { TemplatePickerComponent, type TemplateSendPayload } from '../template-picker/template-picker.component';
+import type { ConversationDetail, ConversationNote } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
 
-/** Right pane: conversation header, message thread (oldest→newest), and composer. */
+const WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/** Right pane: conversation header, message thread, composer, template picker, and context panel. */
 @Component({
   selector: 'app-chat-view',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AvatarComponent, IconComponent, MessageBubbleComponent, MessageComposerComponent],
+  imports: [
+    AvatarComponent, MessageBubbleComponent, MessageComposerComponent,
+    ContextPanelComponent, TemplatePickerComponent
+  ],
   template: `
-    <section class="chat">
-      <header class="chat__head">
-        <app-avatar [name]="customerName()" [size]="42" />
-        <div class="chat__who">
-          <span class="chat__name">{{ customerName() }}</span>
-          <span class="chat__phone">{{ customerPhone() }}</span>
-        </div>
-      </header>
+    <div class="chat-wrap">
+      <section class="chat">
+        <header class="chat__head">
+          <app-avatar [name]="customerName()" [size]="42" />
+          <div class="chat__who">
+            <span class="chat__name">{{ customerName() }}</span>
+            <span class="chat__phone">{{ customerPhone() }}</span>
+          </div>
+        </header>
 
-      <div class="chat__scroll" #scroll>
-        @if (hasMore()) {
-          <button type="button" class="chat__older" (click)="loadOlder.emit()">{{ t('inboxLoadOlder') }}</button>
-        }
-        @if (loading() && messages().length === 0) {
-          <div class="chat__state">{{ t('inboxLoading') }}</div>
-        } @else if (messages().length === 0) {
-          <div class="chat__state">{{ t('inboxThreadEmpty') }}</div>
-        } @else {
-          @for (m of messages(); track m.id) {
-            <app-message-bubble
-              [message]="m"
-              [retryLabel]="t('inboxRetry')"
-              [mediaUnavailableLabel]="t('inboxMediaUnavailable')"
-              (retry)="retry.emit($event)"
-            />
+        <div class="chat__scroll" #scroll>
+          @if (hasMore()) {
+            <button type="button" class="chat__older" (click)="loadOlder.emit()">{{ t('inboxLoadOlder') }}</button>
           }
-        }
-      </div>
+          @if (loading() && messages().length === 0) {
+            <div class="chat__state">{{ t('inboxLoading') }}</div>
+          } @else if (messages().length === 0) {
+            <div class="chat__state">{{ t('inboxThreadEmpty') }}</div>
+          } @else {
+            @for (m of messages(); track m.id) {
+              <app-message-bubble
+                [message]="m"
+                [retryLabel]="t('inboxRetry')"
+                [mediaUnavailableLabel]="t('inboxMediaUnavailable')"
+                (retry)="retry.emit($event)"
+              />
+            }
+          }
+        </div>
 
-      <app-message-composer
-        [placeholder]="t('inboxComposerPlaceholder')"
-        [captionPlaceholder]="t('inboxCaptionPlaceholder')"
-        [attachLabel]="t('inboxAttachFile')"
-        [removeAttachmentLabel]="t('inboxRemoveAttachment')"
-        [sending]="sending()"
-        (send)="send.emit($event)"
-        (sendMedia)="sendMedia.emit($event)"
-        (attachError)="attachError.emit($event)"
+        @if (showPicker()) {
+          <app-template-picker [sending]="sending()" (close)="showPicker.set(false)" (send)="onPickerSend($event)" />
+        }
+
+        <app-message-composer
+          [placeholder]="t('inboxComposerPlaceholder')"
+          [captionPlaceholder]="t('inboxCaptionPlaceholder')"
+          [attachLabel]="t('inboxAttachFile')"
+          [templateLabel]="t('pickerButton')"
+          [removeAttachmentLabel]="t('inboxRemoveAttachment')"
+          [windowClosedTitle]="t('windowClosedTitle')"
+          [windowClosedHint]="t('windowClosedHint')"
+          [sending]="sending()"
+          [windowClosed]="windowClosed()"
+          [uploadProgress]="uploadProgress()"
+          (send)="send.emit($event)"
+          (sendMedia)="sendMedia.emit($event)"
+          (attachError)="attachError.emit($event)"
+          (openTemplates)="showPicker.set(true)"
+        />
+      </section>
+
+      <app-context-panel
+        class="chat__context"
+        [detail]="detail()"
+        [notes]="notes()"
+        [addingNote]="addingNote()"
+        [statusChanging]="statusChanging()"
+        (changeStatus)="changeStatus.emit($event)"
+        (addNote)="addNote.emit($event)"
       />
-    </section>
+    </div>
   `,
   styles: [`
     :host { display: block; height: 100%; }
-    .chat { display: flex; flex-direction: column; height: 100%; min-width: 0; background: var(--surface-soft); }
+    .chat-wrap { display: flex; height: 100%; min-width: 0; }
+    .chat { position: relative; flex: 1 1 auto; display: flex; flex-direction: column; height: 100%; min-width: 0; background: var(--surface-soft); }
+    .chat__context { flex: 0 0 300px; }
     .chat__head {
       display: flex; align-items: center; gap: 12px;
       padding: 14px 18px;
@@ -102,6 +135,9 @@ import type { ConversationMessage } from '../../models/message.model';
       color: var(--text-muted);
       font-size: 0.88rem;
     }
+    @media (max-width: 1100px) {
+      .chat__context { display: none; }
+    }
   `]
 })
 export class ChatViewComponent implements AfterViewChecked {
@@ -116,12 +152,29 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly loading = input(false);
   readonly sending = input(false);
   readonly hasMore = input(false);
+  readonly detail = input<ConversationDetail | null>(null);
+  readonly notes = input<ConversationNote[]>([]);
+  readonly addingNote = input(false);
+  readonly statusChanging = input(false);
+  readonly uploadProgress = input<number | null>(null);
 
   readonly send = output<string>();
   readonly sendMedia = output<{ file: File; caption: string }>();
-  readonly attachError = output<'too-large'>();
+  readonly attachError = output<'too-large' | 'unsupported-type'>();
   readonly loadOlder = output<void>();
   readonly retry = output<number>();
+  readonly changeStatus = output<string>();
+  readonly addNote = output<string>();
+  readonly sendTemplate = output<TemplateSendPayload>();
+
+  protected readonly showPicker = signal(false);
+
+  /** 24-hour window is closed when the customer hasn't messaged in the last 24h (or never has). */
+  protected readonly windowClosed = computed(() => {
+    const d = this.detail();
+    if (!d || !d.lastInboundAt) return true;
+    return Date.now() - new Date(d.lastInboundAt).getTime() >= WINDOW_MS;
+  });
 
   private readonly scrollRef = viewChild<ElementRef<HTMLElement>>('scroll');
   private lastCount = 0;
@@ -130,10 +183,11 @@ export class ChatViewComponent implements AfterViewChecked {
 
   protected t = (key: TranslationKey): string => this.language.text(key);
 
-  // Keep the thread pinned to the latest message when new ones arrive and the agent
-  // was already near the bottom (don't yank their position while reading history).
-  // On first opening a conversation with unread messages, scroll to the earliest unread
-  // one instead (WhatsApp-style) rather than always landing at the top of the whole thread.
+  protected onPickerSend(payload: TemplateSendPayload): void {
+    this.sendTemplate.emit(payload);
+    this.showPicker.set(false);
+  }
+
   ngAfterViewChecked(): void {
     const el = this.scrollRef()?.nativeElement;
     if (!el) return;
@@ -143,6 +197,7 @@ export class ChatViewComponent implements AfterViewChecked {
       this.lastConversationId = convId;
       this.lastCount = 0;
       this.armedUnread = this.initialUnreadCount();
+      this.showPicker.set(false);
     }
 
     const count = this.messages().length;

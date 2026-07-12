@@ -53,11 +53,19 @@
           [loading]="threadLoading()"
           [sending]="sending()"
           [hasMore]="hasMore()"
+          [detail]="detail()"
+          [notes]="notes()"
+          [addingNote]="addingNote()"
+          [statusChanging]="statusChanging()"
+          [uploadProgress]="uploadProgress()"
           (send)="onSend($event)"
           (sendMedia)="onSendMedia($event)"
           (attachError)="onAttachError($event)"
           (loadOlder)="onLoadOlder()"
           (retry)="onRetry()"
+          (changeStatus)="onChangeStatus($event)"
+          (addNote)="onAddNote($event)"
+          (sendTemplate)="onSendTemplate($event)"
         />
       } @else {
         <div class="inbox__placeholder">

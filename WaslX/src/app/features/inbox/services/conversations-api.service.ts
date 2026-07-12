@@ -1,17 +1,36 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
+import { Observable, filter, map } from 'rxjs';
 
+import { environment } from '../../../../environments/environment';
 import { ApiClientService } from '../../../core/api/api-client.service';
-import type { ConversationListItem, PagedResult } from '../models/conversation.model';
+import type {
+  ConversationDetail,
+  ConversationListItem,
+  ConversationNote,
+  ConversationStatusResult,
+  PagedResult
+} from '../models/conversation.model';
 import type { ConversationMessage, SendMessageResult } from '../models/message.model';
+
+/** A media upload in flight: either progress (0–100) or the final send result. */
+export type MediaUploadEvent =
+  | { kind: 'progress'; progress: number }
+  | { kind: 'done'; result: SendMessageResult };
 
 @Injectable({ providedIn: 'root' })
 export class ConversationsApiService {
   private readonly api = inject(ApiClientService);
+  private readonly http = inject(HttpClient);
 
   /** Role-filtered, paginated conversation list (agents see own; managers/admins see all). */
   list(page = 1, pageSize = 30): Observable<PagedResult<ConversationListItem>> {
     return this.api.get<PagedResult<ConversationListItem>>('/conversations', { params: { page, pageSize } });
+  }
+
+  /** Rich detail for the customer-context panel + status controls. */
+  detail(conversationId: number): Observable<ConversationDetail> {
+    return this.api.get<ConversationDetail>(`/conversations/${conversationId}`);
   }
 
   /** Cursor-paginated message history; `before` is a message id for loading older history. */
@@ -38,11 +57,44 @@ export class ConversationsApiService {
     return this.api.delete<void>(`/conversations/${conversationId}`);
   }
 
-  /** Uploads a file (image/video/document) and sends it as a reply. */
-  sendMedia(conversationId: number, file: File, caption: string): Observable<SendMessageResult> {
+  /** Applies a manual lifecycle transition (server-side state machine rejects invalid moves). */
+  changeStatus(conversationId: number, status: string): Observable<ConversationStatusResult> {
+    return this.api.post<ConversationStatusResult>(`/conversations/${conversationId}/status`, { status });
+  }
+
+  /** Lists a conversation's internal team notes. */
+  notes(conversationId: number): Observable<ConversationNote[]> {
+    return this.api.get<ConversationNote[]>(`/conversations/${conversationId}/notes`);
+  }
+
+  /** Adds an internal team note (never sent to the customer). */
+  addNote(conversationId: number, content: string): Observable<ConversationNote> {
+    return this.api.post<ConversationNote>(`/conversations/${conversationId}/notes`, { content });
+  }
+
+  /**
+   * Uploads a file (image/video/document) and sends it as a reply, reporting upload progress.
+   * Emits `{kind:'progress'}` events then a final `{kind:'done'}` with the send result.
+   */
+  sendMedia(conversationId: number, file: File, caption: string): Observable<MediaUploadEvent> {
     const form = new FormData();
     form.append('file', file, file.name);
     if (caption) form.append('caption', caption);
-    return this.api.post<SendMessageResult>(`/conversations/${conversationId}/media`, form);
+
+    return this.http.post<SendMessageResult>(
+      `${environment.apiUrl}/conversations/${conversationId}/media`,
+      form,
+      { reportProgress: true, observe: 'events' }
+    ).pipe(
+      filter((event: HttpEvent<SendMessageResult>) =>
+        event.type === HttpEventType.UploadProgress || event.type === HttpEventType.Response),
+      map((event: HttpEvent<SendMessageResult>): MediaUploadEvent => {
+        if (event.type === HttpEventType.UploadProgress) {
+          const progress = event.total ? Math.round((event.loaded / event.total) * 100) : 0;
+          return { kind: 'progress', progress };
+        }
+        return { kind: 'done', result: (event as { body: SendMessageResult }).body };
+      })
+    );
   }
 }

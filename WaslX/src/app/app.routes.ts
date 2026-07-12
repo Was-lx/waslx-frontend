@@ -78,6 +78,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/channels/channels.routes').then((m) => m.channelsRoutes)
       },
       {
+        path: 'templates',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/templates/templates.routes').then((m) => m.templatesRoutes)
+      },
+      {
         path: 'users',
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager'] },

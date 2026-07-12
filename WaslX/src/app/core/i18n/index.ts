@@ -14,3 +14,4 @@ export { type AnalyticsKey, analyticsTranslations } from './analytics.i18n';
 export { type ContactsKey, contactsTranslations } from './contacts.i18n';
 export { type SettingsKey, settingsTranslations } from './settings.i18n';
 export { type OnboardingKey, onboardingTranslations } from './onboarding.i18n';
+export { type TemplatesKey, templatesTranslations } from './templates.i18n';
