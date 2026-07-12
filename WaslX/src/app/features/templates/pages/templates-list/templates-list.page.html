@@ -39,6 +39,34 @@
               }
             </div>
           }
+          @if (tpl.status === 'REJECTED') {
+            <div class="tmpl-card__review">
+              <span class="tmpl-card__review-title">{{ t('templateRejected') }}</span>
+              @if (tpl.reasonCode || tpl.reasonText || tpl.metaNotes) {
+                @if (tpl.reasonCode) {
+                  <p class="tmpl-card__reason"><span class="tmpl-card__reason-label">{{ t('templateReasonCode') }}</span> {{ tpl.reasonCode }}</p>
+                }
+                @if (tpl.reasonText) {
+                  <p class="tmpl-card__reason"><span class="tmpl-card__reason-label">{{ t('templateReasonDesc') }}</span> {{ tpl.reasonText }}</p>
+                }
+                @if (tpl.metaNotes) {
+                  <p class="tmpl-card__reason"><span class="tmpl-card__reason-label">{{ t('templateMetaNotes') }}</span> {{ tpl.metaNotes }}</p>
+                }
+              } @else {
+                <p class="tmpl-card__reason tmpl-card__reason--empty">{{ t('templateNoReason') }}</p>
+              }
+            </div>
+          }
+          @if (tpl.changedByMeta) {
+            <div class="tmpl-card__changed">
+              <span class="ui-pill ui-pill--warning">{{ t('templateCategoryChanged') }}</span>
+              <p class="tmpl-card__changed-cats">
+                <span class="tmpl-card__changed-cat">{{ t('templateRequestedCategory') }}: {{ categoryLabel(tpl.submittedCategory || '') }}</span>
+                <span class="tmpl-card__changed-arrow" aria-hidden="true">→</span>
+                <span class="tmpl-card__changed-cat">{{ t('templateFinalCategory') }}: {{ categoryLabel(tpl.finalCategory || '') }}</span>
+              </p>
+            </div>
+          }
         </article>
       }
     </div>
@@ -84,6 +112,14 @@
                   <option value="ar">العربية (ar)</option>
                 </select>
               </div>
+            </div>
+
+            <div class="ui-field tmpl-form__check">
+              <label class="tmpl-form__check-label">
+                <input type="checkbox" class="tmpl-form__check-input" formControlName="allowCategoryChange" />
+                <span>{{ t('templateAllowCategoryChange') }}</span>
+              </label>
+              <span class="ui-hint">{{ t('templateAllowCategoryChangeHint') }}</span>
             </div>
 
             @if (isAuth()) {

@@ -50,6 +50,34 @@
 .tmpl-badge--pending { background: color-mix(in srgb, #d97706 18%, transparent); color: #d97706; }
 .tmpl-badge--rejected { background: color-mix(in srgb, #ef4444 18%, transparent); color: #ef4444; }
 
+.tmpl-card__review {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #ef4444 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, #ef4444 22%, var(--border-soft));
+}
+.tmpl-card__review-title { font-size: 0.74rem; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 0.03em; }
+.tmpl-card__reason { margin: 0; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; word-break: break-word; }
+.tmpl-card__reason-label { font-weight: 600; color: var(--text-primary); }
+.tmpl-card__reason--empty { color: var(--text-muted); font-style: italic; }
+
+.tmpl-card__changed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warning) 22%, var(--border-soft));
+}
+.tmpl-card__changed-cats { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); }
+.tmpl-card__changed-cat { font-weight: 600; color: var(--text-primary); }
+.tmpl-card__changed-arrow { color: var(--text-muted); }
+[dir='rtl'] .tmpl-card__changed-arrow { transform: scaleX(-1); }
+
 .tmpl-form { display: flex; flex-direction: column; gap: 14px; }
 .tmpl-form__row--two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .tmpl-form__hint {
@@ -75,6 +103,18 @@
 }
 .tmpl-form__btn-remove:hover { background: color-mix(in srgb, var(--danger, #ef4444) 12%, transparent); color: var(--danger, #ef4444); }
 .ui-btn--sm { padding: 5px 10px; font-size: 0.78rem; }
+
+.tmpl-form__check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+.tmpl-form__check-input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
 
 @media (max-width: 560px) {
   .tmpl-form__row--two { grid-template-columns: 1fr; }

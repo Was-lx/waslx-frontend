@@ -53,6 +53,18 @@ export const templatesTranslations: Record<AppLanguage, Record<string, string>> 
     templateCreated: 'Template submitted to Meta for review',
     templateCreateError: 'Could not create the template',
     templateCancel: 'Cancel',
+    templateAllowCategoryChange: 'Allow Meta to change the category',
+    templateAllowCategoryChangeHint: 'If enabled, Meta may automatically change the selected category during review if another category better matches the template.',
+
+    // Template review (rejected reasons + category change)
+    templateRejected: 'Rejected',
+    templateReasonCode: 'Reason code',
+    templateReasonDesc: 'Reason',
+    templateMetaNotes: 'Meta notes',
+    templateNoReason: 'No reason provided by Meta.',
+    templateCategoryChanged: 'Category changed by Meta',
+    templateRequestedCategory: 'Requested',
+    templateFinalCategory: 'Final',
 
     // Composer template picker
     pickerButton: 'Template',
@@ -70,6 +82,9 @@ export const templatesTranslations: Record<AppLanguage, Record<string, string>> 
     // 24-hour window
     windowClosedTitle: '24-hour window closed',
     windowClosedHint: 'This customer has not messaged in the last 24 hours. Free text is disabled — send an approved template to re-engage.',
+    windowOpen: 'Window open',
+    windowClosed: 'Window closed',
+    windowRemaining: 'remaining',
 
     // Internal notes
     notesTitle: 'Internal notes',
@@ -152,6 +167,18 @@ export const templatesTranslations: Record<AppLanguage, Record<string, string>> 
     templateCreated: 'تم إرسال القالب إلى ميتا للمراجعة',
     templateCreateError: 'تعذّر إنشاء القالب',
     templateCancel: 'إلغاء',
+    templateAllowCategoryChange: 'السماح لميتا بتغيير الفئة',
+    templateAllowCategoryChangeHint: 'عند التفعيل، قد يغيّر ميتا الفئة المختارة تلقائيًا أثناء المراجعة إذا كانت فئة أخرى تطابق القالب بشكل أفضل.',
+
+    // مراجعة القالب (أسباب الرفض + تغيير الفئة)
+    templateRejected: 'مرفوض',
+    templateReasonCode: 'كود السبب',
+    templateReasonDesc: 'السبب',
+    templateMetaNotes: 'ملاحظات ميتا',
+    templateNoReason: 'لم يقدّم ميتا سببًا.',
+    templateCategoryChanged: 'غيّر ميتا الفئة',
+    templateRequestedCategory: 'المطلوبة',
+    templateFinalCategory: 'النهائية',
 
     pickerButton: 'قالب',
     pickerTitle: 'إرسال قالب',
@@ -167,6 +194,9 @@ export const templatesTranslations: Record<AppLanguage, Record<string, string>> 
 
     windowClosedTitle: 'انتهت نافذة الـ 24 ساعة',
     windowClosedHint: 'لم يراسل هذا العميل خلال آخر 24 ساعة. تم تعطيل النص الحر — أرسل قالبًا معتمدًا لإعادة التواصل.',
+    windowOpen: 'النافذة مفتوحة',
+    windowClosed: 'النافذة مغلقة',
+    windowRemaining: 'متبقٍ',
 
     notesTitle: 'الملاحظات الداخلية',
     notesInternalOnly: 'داخلية فقط — لا يراها العميل أبدًا',

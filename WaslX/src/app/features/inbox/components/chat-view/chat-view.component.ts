@@ -39,6 +39,22 @@ import type { ConversationMessage } from '../../models/message.model';
             <span class="chat__name">{{ customerName() }}</span>
             <span class="chat__phone">{{ customerPhone() }}</span>
           </div>
+          @if (detail()) {
+            @if (!windowClosed()) {
+              <span class="chat__window chat__window--open" [title]="t('windowOpen')">
+                <span class="chat__window-dot"></span>
+                {{ t('windowOpen') }}
+                @if (countdown()) {
+                  <span class="chat__window-time">{{ t('windowRemaining') }} {{ countdown() }}</span>
+                }
+              </span>
+            } @else {
+              <span class="chat__window chat__window--closed" [title]="t('windowClosed')">
+                <span class="chat__window-dot"></span>
+                {{ t('windowClosed') }}
+              </span>
+            }
+          }
         </header>
 
         <div class="chat__scroll" #scroll>
@@ -108,6 +124,23 @@ import type { ConversationMessage } from '../../models/message.model';
     .chat__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .chat__name { font-size: 0.96rem; font-weight: 700; color: var(--text-primary); }
     .chat__phone { font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .chat__window {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-inline-start: auto;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .chat__window-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+    .chat__window--open { background: color-mix(in srgb, #16a34a 12%, var(--surface)); color: #15803d; }
+    .chat__window--open .chat__window-dot { background: #16a34a; }
+    .chat__window--closed { background: color-mix(in srgb, #d97706 12%, var(--surface)); color: #b45309; }
+    .chat__window--closed .chat__window-dot { background: #d97706; }
+    .chat__window-time { font-variant-numeric: tabular-nums; font-weight: 500; opacity: 0.85; }
     .chat__scroll {
       flex: 1 1 auto;
       display: flex;
@@ -188,6 +221,23 @@ export class ChatViewComponent implements AfterViewChecked {
     const d = this.detail();
     if (!d || !d.windowExpiresAt) return true;
     return this.nowTick() >= new Date(d.windowExpiresAt).getTime();
+  });
+
+  /** Milliseconds left in the 24-hour window (0 when closed / never opened). */
+  protected readonly remainingMs = computed(() => {
+    const d = this.detail();
+    if (!d?.windowExpiresAt) return 0;
+    return Math.max(0, new Date(d.windowExpiresAt).getTime() - this.nowTick());
+  });
+
+  /** Compact "Xh Ym" / "Ym" countdown shown beside the open-window status. */
+  protected readonly countdown = computed(() => {
+    const ms = this.remainingMs();
+    if (ms <= 0) return '';
+    const totalMin = Math.floor(ms / 60000);
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
   });
 
   private readonly scrollRef = viewChild<ElementRef<HTMLElement>>('scroll');

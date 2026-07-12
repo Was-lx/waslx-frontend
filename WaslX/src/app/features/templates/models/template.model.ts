@@ -21,6 +21,15 @@ export interface Template {
   bodyText: string | null;
   footerText: string | null;
   buttons: TemplateButton[];
+  // Template-review fields merged from the local TemplateReview audit row + live Meta status.
+  reasonCode: string | null;
+  reasonText: string | null;
+  metaNotes: string | null;
+  submittedCategory: string | null;
+  finalCategory: string | null;
+  allowCategoryChange: boolean;
+  changedByMeta: boolean;
+  reviewedAt: string | null;
 }
 
 export interface CreateTemplateButton {
@@ -37,6 +46,7 @@ export interface CreateTemplateInput {
   bodyText?: string | null;
   footerText?: string | null;
   buttons: CreateTemplateButton[];
+  allowCategoryChange: boolean;
 }
 
 export interface TemplateCreateResult {

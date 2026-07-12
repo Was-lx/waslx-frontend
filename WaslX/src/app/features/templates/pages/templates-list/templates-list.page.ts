@@ -38,6 +38,7 @@ export class TemplatesListPageComponent implements OnInit {
     bodyText: [''],
     footerText: [''],
     otpButtonText: ['Copy code'],
+    allowCategoryChange: [true],
     buttons: this.fb.array<FormGroup>([])
   });
 
@@ -67,7 +68,7 @@ export class TemplatesListPageComponent implements OnInit {
   }
 
   protected openCreate(): void {
-    this.form.reset({ name: '', category: 'UTILITY', language: 'en', headerText: '', bodyText: '', footerText: '', otpButtonText: 'Copy code' });
+    this.form.reset({ name: '', category: 'UTILITY', language: 'en', headerText: '', bodyText: '', footerText: '', otpButtonText: 'Copy code', allowCategoryChange: true });
     this.buttons.clear();
     this.isAuth.set(false);
     this.modalOpen.set(true);
@@ -111,7 +112,8 @@ export class TemplatesListPageComponent implements OnInit {
       headerText: category === 'AUTHENTICATION' ? null : (this.form.value.headerText?.trim() || null),
       bodyText: category === 'AUTHENTICATION' ? null : (this.form.value.bodyText?.trim() || null),
       footerText: category === 'AUTHENTICATION' ? null : (this.form.value.footerText?.trim() || null),
-      buttons
+      buttons,
+      allowCategoryChange: this.form.value.allowCategoryChange ?? true
     };
 
     this.submitting.set(true);
