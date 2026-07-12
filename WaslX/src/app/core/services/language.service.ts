@@ -26,6 +26,8 @@ import {
   sharedTranslations,
   type TeamsKey,
   teamsTranslations,
+  type TemplatesKey,
+  templatesTranslations,
   type UsersKey,
   usersTranslations,
 } from '../i18n';
@@ -47,7 +49,8 @@ export type TranslationKey =
   | AnalyticsKey
   | ContactsKey
   | SettingsKey
-  | OnboardingKey;
+  | OnboardingKey
+  | TemplatesKey;
 
 // ─── Merged translations map ──────────────────────────────────────────────────
 
@@ -65,6 +68,7 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...contactsTranslations.en,
     ...settingsTranslations.en,
     ...onboardingTranslations.en,
+    ...templatesTranslations.en,
   } as Record<TranslationKey, string>,
   ar: {
     ...sharedTranslations.ar,
@@ -79,6 +83,7 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...contactsTranslations.ar,
     ...settingsTranslations.ar,
     ...onboardingTranslations.ar,
+    ...templatesTranslations.ar,
   } as Record<TranslationKey, string>,
 };
 

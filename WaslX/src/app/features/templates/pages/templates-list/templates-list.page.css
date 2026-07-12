@@ -1,0 +1,82 @@
+.tmpl-state {
+  margin: 32px auto;
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+.tmpl-state--error { color: var(--danger, #ef4444); }
+
+.tmpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.tmpl-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.tmpl-card__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tmpl-card__name { font-weight: 700; color: var(--text-primary); word-break: break-all; }
+.tmpl-card__meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.tmpl-card__body {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.tmpl-card__buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.tmpl-card__btn {
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  color: var(--primary);
+}
+
+.tmpl-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: color-mix(in srgb, var(--text-muted) 15%, transparent);
+  color: var(--text-secondary);
+}
+.tmpl-badge--approved { background: color-mix(in srgb, #16a34a 18%, transparent); color: #16a34a; }
+.tmpl-badge--pending { background: color-mix(in srgb, #d97706 18%, transparent); color: #d97706; }
+.tmpl-badge--rejected { background: color-mix(in srgb, #ef4444 18%, transparent); color: #ef4444; }
+
+.tmpl-form { display: flex; flex-direction: column; gap: 14px; }
+.tmpl-form__row--two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tmpl-form__hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+}
+.ui-hint { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; }
+.tmpl-form__buttons-head { display: flex; align-items: center; justify-content: space-between; }
+.tmpl-form__btn-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.tmpl-form__btn-row { display: flex; gap: 8px; align-items: center; }
+.tmpl-form__btn-row .ui-select { flex: 0 0 130px; }
+.tmpl-form__btn-row .ui-input { flex: 1 1 auto; }
+.tmpl-form__btn-remove {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; flex: 0 0 auto;
+  border: 0; border-radius: 8px;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+}
+.tmpl-form__btn-remove:hover { background: color-mix(in srgb, var(--danger, #ef4444) 12%, transparent); color: var(--danger, #ef4444); }
+.ui-btn--sm { padding: 5px 10px; font-size: 0.78rem; }
+
+@media (max-width: 560px) {
+  .tmpl-form__row--two { grid-template-columns: 1fr; }
+  .tmpl-form__btn-row { flex-wrap: wrap; }
+}

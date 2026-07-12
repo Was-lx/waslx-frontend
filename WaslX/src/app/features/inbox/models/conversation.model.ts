@@ -15,6 +15,39 @@ export interface ConversationListItem {
   unreadCount: number;
 }
 
+/** Rich detail for the customer-context panel + status controls (mirrors ConversationDetailResponse). */
+export interface ConversationDetail {
+  id: number;
+  customerName: string;
+  customerPhone: string;
+  customerVip: boolean;
+  status: string;
+  allowedTransitions: string[];
+  assignedUserId: number | null;
+  assignedUserName: string | null;
+  tags: string[];
+  createdAt: string;
+  lastMessageAt: string | null;
+  lastInboundAt: string | null;
+  messageCount: number;
+}
+
+/** Result of a status change (mirrors ConversationStatusResponse). */
+export interface ConversationStatusResult {
+  id: number;
+  status: string;
+  allowedTransitions: string[];
+}
+
+/** An internal team note (mirrors NoteDto). */
+export interface ConversationNote {
+  id: number;
+  conversationId: number;
+  content: string;
+  authorName: string;
+  createdAt: string;
+}
+
 /** Cursor-paginated slice returned by the inbox read endpoints. */
 export interface PagedResult<T> {
   items: T[];

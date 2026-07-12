@@ -217,6 +217,8 @@ export interface SendWhatsAppTemplate {
   toPhone: string;
   templateName: string;
   languageCode: string;
+  /** Fill the template BODY placeholders ({{1}}, {{2}}, … in order). */
+  variables?: string[];
 }
 
 // ── Me (own profile + resolved permissions) ──
