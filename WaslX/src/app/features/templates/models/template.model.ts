@@ -18,6 +18,9 @@ export interface Template {
   category: string;
   status: string;
   headerText: string | null;
+  // HEADER component format: TEXT / IMAGE / VIDEO / DOCUMENT (null when no header). Drives whether the
+  // picker renders a text field or a media upload for the header parameter.
+  headerFormat: string | null;
   bodyText: string | null;
   footerText: string | null;
   buttons: TemplateButton[];

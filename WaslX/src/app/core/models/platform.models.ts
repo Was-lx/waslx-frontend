@@ -213,12 +213,37 @@ export interface SendWhatsAppText {
   text: string;
 }
 
+/** Header parameter: `kind:'text'` uses `text`; media kinds use `mediaLink` (a public URL). */
+export interface TemplateHeaderParam {
+  kind: 'text' | 'image' | 'video' | 'document';
+  text?: string;
+  mediaLink?: string;
+}
+
+/** Dynamic button parameter: `subType:'url'` (URL suffix) or `'copy_code'` (AUTH OTP); `index` is 0-based. */
+export interface TemplateButtonParam {
+  index: number;
+  subType: 'url' | 'copy_code';
+  text: string;
+}
+
 export interface SendWhatsAppTemplate {
   toPhone: string;
   templateName: string;
   languageCode: string;
+  /** Fill a text or media HEADER placeholder. */
+  header?: TemplateHeaderParam | null;
   /** Fill the template BODY placeholders ({{1}}, {{2}}, … in order). */
-  variables?: string[];
+  body?: string[];
+  /** Fill dynamic URL buttons or the AUTHENTICATION OTP code. */
+  buttons?: TemplateButtonParam[];
+}
+
+/** A file uploaded to permanent storage (returned by POST /whatsapp/media). */
+export interface UploadedMedia {
+  url: string;
+  mimeType: string;
+  fileName: string | null;
 }
 
 // ── Me (own profile + resolved permissions) ──
