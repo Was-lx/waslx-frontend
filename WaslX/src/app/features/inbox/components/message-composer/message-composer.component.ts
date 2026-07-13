@@ -67,7 +67,7 @@ function isSupportedType(type: string): boolean {
       <button
         type="button"
         class="composer__tool"
-        [disabled]="sending() || loading()"
+        [disabled]="sending() || loading() || !windowClosed()"
         [attr.aria-label]="templateLabel()"
         [title]="templateLabel()"
         (click)="openTemplates.emit()"
