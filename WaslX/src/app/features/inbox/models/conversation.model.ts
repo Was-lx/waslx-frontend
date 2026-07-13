@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared-inbox conversation models (mirror WaslX.Application Conversations DTOs).
-// ─────────────────────────────────────────────────────────────────────────────
 
 export type ConversationStatus = 'New' | 'Assigned' | 'InProgress' | 'Pending' | 'Resolved' | 'Reopened';
 
@@ -29,10 +26,10 @@ export interface ConversationDetail {
   createdAt: string;
   lastMessageAt: string | null;
   lastInboundAt: string | null;
-  // WhatsApp 24-hour window close time (customer's last inbound + 24h); null = never opened.
-  // The composer locks to templates-only once now passes this instant.
   windowExpiresAt: string | null;
   isWindowOpen: boolean;
+  windowType: string;
+  remainingSeconds: number;
   messageCount: number;
 }
 

@@ -43,7 +43,11 @@ import type { ConversationMessage } from '../../models/message.model';
             @if (!windowClosed()) {
               <span class="chat__window chat__window--open" [title]="t('windowOpen')">
                 <span class="chat__window-dot"></span>
-                {{ t('windowOpen') }}
+                @if (detail()?.windowType === 'FreeEntryPoint72h') {
+                  72h Free Entry
+                } @else {
+                  24h Customer Service
+                }
                 @if (countdown()) {
                   <span class="chat__window-time">{{ t('windowRemaining') }} {{ countdown() }}</span>
                 }
@@ -232,7 +236,7 @@ export class ChatViewComponent implements AfterViewChecked {
     return this.nowTick() >= new Date(d.windowExpiresAt).getTime();
   });
 
-  /** Milliseconds left in the 24-hour window (0 when closed / never opened). */
+  /** Milliseconds left in the 24/72-hour window (0 when closed / never opened). */
   protected readonly remainingMs = computed(() => {
     const d = this.detail();
     if (!d?.windowExpiresAt) return 0;
