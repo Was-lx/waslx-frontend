@@ -91,6 +91,7 @@ import type { ConversationMessage } from '../../models/message.model';
           [windowClosedHint]="t('windowClosedHint')"
           [sending]="sending()"
           [windowClosed]="windowClosed()"
+          [loading]="detailLoading()"
           [uploadProgress]="uploadProgress()"
           (send)="send.emit($event)"
           (sendMedia)="sendMedia.emit($event)"
@@ -212,14 +213,22 @@ export class ChatViewComponent implements AfterViewChecked {
     destroyRef.onDestroy(() => clearInterval(timer));
   }
 
+  /** True until the conversation detail (and thus the window state) has loaded — composer stays neutral. */
+  protected readonly detailLoading = computed(() => this.detail() === null);
+
   /**
-   * 24-hour window is closed once now passes the server's WindowExpiresAt (customer's last inbound
-   * + 24h), or when it was never opened. This mirrors the backend's send-time enforcement exactly,
-   * so the composer locks on the same value the API blocks on.
+   * 24-hour window is closed once now passes the server's WindowExpiresAt (a Meta-sourced mirror:
+   * customer's last inbound + 24h, extended by the status-webhook expiry), or when it was never
+   * opened. While detail is still loading we return false (not "closed") so the composer doesn't
+   * flash the templates-only banner — the neutral loading state handles that instead. This is a
+   * proactive UX hint only — Meta is the real authority: the backend always attempts the send and,
+   * if Meta rejects with WhatsApp.WindowClosed, handledWindowClosed() locks the composer on the
+   * corrected value.
    */
   protected readonly windowClosed = computed(() => {
     const d = this.detail();
-    if (!d || !d.windowExpiresAt) return true;
+    if (!d) return false;            // still loading — see detailLoading()
+    if (!d.windowExpiresAt) return true;
     return this.nowTick() >= new Date(d.windowExpiresAt).getTime();
   });
 

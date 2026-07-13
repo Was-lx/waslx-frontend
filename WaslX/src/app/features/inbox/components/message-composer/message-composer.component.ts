@@ -67,7 +67,7 @@ function isSupportedType(type: string): boolean {
       <button
         type="button"
         class="composer__tool"
-        [disabled]="sending()"
+        [disabled]="sending() || loading()"
         [attr.aria-label]="templateLabel()"
         [title]="templateLabel()"
         (click)="openTemplates.emit()"
@@ -77,7 +77,7 @@ function isSupportedType(type: string): boolean {
       <button
         type="button"
         class="composer__tool"
-        [disabled]="sending() || windowClosed()"
+        [disabled]="sending() || windowClosed() || loading()"
         [attr.aria-label]="attachLabel()"
         [title]="attachLabel()"
         (click)="fileInputRef().nativeElement.click()"
@@ -92,14 +92,14 @@ function isSupportedType(type: string): boolean {
         rows="1"
         [placeholder]="windowClosed() ? windowClosedTitle() : (selectedFile() ? captionPlaceholder() : placeholder())"
         [value]="draft()"
-        [disabled]="sending() || (windowClosed() && !selectedFile())"
+        [disabled]="sending() || windowClosed() || loading()"
         (input)="onInput($event)"
         (keydown)="onKeydown($event)"
       ></textarea>
       <button
         type="submit"
         class="composer__send"
-        [disabled]="sending() || (windowClosed() && !selectedFile()) || (!selectedFile() && draft().trim().length === 0)"
+        [disabled]="sending() || windowClosed() || loading() || (!selectedFile() && draft().trim().length === 0)"
         [attr.aria-label]="placeholder()"
       >
         <app-icon name="send" [size]="19" />
@@ -212,6 +212,8 @@ export class MessageComposerComponent {
   readonly windowClosedHint = input('Send an approved template to re-engage.');
   readonly sending = input(false);
   readonly windowClosed = input(false);
+  /** True while the conversation detail (and window state) is still loading — keeps the composer neutral. */
+  readonly loading = input(false);
   readonly uploadProgress = input<number | null>(null);
 
   readonly send = output<string>();
@@ -280,7 +282,10 @@ export class MessageComposerComponent {
   }
 
   private emit(): void {
-    if (this.sending()) return;
+    if (this.sending() || this.loading()) return;
+    // Media is free-form too, so it is blocked outside the 24-hour window (Meta rejects it with
+    // 131047) — the window lock applies whether or not a file is attached.
+    if (this.windowClosed()) return;
 
     const file = this.selectedFile();
     if (file) {
@@ -290,8 +295,6 @@ export class MessageComposerComponent {
       this.draft.set('');
       return;
     }
-
-    if (this.windowClosed()) return;
 
     const text = this.draft().trim();
     if (!text) return;

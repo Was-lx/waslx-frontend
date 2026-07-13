@@ -177,7 +177,9 @@ export class InboxPageComponent implements OnInit, OnDestroy {
       toPhone,
       templateName: payload.templateName,
       languageCode: payload.languageCode,
-      variables: payload.variables
+      header: payload.header,
+      body: payload.body,
+      buttons: payload.buttons
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => { this.sending.set(false); this.loadMessages(id); this.loadList(false); },
       error: (err) => {
