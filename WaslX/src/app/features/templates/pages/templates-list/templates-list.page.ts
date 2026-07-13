@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DatePipe } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
@@ -13,7 +14,7 @@ import type { CreateTemplateButton, CreateTemplateInput, Template, TemplateCateg
   selector: 'app-templates-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, IconComponent],
+  imports: [ReactiveFormsModule, IconComponent, DatePipe],
   templateUrl: './templates-list.page.html',
   styleUrl: './templates-list.page.css'
 })

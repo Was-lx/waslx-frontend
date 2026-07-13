@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// WhatsApp message-template models (mirror WaslX.Application Templates DTOs).
-// ─────────────────────────────────────────────────────────────────────────────
-
 export type TemplateCategory = 'MARKETING' | 'UTILITY' | 'AUTHENTICATION';
 
 export interface TemplateButton {
@@ -18,13 +14,10 @@ export interface Template {
   category: string;
   status: string;
   headerText: string | null;
-  // HEADER component format: TEXT / IMAGE / VIDEO / DOCUMENT (null when no header). Drives whether the
-  // picker renders a text field or a media upload for the header parameter.
   headerFormat: string | null;
   bodyText: string | null;
   footerText: string | null;
   buttons: TemplateButton[];
-  // Template-review fields merged from the local TemplateReview audit row + live Meta status.
   reasonCode: string | null;
   reasonText: string | null;
   metaNotes: string | null;
@@ -33,6 +26,9 @@ export interface Template {
   allowCategoryChange: boolean;
   changedByMeta: boolean;
   reviewedAt: string | null;
+  pauseInfo: string | null;
+  disableTimestamp: string | null;
+  isDeleted: boolean;
 }
 
 export interface CreateTemplateButton {

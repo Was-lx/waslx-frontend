@@ -22,9 +22,28 @@
       @for (tpl of templates(); track tpl.id) {
         <article class="ui-card tmpl-card">
           <div class="tmpl-card__head">
-            <span class="tmpl-card__name">{{ tpl.name }}</span>
+            <span class="tmpl-card__name">
+              {{ tpl.name }}
+              @if (tpl.isDeleted) { <span class="ui-pill ui-pill--soft">Deleted</span> }
+            </span>
             <span [class]="statusClass(tpl.status)">{{ tpl.status }}</span>
           </div>
+          @if (tpl.status === 'PAUSED') {
+            <div class="tmpl-card__review tmpl-card__review--paused">
+              <span class="tmpl-card__review-title">Paused</span>
+              @if (tpl.pauseInfo) {
+                <p class="tmpl-card__reason">{{ tpl.pauseInfo }}</p>
+              }
+            </div>
+          }
+          @if (tpl.status === 'DISABLED') {
+            <div class="tmpl-card__review tmpl-card__review--disabled">
+              <span class="tmpl-card__review-title">Disabled by Meta</span>
+              @if (tpl.disableTimestamp) {
+                <p class="tmpl-card__reason">On: {{ tpl.disableTimestamp | date:'medium' }}</p>
+              }
+            </div>
+          }
           <div class="tmpl-card__meta">
             <span class="ui-pill">{{ categoryLabel(tpl.category) }}</span>
             <span class="ui-pill ui-pill--soft">{{ tpl.language }}</span>
