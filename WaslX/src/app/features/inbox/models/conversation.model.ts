@@ -31,6 +31,10 @@ export interface ConversationDetail {
   windowType: string;
   remainingSeconds: number;
   messageCount: number;
+  groupId: number | null;
+  groupName: string | null;
+  currentStageId: number | null;
+  currentStageName: string | null;
 }
 
 /** Result of a status change (mirrors ConversationStatusResponse). */

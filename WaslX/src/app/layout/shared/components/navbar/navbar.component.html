@@ -19,6 +19,45 @@
       <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
     </button>
 
+    @if (availability()) {
+      <div class="topbar__slot">
+        <button
+          class="topbar__presence"
+          [class.is-break]="onBreak()"
+          [class.is-open]="availOpen()"
+          type="button"
+          (click)="toggleAvail()"
+          [attr.title]="c().presence"
+          aria-haspopup="true"
+        >
+          <span class="topbar__presence-dot" aria-hidden="true"></span>
+          <app-icon name="coffee" [size]="16" />
+          <span class="topbar__presence-label">{{ onBreak() ? c().onBreak : c().available }}</span>
+        </button>
+
+        @if (availOpen()) {
+          <div class="menu menu--wide" role="menu">
+            <div class="menu__title">{{ c().presence }}</div>
+            <div class="presence-state" [class.is-break]="onBreak()">
+              <span class="presence-state__dot" aria-hidden="true"></span>
+              <strong>{{ onBreak() ? c().onBreak : c().available }}</strong>
+            </div>
+            <p class="presence-hint">{{ c().breakHint }}</p>
+            <div class="menu__sep"></div>
+            @if (onBreak()) {
+              <button class="menu__item" type="button" [disabled]="breakBusy()" (click)="setBreak(false)" role="menuitem">
+                <app-icon name="check-circle" [size]="17" /> {{ c().endBreak }}
+              </button>
+            } @else {
+              <button class="menu__item" type="button" [disabled]="breakBusy()" (click)="setBreak(true)" role="menuitem">
+                <app-icon name="coffee" [size]="17" /> {{ c().goOnBreak }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
     <div class="topbar__slot">
       <button class="topbar__icon" type="button" (click)="toggleNotif()" [class.is-open]="notifOpen()" [attr.aria-label]="c().notifications" aria-haspopup="true">
         <app-icon name="bell" [size]="18" />
@@ -69,7 +108,7 @@
     </div>
   </div>
 
-  @if (notifOpen() || profileOpen()) {
+  @if (notifOpen() || profileOpen() || availOpen()) {
     <div class="topbar__scrim" (click)="closeMenus()" aria-hidden="true"></div>
   }
 </header>

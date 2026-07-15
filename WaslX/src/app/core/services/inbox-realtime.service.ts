@@ -41,6 +41,13 @@ export interface RealtimeNote {
   createdAt: string;
 }
 
+/** Presence / availability push for the current agent (break started/ended, went online/offline). */
+export interface RealtimePresence {
+  isOnline: boolean;
+  isOnBreak: boolean;
+  lastSeenAt: string | null;
+}
+
 /**
  * SignalR client for the shared inbox. Connects to /hubs/inbox with the JWT, auto-reconnects,
  * and fans hub events out as RxJS subjects the inbox page subscribes to. One shared connection
@@ -56,6 +63,7 @@ export class InboxRealtimeService {
   readonly messageStatusChanged = new Subject<RealtimeStatus>();
   readonly conversationChanged = new Subject<RealtimeConversation>();
   readonly noteAdded = new Subject<RealtimeNote>();
+  readonly presenceChanged = new Subject<RealtimePresence>();
 
   private hubUrl(): string {
     // environment.apiUrl ends with "/api"; the hub is served at the host root under /hubs/inbox.
@@ -75,6 +83,7 @@ export class InboxRealtimeService {
     this.hub.on('MessageStatusChanged', (s: RealtimeStatus) => this.messageStatusChanged.next(s));
     this.hub.on('ConversationChanged', (c: RealtimeConversation) => this.conversationChanged.next(c));
     this.hub.on('NoteAdded', (n: RealtimeNote) => this.noteAdded.next(n));
+    this.hub.on('PresenceChanged', (p: RealtimePresence) => this.presenceChanged.next(p));
 
     this.hub.onreconnected(() => this.connected.set(true));
     this.hub.onclose(() => this.connected.set(false));

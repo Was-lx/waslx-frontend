@@ -1,0 +1,163 @@
+<section class="feature-page pip" [attr.dir]="direction()">
+  <header class="feature-page__header pip-hd">
+    <div class="pip-hd__lead">
+      <span class="feature-page__eyebrow">{{ t('pipEyebrow') }}</span>
+      <h1 class="pip-hd__title">{{ t('pipTitle') }}</h1>
+      <p class="pip-hd__desc">{{ t('pipLead') }}</p>
+    </div>
+
+    @if (!groupsLoading() && groups().length > 0) {
+      <div class="pip-hd__controls">
+        <label class="pip-picker">
+          <span class="pip-picker__label">{{ t('pipGroupLabel') }}</span>
+          <select class="ui-select pip-picker__select" [value]="selectedGroupId() ?? ''" (change)="onGroupChange($event)">
+            <option value="" disabled>{{ t('pipGroupPlaceholder') }}</option>
+            @for (g of groups(); track g.id) {
+              <option [value]="g.id">{{ g.name }}</option>
+            }
+          </select>
+        </label>
+        <button
+          type="button"
+          class="ui-btn ui-btn--ghost ui-btn--sm pip-refresh"
+          [disabled]="loading() || selectedGroupId() == null"
+          (click)="loadBoard(true)"
+        >
+          <app-icon name="history" [size]="15" /> {{ t('pipRefresh') }}
+        </button>
+        @if (selectedGroupId() != null) {
+          <a class="ui-btn ui-btn--primary ui-btn--sm pip-manage" [routerLink]="['/app/teams', selectedGroupId(), 'stages']">
+            <app-icon name="sliders" [size]="15" /> {{ t('pipManageStages') }}
+          </a>
+        }
+      </div>
+    }
+  </header>
+
+  @if (groupsLoading()) {
+    <div class="pip-board" aria-hidden="true">
+      @for (col of skeletonCols; track $index) {
+        <div class="pip-col pip-col--skel">
+          <span class="pip-skel pip-skel--head sk-shimmer"></span>
+          <span class="pip-skel pip-skel--body sk-shimmer"></span>
+          <span class="pip-skel pip-skel--body sk-shimmer"></span>
+        </div>
+      }
+    </div>
+  } @else if (groups().length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="layers" [size]="26" />
+      <h3>{{ t('pipNoGroups') }}</h3>
+      <p>{{ t('pipNoGroupsDesc') }}</p>
+      <a class="ui-btn ui-btn--primary ui-btn--sm" routerLink="/app/teams">{{ t('pipTitle') }}</a>
+    </div>
+  } @else if (selectedGroupId() == null) {
+    <div class="feature-page__empty">
+      <app-icon name="layers" [size]="26" />
+      <h3>{{ t('pipSelectPrompt') }}</h3>
+    </div>
+  } @else if (loading()) {
+    <div class="pip-board" aria-hidden="true">
+      @for (col of skeletonCols; track $index) {
+        <div class="pip-col pip-col--skel">
+          <span class="pip-skel pip-skel--head sk-shimmer"></span>
+          <span class="pip-skel pip-skel--body sk-shimmer"></span>
+          <span class="pip-skel pip-skel--body sk-shimmer"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('pipErrorTitle') }}</h3>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="loadBoard(true)">{{ t('pipRetry') }}</button>
+    </div>
+  } @else if (columns().length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="layers" [size]="26" />
+      <h3>{{ t('pipEmptyTitle') }}</h3>
+      <p>{{ t('pipEmptyDesc') }}</p>
+      <a class="ui-btn ui-btn--ghost ui-btn--sm" routerLink="/app/teams">{{ t('pipEmptyTitle') }}</a>
+    </div>
+  } @else {
+    <div class="pip-hint">
+      <app-icon name="route" [size]="15" />
+      <span>{{ t('pipHint') }}</span>
+    </div>
+
+    <div class="pip-board" [class.pip-board--dragging]="draggingId() != null">
+      @for (col of columns(); track col.stageId ?? -1; let i = $index) {
+        <article
+          class="pip-col"
+          [class.pip-col--unstaged]="col.stageId == null"
+          [class.pip-col--drop]="isDropTarget(col)"
+          (dragover)="onColDragOver(col, $event)"
+          (dragleave)="onColDragLeave(col)"
+          (drop)="onColDrop(col, $event)"
+        >
+          <span class="pip-col__rail" aria-hidden="true"></span>
+          <div class="pip-col__head">
+            <h3 class="pip-col__name">{{ columnLabel(col) }}</h3>
+            <span class="pip-col__count">{{ col.conversations.length }}</span>
+          </div>
+
+          <div class="pip-col__cards">
+            @for (conv of col.conversations; track conv.id) {
+              <div
+                class="pip-card"
+                [class.pip-card--busy]="isMoving(conv.id)"
+                [class.pip-card--dragging]="draggingId() === conv.id"
+                [attr.draggable]="!isMoving(conv.id)"
+                (dragstart)="onDragStart(conv, col.stageId, $event)"
+                (dragend)="onDragEnd()"
+              >
+                <span class="pip-card__grip" aria-hidden="true"><span></span><span></span></span>
+                <div class="pip-card__top">
+                  <span class="pip-card__name">{{ conv.customerName || conv.customerPhone }}</span>
+                  <span class="pip-card__status" [class]="statusClass(conv.status)">{{ conv.status }}</span>
+                </div>
+                <span class="pip-card__phone">{{ conv.customerPhone }}</span>
+                <div class="pip-card__foot">
+                  <span class="pip-card__assignee">
+                    <app-icon name="user-check" [size]="13" />
+                    {{ conv.assignedUserName || t('pipUnassigned') }}
+                  </span>
+                  <div class="pip-card__move">
+                    <button
+                      type="button"
+                      class="pip-move pip-move--back"
+                      [attr.aria-label]="t('pipMoveBack')"
+                      [attr.title]="t('pipMoveBack')"
+                      [disabled]="!canMove(i, -1) || isMoving(conv.id)"
+                      (click)="move(conv, i, -1)"
+                    >
+                      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="pip-move pip-move--fwd"
+                      [attr.aria-label]="t('pipMoveForward')"
+                      [attr.title]="t('pipMoveForward')"
+                      [disabled]="!canMove(i, 1) || isMoving(conv.id)"
+                      (click)="move(conv, i, 1)"
+                    >
+                      <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @empty {
+              <div class="pip-col__empty">{{ t('pipColEmpty') }}</div>
+            }
+          </div>
+        </article>
+
+        @if (i < columns().length - 1) {
+          <span class="pip-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </span>
+        }
+      }
+    </div>
+  }
+</section>

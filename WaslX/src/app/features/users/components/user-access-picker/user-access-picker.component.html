@@ -1,0 +1,164 @@
+<div class="acc">
+  <!-- ── Channels ── -->
+  <section class="acc__block">
+    <div class="acc__block-hd">
+      <span class="acc__block-ico" aria-hidden="true"><app-icon name="inbox" [size]="16" /></span>
+      <div class="acc__block-id">
+        <span class="acc__block-title">{{ t('accessChannels') }}</span>
+        <span class="acc__block-hint">{{ t('accessChannelsHint') }}</span>
+      </div>
+      @if (value().channelIds.length > 0) {
+        <span class="acc__count">{{ value().channelIds.length }} {{ t('accessSelected') }}</span>
+      }
+    </div>
+
+    @if (channels().length > 0) {
+      <div class="acc__grid">
+        @for (channel of channels(); track channel.id) {
+          <button
+            type="button"
+            class="acc__pick"
+            [class.acc__pick--on]="isChannelOn(channel.id)"
+            (click)="toggleChannel(channel.id)"
+            [attr.aria-pressed]="isChannelOn(channel.id)"
+          >
+            <span class="acc__check" aria-hidden="true"><app-icon name="check" [size]="13" /></span>
+            <span class="acc__pick-body">
+              <span class="acc__pick-name">{{ channel.name }}</span>
+              <span class="acc__pick-sub">{{ channel.whatsAppAccounts.length }} · {{ t('chNumbers') }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="acc__empty"><app-icon name="inbox" [size]="15" /> {{ t('accessNoChannels') }}</div>
+    }
+  </section>
+
+  <!-- ── Distribution numbers (agents only) ── -->
+  <section class="acc__block">
+    <div class="acc__block-hd">
+      <span class="acc__block-ico" aria-hidden="true"><app-icon name="phone" [size]="16" /></span>
+      <div class="acc__block-id">
+        <span class="acc__block-title">
+          {{ t('accessNumbers') }}
+          <span class="acc__tag">{{ t('agentsOnly') }}</span>
+        </span>
+        <span class="acc__block-hint">{{ t('accessNumbersHint') }}</span>
+      </div>
+      @if (value().distributionWhatsAppAccountIds.length > 0) {
+        <span class="acc__count">{{ value().distributionWhatsAppAccountIds.length }} {{ t('accessSelected') }}</span>
+      }
+    </div>
+
+    @if (value().channelIds.length === 0) {
+      <div class="acc__empty"><app-icon name="inbox" [size]="15" /> {{ t('accessPickChannelsFirst') }}</div>
+    } @else if (availableNumbers().length > 0) {
+      <div class="acc__grid">
+        @for (num of availableNumbers(); track num.id) {
+          <button
+            type="button"
+            class="acc__pick"
+            [class.acc__pick--on]="isNumberOn(num.id)"
+            (click)="toggleNumber(num.id)"
+            [attr.aria-pressed]="isNumberOn(num.id)"
+          >
+            <span class="acc__check" aria-hidden="true"><app-icon name="check" [size]="13" /></span>
+            <span class="acc__pick-body">
+              <span class="acc__pick-name">{{ num.platformName || num.phoneNumber }}</span>
+              <span class="acc__pick-sub acc__pick-sub--num">{{ num.phoneNumber }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="acc__empty"><app-icon name="phone" [size]="15" /> {{ t('accessNoNumbers') }}</div>
+    }
+  </section>
+
+  <!-- ── Groups ── -->
+  <section class="acc__block">
+    <div class="acc__block-hd">
+      <span class="acc__block-ico" aria-hidden="true"><app-icon name="layers" [size]="16" /></span>
+      <div class="acc__block-id">
+        <span class="acc__block-title">{{ t('accessGroups') }}</span>
+        <span class="acc__block-hint">{{ t('accessGroupsHint') }}</span>
+      </div>
+      @if (value().groupIds.length > 0) {
+        <span class="acc__count">{{ value().groupIds.length }} {{ t('accessSelected') }}</span>
+      }
+    </div>
+
+    @if (groups().length > 0) {
+      <div class="acc__grid">
+        @for (group of groups(); track group.id) {
+          <button
+            type="button"
+            class="acc__pick"
+            [class.acc__pick--on]="isGroupOn(group.id)"
+            (click)="toggleGroup(group.id)"
+            [attr.aria-pressed]="isGroupOn(group.id)"
+          >
+            <span class="acc__check" aria-hidden="true"><app-icon name="check" [size]="13" /></span>
+            <span class="acc__pick-body">
+              <span class="acc__pick-name">
+                {{ group.name }}
+                @if (group.isDefault) {
+                  <span class="acc__tag acc__tag--default">{{ t('accessDefault') }}</span>
+                }
+              </span>
+              <span class="acc__pick-sub">{{ group.stages.length }} · {{ t('accessStages') }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="acc__empty"><app-icon name="layers" [size]="15" /> {{ t('accessNoGroups') }}</div>
+    }
+  </section>
+
+  <!-- ── Shifts (agents only) ── -->
+  <section class="acc__block">
+    <div class="acc__block-hd">
+      <span class="acc__block-ico" aria-hidden="true"><app-icon name="clock" [size]="16" /></span>
+      <div class="acc__block-id">
+        <span class="acc__block-title">
+          {{ t('accessShifts') }}
+          <span class="acc__tag">{{ t('agentsOnly') }}</span>
+        </span>
+        <span class="acc__block-hint">{{ t('accessShiftsHint') }}</span>
+      </div>
+      @if (value().shiftIds.length > 0) {
+        <span class="acc__count">{{ value().shiftIds.length }} {{ t('accessSelected') }}</span>
+      }
+    </div>
+
+    @if (shifts().length > 0) {
+      <div class="acc__grid">
+        @for (shift of shifts(); track shift.id) {
+          <button
+            type="button"
+            class="acc__pick"
+            [class.acc__pick--on]="isShiftOn(shift.id)"
+            (click)="toggleShift(shift.id)"
+            [attr.aria-pressed]="isShiftOn(shift.id)"
+          >
+            <span class="acc__check" aria-hidden="true"><app-icon name="check" [size]="13" /></span>
+            <span class="acc__pick-body">
+              <span class="acc__pick-name">{{ shift.name }}</span>
+              <span class="acc__pick-sub">{{ shift.days.length }} · {{ t('accessDays') }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="acc__empty"><app-icon name="clock" [size]="15" /> {{ t('accessNoShifts') }}</div>
+    }
+  </section>
+
+  @if (!isAgent()) {
+    <p class="acc__role-note">
+      <app-icon name="shield" [size]="14" /> {{ t('accessManagerNote') }}
+    </p>
+  }
+</div>

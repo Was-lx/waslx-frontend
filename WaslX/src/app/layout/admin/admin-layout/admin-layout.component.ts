@@ -45,6 +45,7 @@ export class AdminLayoutComponent {
           { id: 'inbox', label: t('inbox'), description: t('inboxDesc'), icon: 'message', routerLink: '/app/inbox' },
           { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' },
           { id: 'whatsapp', label: t('whatsapp'), description: t('whatsappDesc'), icon: 'phone', routerLink: '/app/channels' },
+          { id: 'channels', label: t('channelsNav'), description: t('channelsNavDesc'), icon: 'inbox', routerLink: '/app/channels-list', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'templates', label: t('templatesNav'), description: t('templatesNavDesc'), icon: 'layers', routerLink: '/app/templates', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] }
         ]
       },
@@ -54,7 +55,17 @@ export class AdminLayoutComponent {
         items: [
           { id: 'users', label: t('users'), description: t('usersDesc'), icon: 'users', routerLink: '/app/users', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'teams', label: t('teams'), description: t('teamsDesc'), icon: 'shield', routerLink: '/app/teams', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
+          { id: 'pipeline', label: t('pipeline'), description: t('pipelineDesc'), icon: 'layers', routerLink: '/app/pipeline', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
+          { id: 'tags', label: t('tagsNav'), description: t('tagsNavDesc'), icon: 'tag', routerLink: '/app/tags', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'analytics', label: t('analytics'), description: t('analyticsDesc'), icon: 'chart', routerLink: '/app/analytics', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] }
+        ]
+      },
+      {
+        id: 'working-hours',
+        label: t('whNav'),
+        items: [
+          { id: 'company-hours', label: t('whCompanyNav'), description: t('whCompanyNavDesc'), icon: 'clock', routerLink: '/app/working-hours', exact: true, roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
+          { id: 'shifts', label: t('whShiftsNav'), description: t('whShiftsNavDesc'), icon: 'users', routerLink: '/app/working-hours/shifts', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] }
         ]
       },
       {

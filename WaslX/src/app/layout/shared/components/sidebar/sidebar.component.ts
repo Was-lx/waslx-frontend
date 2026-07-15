@@ -16,6 +16,8 @@ export interface SidebarNavItem {
   readonly routerLink: string;
   readonly badge?: string;
   readonly roles?: AppRole[];
+  /** Highlight only on an exact URL match (use for a parent link whose children share its prefix). */
+  readonly exact?: boolean;
 }
 
 export interface SidebarNavGroup {

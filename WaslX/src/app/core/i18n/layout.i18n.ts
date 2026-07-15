@@ -34,6 +34,8 @@ export type LayoutKey =
   | 'usersDesc'
   | 'teams'
   | 'teamsDesc'
+  | 'pipeline'
+  | 'pipelineDesc'
   | 'analytics'
   | 'analyticsDesc'
   | 'settings'
@@ -87,6 +89,8 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     usersDesc: 'User management',
     teams: 'Teams',
     teamsDesc: 'Team structure',
+    pipeline: 'Pipeline',
+    pipelineDesc: 'Stage board',
     analytics: 'Analytics',
     analyticsDesc: 'Reports & insights',
     settings: 'Settings',
@@ -139,6 +143,8 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     usersDesc: 'إدارة المستخدمين',
     teams: 'الفرق',
     teamsDesc: 'هيكل الفريق',
+    pipeline: 'المسار',
+    pipelineDesc: 'لوحة المراحل',
     analytics: 'التحليلات',
     analyticsDesc: 'التقارير والرؤى',
     settings: 'الإعدادات',

@@ -1,0 +1,195 @@
+<section class="feature-page stg" [attr.dir]="direction()">
+  <header class="feature-page__header stg-hd">
+    <div class="stg-hd__lead">
+      <a class="stg-back" routerLink="/app/teams">
+        <svg viewBox="0 0 24 24" class="stg-back__ico"><path d="M15 18l-6-6 6-6" /></svg>
+        {{ t('stgBack') }}
+      </a>
+      <span class="feature-page__eyebrow">{{ t('stgEyebrow') }}</span>
+      <h1 class="stg-hd__title">
+        @if (group(); as g) { {{ g.name }} } @else { {{ t('stgEyebrow') }} }
+      </h1>
+      <p class="stg-hd__desc">{{ t('stgLead') }}</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="stg-board" aria-hidden="true">
+      @for (col of skeletonCols; track $index) {
+        <div class="stg-col stg-col--skel">
+          <span class="stg-skel stg-skel--head sk-shimmer"></span>
+          <span class="stg-skel stg-skel--body sk-shimmer"></span>
+        </div>
+      }
+    </div>
+  } @else if (notFound()) {
+    <div class="feature-page__empty">
+      <app-icon name="shield" [size]="26" />
+      <h3>{{ t('stgNotFound') }}</h3>
+      <a class="ui-btn ui-btn--ghost ui-btn--sm" routerLink="/app/teams">{{ t('stgNotFoundBack') }}</a>
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('stgErrorTitle') }}</h3>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="load()">{{ t('stgRetry') }}</button>
+    </div>
+  } @else {
+    <div class="stg-hint">
+      <app-icon name="route" [size]="15" />
+      <span>{{ t('stgPipelineHint') }}</span>
+    </div>
+
+    <div class="stg-board" [class.stg-board--busy]="reordering()">
+      @for (stage of stages(); track stage.id; let i = $index; let count = $count) {
+        <article class="stg-col">
+          <span class="stg-col__rail" aria-hidden="true"></span>
+          <div class="stg-col__head">
+            <span class="stg-col__seq">{{ t('stgSeq') }} {{ i + 1 }}</span>
+            @if (i === 0) {
+              <span class="stg-col__badge stg-col__badge--first">{{ t('stgFirstBadge') }}</span>
+            } @else if (i === count - 1) {
+              <span class="stg-col__badge stg-col__badge--last">{{ t('stgLastBadge') }}</span>
+            }
+          </div>
+
+          <h3 class="stg-col__name">{{ stage.name }}</h3>
+
+          <div class="stg-col__foot">
+            <div class="stg-col__move">
+              <button
+                type="button"
+                class="stg-move stg-move--back"
+                [attr.aria-label]="t('stgMoveBack')"
+                [attr.title]="t('stgMoveBack')"
+                [disabled]="i === 0 || reordering()"
+                (click)="move(i, -1)"
+              >
+                <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
+              <button
+                type="button"
+                class="stg-move stg-move--fwd"
+                [attr.aria-label]="t('stgMoveForward')"
+                [attr.title]="t('stgMoveForward')"
+                [disabled]="i === count - 1 || reordering()"
+                (click)="move(i, 1)"
+              >
+                <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+              </button>
+            </div>
+            <div class="stg-col__actions">
+              <button type="button" class="stg-act" [attr.aria-label]="t('stgRename')" [attr.title]="t('stgRename')" (click)="openRename(stage)">
+                <app-icon name="settings" [size]="15" />
+              </button>
+              <button type="button" class="stg-act stg-act--danger" [attr.aria-label]="t('stgDelete')" [attr.title]="t('stgDelete')" (click)="requestDelete(stage)">
+                <app-icon name="trash" [size]="15" />
+              </button>
+            </div>
+          </div>
+        </article>
+
+        @if (i < count - 1) {
+          <span class="stg-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </span>
+        }
+      }
+
+      <!-- Add-stage tile -->
+      <div class="stg-add">
+        @if (stages().length === 0) {
+          <div class="stg-add__empty">
+            <span class="stg-add__ico" aria-hidden="true"><app-icon name="layers" [size]="22" /></span>
+            <h3>{{ t('stgEmptyTitle') }}</h3>
+            <p>{{ t('stgEmptyDesc') }}</p>
+          </div>
+        } @else {
+          <span class="stg-add__label">{{ t('stgAddColumn') }}</span>
+        }
+        <div class="stg-add__form">
+          <input
+            type="text"
+            class="ui-input stg-add__input"
+            [value]="newName()"
+            (input)="newName.set($any($event.target).value)"
+            (keydown.enter)="addStage()"
+            [placeholder]="t('stgAddPlaceholder')"
+            maxlength="60"
+            autocomplete="off"
+          />
+          <button type="button" class="ui-btn ui-btn--primary ui-btn--sm stg-add__btn" [disabled]="!canAdd()" (click)="addStage()">
+            @if (adding()) {
+              <span class="ui-spinner"></span> {{ t('stgAdding') }}
+            } @else {
+              <svg viewBox="0 0 24 24" class="stg-add__plus"><path d="M12 5v14M5 12h14" /></svg> {{ t('stgAdd') }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>
+
+<!-- ── Rename modal ── -->
+@if (renaming(); as stage) {
+  <div class="ui-overlay" (click)="closeRename()">
+    <div class="ui-modal stg-modal" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-modal__head">
+        <div>
+          <h2 class="ui-modal__title">{{ t('stgRenameTitle') }}</h2>
+          <p class="ui-modal__sub">{{ t('stgRenameSub') }}</p>
+        </div>
+        <button type="button" class="ui-modal__close" (click)="closeRename()" [attr.aria-label]="t('stgCancel')">
+          <app-icon name="x" [size]="17" />
+        </button>
+      </div>
+      <div class="ui-modal__body">
+        <div class="ui-field">
+          <label class="ui-label" for="stg-name">{{ t('stgName') }}</label>
+          <input
+            id="stg-name"
+            type="text"
+            class="ui-input"
+            [value]="renameValue()"
+            (input)="renameValue.set($any($event.target).value); renameError.set(null)"
+            (keydown.enter)="saveRename()"
+            [placeholder]="t('stgNamePlaceholder')"
+            maxlength="60"
+            autocomplete="off"
+          />
+          @if (renameError()) {
+            <span class="ui-error">{{ renameError() }}</span>
+          }
+        </div>
+      </div>
+      <div class="ui-modal__foot">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="closeRename()" [disabled]="renameSaving()">{{ t('stgCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--primary" (click)="saveRename()" [disabled]="renameSaving()">
+          @if (renameSaving()) { <span class="ui-spinner"></span> {{ t('stgSaving') }} }
+          @else { {{ t('stgSave') }} }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Delete confirm ── -->
+@if (pendingDelete(); as pending) {
+  <div class="ui-overlay" (click)="cancelDelete()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-confirm__icon">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /></svg>
+      </div>
+      <h3>{{ t('stgDeleteTitle') }}</h3>
+      <p>{{ t('stgDeleteBody') }} <strong>{{ pending.name }}</strong></p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDelete()" [disabled]="deleting()">{{ t('stgCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--danger" (click)="confirmDelete()" [disabled]="deleting()">
+          @if (deleting()) { <span class="ui-spinner"></span> {{ t('stgSaving') }} }
+          @else { {{ t('stgConfirmDelete') }} }
+        </button>
+      </div>
+    </div>
+  </div>
+}

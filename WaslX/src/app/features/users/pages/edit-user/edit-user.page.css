@@ -1,0 +1,228 @@
+/* ============================================================================
+   Edit user — shares the "operations cockpit" card character with the create
+   screen (styles re-declared here because Angular scopes component CSS), plus
+   the identity strip and loading skeleton unique to editing.
+   ============================================================================ */
+
+.create-user__lead {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  max-width: 52ch;
+}
+
+.edit-user__wrap {
+  display: flex;
+  justify-content: center;
+}
+
+/* ── The card ── */
+.create-user__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 720px;
+  padding: 30px 30px 28px;
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 80% at 100% 0%,
+      color-mix(in srgb, var(--accent) 5%, transparent), transparent 60%),
+    radial-gradient(110% 70% at 0% 0%,
+      color-mix(in srgb, var(--primary) 5%, transparent), transparent 58%),
+    var(--surface);
+}
+
+.create-user__accent {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--cyan));
+  background-size: 200% auto;
+  animation: cu-accent 8s linear infinite;
+}
+@keyframes cu-accent { to { background-position: 200% center; } }
+
+/* ── Intro hint ── */
+.create-user__intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 15px 16px;
+  border-radius: 15px;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border-subtle));
+  background:
+    linear-gradient(color-mix(in srgb, var(--primary) 5%, var(--surface)),
+      color-mix(in srgb, var(--accent) 4%, var(--surface)));
+}
+.create-user__tile {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(140deg, var(--primary), color-mix(in srgb, var(--accent) 70%, var(--primary)));
+  box-shadow:
+    0 8px 18px color-mix(in srgb, var(--primary) 30%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.3);
+}
+.create-user__tile svg { width: 21px; height: 21px; }
+.create-user__intro-copy strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.create-user__intro-copy p {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* ── Identity strip ── */
+.edit-user__who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
+}
+.edit-user__avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: linear-gradient(140deg, var(--primary), var(--accent));
+}
+.edit-user__avatar[data-role='Admin'] { background: linear-gradient(140deg, #8b5cf6, #6d28d9); }
+.edit-user__avatar[data-role='Manager'] { background: linear-gradient(140deg, #3b82f6, #1e40af); }
+.edit-user__avatar[data-role='Agent'] { background: linear-gradient(140deg, #22a7c4, #0e7fa0); }
+.edit-user__who-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.edit-user__who-email {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.edit-user__who-role {
+  align-self: flex-start;
+  text-transform: capitalize;
+}
+.edit-user__owner {
+  margin-inline-start: auto;
+}
+
+/* Owner badge (re-declared — scoped per component). */
+.owner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 750;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+/* ── Access section ── */
+.create-user__access {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.create-user__access-hd h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.create-user__access-hd p {
+  margin: 5px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-width: 62ch;
+}
+
+/* ── Actions ── */
+.create-user__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.create-user__actions .ui-btn { min-width: 128px; }
+.create-user__actions .ui-btn--primary svg { width: 16px; height: 16px; }
+.create-user__card .ui-spinner {
+  width: 17px;
+  height: 17px;
+  border-width: 2px;
+  border-color: rgb(255 255 255 / 0.35);
+  border-top-color: #fff;
+}
+
+/* ── Loading skeleton ── */
+.edit-user__skel {
+  gap: 16px;
+}
+.edit-user__skel-line {
+  display: block;
+  height: 16px;
+  border-radius: 9px;
+  background: var(--surface-soft);
+}
+.sk-shimmer {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg,
+      var(--surface-soft) 25%,
+      color-mix(in srgb, var(--text-muted) 12%, var(--surface-soft)) 37%,
+      var(--surface-soft) 63%) 0 0 / 200% 100%;
+  animation: eu-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes eu-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (max-width: 560px) {
+  .create-user__card { padding: 24px 20px 22px; }
+  .create-user__actions {
+    flex-direction: column-reverse;
+  }
+  .create-user__actions .ui-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .create-user__accent { animation: none; }
+  .sk-shimmer { animation: none; }
+}

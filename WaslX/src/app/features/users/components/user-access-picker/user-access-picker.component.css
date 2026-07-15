@@ -1,0 +1,224 @@
+/* ============================================================================
+   User access & routing picker — four grouped multi-selects that reuse the
+   "pick chip" language from the channels screen, on top of the global tokens.
+   ============================================================================ */
+
+.acc {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.acc__block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.acc__block-hd {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.acc__block-ico {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border-subtle));
+}
+
+.acc__block-id {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.acc__block-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.acc__block-hint {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.acc__count {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--primary);
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+}
+
+.acc__tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.acc__tag--default {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+/* ── The pick grid + chips (mirrors .ch-picker / .ch-pick) ── */
+.acc__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.acc__pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: start;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-soft);
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.acc__pick:hover {
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border-subtle));
+}
+
+.acc__check {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--border-strong, var(--border-subtle));
+  background: var(--surface);
+  color: transparent;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.acc__pick-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.acc__pick-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.acc__pick-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.acc__pick-sub--num {
+  font-variant-numeric: tabular-nums;
+}
+
+.acc__pick--on {
+  border-color: color-mix(in srgb, var(--primary) 46%, transparent);
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent) inset;
+}
+
+.acc__pick--on .acc__check {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.acc__check :where(svg) {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.acc__empty {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  background: var(--surface-soft);
+  border: 1px dashed var(--border-subtle);
+}
+
+.acc__empty :where(svg) {
+  color: var(--text-muted);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.acc__role-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 11px 14px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-soft));
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border-subtle));
+}
+
+.acc__role-note :where(svg) {
+  flex: 0 0 auto;
+  color: var(--accent);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 560px) {
+  .acc__grid { grid-template-columns: 1fr; }
+}

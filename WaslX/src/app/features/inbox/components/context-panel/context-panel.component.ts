@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import type { Group } from '../../../../core/api/groups-api.service';
 import type { ConversationDetail, ConversationNote } from '../../models/conversation.model';
 
 /**
@@ -18,6 +19,13 @@ import type { ConversationDetail, ConversationNote } from '../../models/conversa
   template: `
     @if (detail(); as d) {
       <aside class="ctx" [attr.dir]="direction()">
+        <div class="ctx__bar">
+          <span class="ctx__bar-title">{{ t('ctxDrawerTitle') }}</span>
+          <button type="button" class="ctx__close" [title]="t('ctxClose')" [attr.aria-label]="t('ctxClose')" (click)="close.emit()">
+            <app-icon name="x" [size]="17" />
+          </button>
+        </div>
+
         <section class="ctx__block ctx__customer">
           <app-avatar [name]="d.customerName" [size]="48" />
           <div class="ctx__who">
@@ -29,26 +37,55 @@ import type { ConversationDetail, ConversationNote } from '../../models/conversa
           </div>
         </section>
 
-        <section class="ctx__block">
-          <h4 class="ctx__label">{{ t('ctxStatus') }}</h4>
-          <span class="ctx__status" [class]="'ctx__status--' + d.status.toLowerCase()">{{ statusLabel(d.status) }}</span>
-          @if (d.allowedTransitions.length > 0) {
-            <div class="ctx__actions">
-              <span class="ctx__actions-label">{{ t('statusChange') }}</span>
-              <div class="ctx__transitions">
-                @for (s of d.allowedTransitions; track s) {
-                  <button type="button" class="ctx__transition" [disabled]="statusChanging()" (click)="changeStatus.emit(s)">
-                    {{ statusLabel(s) }}
-                  </button>
-                }
-              </div>
-            </div>
-          }
+        <section class="ctx__block ctx__duo">
+          <div>
+            <h4 class="ctx__label">{{ t('ctxStatus') }}</h4>
+            <span class="ctx__status" [class]="'ctx__status--' + d.status.toLowerCase()">{{ statusLabel(d.status) }}</span>
+          </div>
+          <div>
+            <h4 class="ctx__label">{{ t('ctxAssigned') }}</h4>
+            <p class="ctx__value">{{ d.assignedUserName || t('ctxUnassigned') }}</p>
+          </div>
         </section>
 
-        <section class="ctx__block">
-          <h4 class="ctx__label">{{ t('ctxAssigned') }}</h4>
-          <p class="ctx__value">{{ d.assignedUserName || t('ctxUnassigned') }}</p>
+        <section class="ctx__block ctx__team">
+          <h4 class="ctx__label">{{ t('ctxTeamTitle') }}</h4>
+          <p class="ctx__team-current">
+            <app-icon name="shield" [size]="13" />
+            <span [class.ctx__value--muted]="!currentGroupName()">{{ currentGroupName() || t('ctxNoGroup') }}</span>
+            @if (d.currentStageName) { <span class="ctx__team-stage">{{ d.currentStageName }}</span> }
+          </p>
+
+          <div class="ctx__team-action">
+            <span class="ctx__actions-label">{{ t('ctxRouteLabel') }}</span>
+            <div class="ctx__team-row">
+              <select class="ui-select ctx__team-select" [value]="routeSel()" [disabled]="routing()"
+                      (change)="routeSel.set(pickVal($event))">
+                <option value="">{{ t('ctxRouteSelect') }}</option>
+                @for (g of groups(); track g.id) { <option [value]="g.id">{{ g.name }}</option> }
+              </select>
+              <button type="button" class="ui-btn ui-btn--primary ui-btn--sm"
+                      [disabled]="routing() || !routeSel()" (click)="submitRoute()">
+                {{ routing() ? t('ctxRouting') : t('ctxRouteBtn') }}
+              </button>
+            </div>
+          </div>
+
+          <div class="ctx__team-action">
+            <span class="ctx__actions-label">{{ t('ctxHandoffLabel') }}</span>
+            <p class="ctx__team-hint">{{ t('ctxHandoffHint') }}</p>
+            <div class="ctx__team-row">
+              <select class="ui-select ctx__team-select" [value]="handoffSel()" [disabled]="routing()"
+                      (change)="handoffSel.set(pickVal($event))">
+                <option value="">{{ t('ctxHandoffSelect') }}</option>
+                @for (g of handoffTargets(); track g.id) { <option [value]="g.id">{{ g.name }}</option> }
+              </select>
+              <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm"
+                      [disabled]="routing() || !handoffSel()" (click)="requestHandoff()">
+                {{ t('ctxHandoffBtn') }}
+              </button>
+            </div>
+          </div>
         </section>
 
         <section class="ctx__block">
@@ -100,12 +137,53 @@ import type { ConversationDetail, ConversationNote } from '../../models/conversa
           </div>
         </section>
       </aside>
+
+      @if (pendingHandoff(); as target) {
+        <div class="ui-overlay" (click)="cancelHandoff()">
+          <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+            <div class="ui-confirm__icon">
+              <svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+            </div>
+            <h3>{{ t('ctxHandoffTitle') }}</h3>
+            <p>{{ t('ctxHandoffBody') }} <strong>{{ target.name }}</strong>.</p>
+            <p class="ctx__handoff-note">
+              <app-icon name="history" [size]="14" /> {{ t('ctxHandoffHistoryNote') }}
+            </p>
+            <div class="ui-confirm__actions">
+              <button type="button" class="ui-btn ui-btn--ghost" [disabled]="routing()" (click)="cancelHandoff()">
+                {{ t('ctxHandoffCancel') }}
+              </button>
+              <button type="button" class="ui-btn ui-btn--primary" [disabled]="routing()" (click)="confirmHandoff()">
+                {{ routing() ? t('ctxRouting') : t('ctxHandoffConfirm') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
     }
   `,
   styles: [`
     :host { display: block; height: 100%; overflow-y: auto; background: var(--surface); border-inline-start: 1px solid var(--border-subtle); }
     .ctx { display: flex; flex-direction: column; }
+    .ctx__bar {
+      position: sticky; top: 0; z-index: 2;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 12px 14px 12px 18px;
+      background: color-mix(in srgb, var(--primary) 4%, var(--surface));
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(6px);
+    }
+    .ctx__bar-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
+    .ctx__close {
+      display: grid; place-items: center; width: 30px; height: 30px;
+      border: 1px solid var(--border-soft); border-radius: 9px;
+      background: var(--surface); color: var(--text-muted); cursor: pointer;
+      transition: border-color 140ms ease, color 140ms ease;
+    }
+    .ctx__close:hover { border-color: color-mix(in srgb, var(--primary) 40%, var(--border-soft)); color: var(--primary); }
+    .ctx__close svg { fill: none; stroke: currentColor; stroke-width: 2; }
     .ctx__block { padding: 16px 18px; border-bottom: 1px solid var(--border-subtle); }
+    .ctx__duo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
     .ctx__customer { display: flex; align-items: center; gap: 12px; }
     .ctx__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .ctx__name { font-weight: 700; color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px; }
@@ -148,6 +226,23 @@ import type { ConversationDetail, ConversationNote } from '../../models/conversa
     .ctx__note-add { display: flex; flex-direction: column; gap: 8px; }
     .ctx__note-input { resize: none; }
     .ctx__note-btn { align-self: flex-end; }
+    /* Team & pipeline — routing + cross-team handoff */
+    .ctx__team-current { margin: 0 0 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; font-weight: 650; color: var(--text-primary); }
+    .ctx__team-current app-icon { color: var(--primary); }
+    .ctx__team-stage { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+    .ctx__team-current svg { fill: none; stroke: currentColor; stroke-width: 2; }
+    .ctx__team-action { margin-top: 12px; }
+    .ctx__team-action:first-of-type { margin-top: 0; }
+    .ctx__team-hint { margin: 3px 0 6px; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45; }
+    .ctx__team-row { display: flex; gap: 6px; margin-top: 6px; }
+    .ctx__team-select { flex: 1 1 auto; min-width: 0; height: 34px; font-size: 0.82rem; }
+    .ctx__team-row .ui-btn { flex: 0 0 auto; }
+    .ctx__handoff-note { display: flex; align-items: flex-start; gap: 6px; margin: 4px 0 0; padding: 8px 10px; border-radius: 10px;
+      font-size: 0.78rem; line-height: 1.45; color: var(--text-secondary);
+      background: color-mix(in srgb, var(--primary) 7%, var(--surface-soft)); border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border-subtle)); }
+    .ctx__handoff-note app-icon { flex: 0 0 auto; color: var(--primary); margin-top: 1px; }
+    .ctx__handoff-note svg { fill: none; stroke: currentColor; stroke-width: 2; }
   `]
 })
 export class ContextPanelComponent {
@@ -157,11 +252,38 @@ export class ContextPanelComponent {
   readonly notes = input<ConversationNote[]>([]);
   readonly addingNote = input(false);
   readonly statusChanging = input(false);
+  // Team routing / cross-team handoff
+  readonly groups = input<Group[]>([]);
+  readonly currentGroupId = input<number | null>(null);
+  readonly routing = input(false);
 
   readonly changeStatus = output<string>();
   readonly addNote = output<string>();
+  readonly route = output<number>();
+  readonly handoff = output<number>();
+  readonly close = output<void>();
 
   protected readonly draft = signal('');
+  protected readonly routeSel = signal('');
+  protected readonly handoffSel = signal('');
+  protected readonly pendingHandoff = signal<Group | null>(null);
+
+  /** Name of the conversation's current team, resolved from the tenant group list. */
+  protected readonly currentGroupName = computed<string | null>(() => {
+    // Prefer the authoritative name from the conversation detail (works even for agents whose
+    // groups list is empty); fall back to resolving the id against the tenant group list.
+    const fromDetail = this.detail()?.groupName;
+    if (fromDetail) return fromDetail;
+    const id = this.currentGroupId();
+    if (id == null) return null;
+    return this.groups().find((g) => g.id === id)?.name ?? null;
+  });
+
+  /** Handoff can target any team other than the current one. */
+  protected readonly handoffTargets = computed<Group[]>(() => {
+    const current = this.currentGroupId();
+    return this.groups().filter((g) => g.id !== current);
+  });
 
   protected t = (key: TranslationKey): string => this.language.text(key);
   protected direction = (): 'rtl' | 'ltr' => this.language.getDirection();
@@ -182,6 +304,37 @@ export class ContextPanelComponent {
     if (!content || this.addingNote()) return;
     this.addNote.emit(content);
     this.draft.set('');
+  }
+
+  protected pickVal(event: Event): string {
+    return (event.target as HTMLSelectElement).value;
+  }
+
+  protected submitRoute(): void {
+    const groupId = Number(this.routeSel());
+    if (!groupId || this.routing()) return;
+    this.route.emit(groupId);
+    this.routeSel.set('');
+  }
+
+  protected requestHandoff(): void {
+    const groupId = Number(this.handoffSel());
+    if (!groupId || this.routing()) return;
+    const target = this.groups().find((g) => g.id === groupId) ?? null;
+    if (target) this.pendingHandoff.set(target);
+  }
+
+  protected confirmHandoff(): void {
+    const target = this.pendingHandoff();
+    if (!target || this.routing()) return;
+    this.handoff.emit(target.id);
+    this.pendingHandoff.set(null);
+    this.handoffSel.set('');
+  }
+
+  protected cancelHandoff(): void {
+    if (this.routing()) return;
+    this.pendingHandoff.set(null);
   }
 
   protected statusLabel(status: string): string {

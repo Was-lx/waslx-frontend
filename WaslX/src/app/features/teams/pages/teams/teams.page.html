@@ -1,84 +1,331 @@
-<section class="feature-page teams-page" [attr.dir]="direction()">
+<section class="feature-page grp" [attr.dir]="direction()">
   <header class="feature-page__header">
-    <div>
-      <span class="feature-page__eyebrow">{{ t('teamsEyebrow') }}</span>
-      <h1>{{ t('teamManagement') }}</h1>
+    <div class="grp-hd">
+      <span class="feature-page__eyebrow">{{ t('grpEyebrow') }}</span>
+      <h1>{{ t('grpTitle') }}</h1>
+      <p class="grp-hd__lead">{{ t('grpLead') }}</p>
+      @if (!loading() && !error() && groups().length > 0) {
+        <span class="grp-hd__count">
+          <span class="grp-hd__count-dot" aria-hidden="true"></span>
+          <strong>{{ groups().length }}</strong> {{ t('grpCount') }}
+        </span>
+      }
     </div>
     <div class="feature-page__actions">
-      <button class="feature-page__btn">
+      <label class="feature-page__search">
+        <app-icon name="search" [size]="17" />
+        <input
+          type="text"
+          [value]="search()"
+          (input)="onSearchChange($any($event.target).value)"
+          [placeholder]="t('grpSearch')"
+        />
+      </label>
+      <button type="button" class="feature-page__btn" (click)="openCreate()">
         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
-        {{ t('createTeam') }}
+        {{ t('grpNew') }}
       </button>
     </div>
   </header>
 
-  <div class="showcase">
-    <div class="showcase__grid" aria-hidden="true"></div>
-    <span class="showcase__orb showcase__orb--a"></span>
-    <span class="showcase__orb showcase__orb--b"></span>
-
-    <div class="showcase__inner">
-      <!-- Illustration: a stage-handoff pipeline (Sales → Support → Billing) -->
-      <div class="showcase__art showcase__art--flow" aria-hidden="true">
-        <span class="showcase__halo"></span>
-        <div class="flow">
-          <div class="flow__node flow__node--a">
-            <span class="flow__dot"></span>
-            <span class="flow__label">{{ t('teamsFlowSales') }}</span>
-          </div>
-          <span class="flow__link"><i></i></span>
-          <div class="flow__node flow__node--b">
-            <span class="flow__dot"></span>
-            <span class="flow__label">{{ t('teamsFlowSupport') }}</span>
-          </div>
-          <span class="flow__link"><i></i></span>
-          <div class="flow__node flow__node--c">
-            <span class="flow__dot"></span>
-            <span class="flow__label">{{ t('teamsFlowBilling') }}</span>
-          </div>
+  @if (loading()) {
+    <div class="grp-grid" aria-hidden="true">
+      @for (row of skeletonRows; track $index) {
+        <div class="grp-card grp-card--skel">
+          <span class="grp-skel grp-skel--title sk-shimmer"></span>
+          <span class="grp-skel grp-skel--line sk-shimmer"></span>
+          <span class="grp-skel grp-skel--pills sk-shimmer"></span>
         </div>
-      </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('grpErrorTitle') }}</h3>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="loadGroups()">{{ t('grpRetry') }}</button>
+    </div>
+  } @else if (groups().length === 0) {
+    <div class="feature-page__empty grp-empty">
+      <span class="grp-empty__ico" aria-hidden="true"><app-icon name="shield" [size]="26" /></span>
+      <h3>{{ t('grpEmptyTitle') }}</h3>
+      <p>{{ t('grpEmptyDesc') }}</p>
+      <button class="ui-btn ui-btn--primary ui-btn--sm grp-empty__cta" type="button" (click)="openCreate()">
+        <app-icon name="users" [size]="15" /> {{ t('grpEmptyCta') }}
+      </button>
+    </div>
+  } @else if (filteredGroups().length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="search" [size]="26" />
+      <h3>{{ t('grpNoResults') }}</h3>
+    </div>
+  } @else {
+    <div class="grp-grid">
+      @for (group of filteredGroups(); track group.id) {
+        <article class="grp-card">
+          <span class="grp-card__accent" aria-hidden="true"></span>
 
-      <h2 class="showcase__title">{{ t('teamsEmptyTitle') }}</h2>
-      <p class="showcase__desc">{{ t('teamsEmptyDesc') }}</p>
+          <div class="grp-card__head">
+            <span class="grp-card__ico" aria-hidden="true"><app-icon name="shield" [size]="19" /></span>
+            <div class="grp-card__id">
+              <h3 class="grp-card__name">{{ group.name }}</h3>
+              <p class="grp-card__desc" [class.grp-card__desc--muted]="!group.description">
+                {{ group.description || t('grpNoStages') }}
+              </p>
+            </div>
+          </div>
 
-      <div class="showcase__actions">
-        <button type="button" class="ui-btn ui-btn--primary">
-          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
-          {{ t('createTeam') }}
+          <div class="grp-card__badges">
+            @if (group.isDefault) {
+              <span class="grp-badge grp-badge--default">
+                <app-icon name="star" [size]="12" /> {{ t('grpDefaultBadge') }}
+              </span>
+            }
+            @if (group.isAssignableByDistribution) {
+              <span class="grp-badge grp-badge--dist">
+                <app-icon name="route" [size]="12" /> {{ t('grpDistributionBadge') }}
+              </span>
+            } @else {
+              <span class="grp-badge grp-badge--handoff">
+                <app-icon name="arrow-right" [size]="12" /> {{ t('grpHandoffBadge') }}
+              </span>
+            }
+          </div>
+
+          <div class="grp-card__stats">
+            <span class="grp-stat">
+              <app-icon name="users" [size]="14" />
+              <strong>{{ group.memberCount }}</strong>
+              <span>{{ group.memberCount === 1 ? t('grpMemberLabel') : t('grpMembersLabel') }}</span>
+            </span>
+            <span class="grp-stat">
+              <app-icon name="layers" [size]="14" />
+              <strong>{{ group.stages.length }}</strong>
+              <span>{{ group.stages.length === 1 ? t('grpStageLabel') : t('grpStagesLabel') }}</span>
+            </span>
+          </div>
+
+          <div class="grp-card__foot">
+            <a
+              class="ui-btn ui-btn--ghost ui-btn--sm grp-card__pipeline"
+              [routerLink]="['/app/teams', group.id, 'stages']"
+            >
+              <app-icon name="layers" [size]="14" /> {{ t('grpPipeline') }}
+            </a>
+            <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="openMembers(group)">
+              <app-icon name="users" [size]="14" /> {{ t('grpMembersBtn') }}
+            </button>
+            <button type="button" class="grp-icon-btn" [attr.aria-label]="t('grpEdit')" (click)="openEdit(group)">
+              <app-icon name="settings" [size]="15" />
+            </button>
+            <button
+              type="button"
+              class="grp-icon-btn grp-icon-btn--danger"
+              [class.grp-icon-btn--locked]="group.isDefault"
+              [attr.aria-label]="t('grpDelete')"
+              [attr.title]="group.isDefault ? t('grpDefaultLockedHint') : t('grpDelete')"
+              [disabled]="group.isDefault"
+              (click)="requestDelete(group)"
+            >
+              <app-icon name="trash" [size]="15" />
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+<!-- ── Create / edit modal ── -->
+@if (modalOpen()) {
+  <div class="ui-overlay" (click)="closeModal()">
+    <div class="ui-modal grp-modal" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-modal__head">
+        <div>
+          <h2 class="ui-modal__title">{{ editing() ? t('grpEditTitle') : t('grpCreateTitle') }}</h2>
+          <p class="ui-modal__sub">{{ editing() ? t('grpEditSub') : t('grpCreateSub') }}</p>
+        </div>
+        <button type="button" class="ui-modal__close" (click)="closeModal()" [attr.aria-label]="t('grpCancel')">
+          <app-icon name="x" [size]="17" />
         </button>
       </div>
 
-      <!-- Capability chips -->
-      <div class="showcase__feats">
-        <div class="showcase__feat">
-          <span class="showcase__feat-ico showcase__feat-ico--primary">
-            <svg viewBox="0 0 24 24"><path d="M4 6h6M4 12h10M4 18h7" /><circle cx="18" cy="6" r="2" /><circle cx="20" cy="12" r="2" /><circle cx="16" cy="18" r="2" /></svg>
-          </span>
-          <div>
-            <span class="showcase__feat-title">{{ t('teamsFeatStages') }}</span>
-            <span class="showcase__feat-desc">{{ t('teamsFeatStagesDesc') }}</span>
+      <div class="ui-modal__body grp-modal__body">
+        <div class="ui-field">
+          <label class="ui-label" for="grp-name">{{ t('grpName') }}</label>
+          <input
+            id="grp-name"
+            type="text"
+            class="ui-input"
+            [value]="draftName()"
+            (input)="draftName.set($any($event.target).value); formError.set(null)"
+            [placeholder]="t('grpNamePlaceholder')"
+            maxlength="80"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="grp-desc">{{ t('grpDescription') }}</label>
+          <textarea
+            id="grp-desc"
+            class="ui-textarea"
+            [value]="draftDescription()"
+            (input)="draftDescription.set($any($event.target).value)"
+            [placeholder]="t('grpDescriptionPlaceholder')"
+            maxlength="240"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="grp-flag">
+          <button
+            type="button"
+            class="ui-toggle"
+            [class.is-on]="draftDistribution()"
+            [attr.aria-checked]="draftDistribution()"
+            role="switch"
+            (click)="toggleDistribution()"
+          ></button>
+          <div class="grp-flag__text">
+            <span class="grp-flag__title">{{ t('grpDistributionToggle') }}</span>
+            <span class="grp-flag__hint">{{ t('grpDistributionToggleHint') }}</span>
           </div>
         </div>
-        <div class="showcase__feat">
-          <span class="showcase__feat-ico showcase__feat-ico--accent">
-            <svg viewBox="0 0 24 24"><path d="M17 8l4 4-4 4" /><path d="M3 12h18" /><path d="M7 16l-4-4 4-4" /></svg>
-          </span>
-          <div>
-            <span class="showcase__feat-title">{{ t('teamsFeatHandoff') }}</span>
-            <span class="showcase__feat-desc">{{ t('teamsFeatHandoffDesc') }}</span>
-          </div>
-        </div>
-        <div class="showcase__feat">
-          <span class="showcase__feat-ico showcase__feat-ico--success">
-            <svg viewBox="0 0 24 24"><path d="M12 3v4m0 10v4M3 12h4m10 0h4" /><circle cx="12" cy="12" r="3.2" /></svg>
-          </span>
-          <div>
-            <span class="showcase__feat-title">{{ t('teamsFeatRouting') }}</span>
-            <span class="showcase__feat-desc">{{ t('teamsFeatRoutingDesc') }}</span>
-          </div>
-        </div>
+
+        @if (formError()) {
+          <span class="ui-error grp-modal__error">{{ formError() }}</span>
+        }
+      </div>
+
+      <div class="ui-modal__foot">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="closeModal()" [disabled]="saving()">
+          {{ t('grpCancel') }}
+        </button>
+        <button type="button" class="ui-btn ui-btn--primary" (click)="save()" [disabled]="saving()">
+          @if (saving()) {
+            <span class="ui-spinner"></span> {{ t('grpSaving') }}
+          } @else {
+            {{ t('grpSave') }}
+          }
+        </button>
       </div>
     </div>
   </div>
-</section>
+}
+
+<!-- ── Delete confirm ── -->
+@if (pendingDelete(); as pending) {
+  <div class="ui-overlay" (click)="cancelDelete()">
+    <div class="ui-modal ui-confirm grp-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-confirm__icon">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /></svg>
+      </div>
+      <h3>{{ t('grpDeleteTitle') }}</h3>
+      <p>{{ t('grpDeleteBody') }} <strong>{{ pending.name }}</strong></p>
+      @if (deleteError()) {
+        <span class="ui-error grp-confirm__error">{{ deleteError() }}</span>
+      }
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDelete()" [disabled]="deleting()">
+          {{ t('grpCancel') }}
+        </button>
+        <button type="button" class="ui-btn ui-btn--danger" (click)="confirmDelete()" [disabled]="deleting()">
+          @if (deleting()) {
+            <span class="ui-spinner"></span> {{ t('grpSaving') }}
+          } @else {
+            {{ t('grpConfirmDelete') }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Manage members modal ── -->
+@if (membersOpen()) {
+  <div class="ui-overlay" (click)="closeMembers()">
+    <div class="ui-modal grp-members" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-modal__head">
+        <div>
+          <h2 class="ui-modal__title">{{ t('grpMembersTitle') }}</h2>
+          <p class="ui-modal__sub">{{ membersGroup()?.name }} · {{ t('grpMembersSub') }}</p>
+        </div>
+        <button type="button" class="ui-modal__close" (click)="closeMembers()" [attr.aria-label]="t('grpMembersDone')">
+          <app-icon name="x" [size]="17" />
+        </button>
+      </div>
+
+      <div class="ui-modal__body grp-members__body">
+        <div class="grp-members__bar">
+          <label class="feature-page__search grp-members__search">
+            <app-icon name="search" [size]="16" />
+            <input
+              type="text"
+              [value]="membersSearch()"
+              (input)="membersSearch.set($any($event.target).value)"
+              [placeholder]="t('grpMembersSearch')"
+            />
+          </label>
+          <span class="grp-members__count">
+            <app-icon name="users" [size]="13" />
+            <strong>{{ memberCountInModal() }}</strong> {{ t('grpMembersInGroup') }}
+          </span>
+        </div>
+
+        @if (membersLoading()) {
+          <div class="grp-members__state">
+            <div class="ui-spinner"></div>
+            <p>{{ t('grpMembersLoading') }}</p>
+          </div>
+        } @else if (membersError()) {
+          <div class="grp-members__state">
+            <app-icon name="users" [size]="24" />
+            <p>{{ t('grpErrorToast') }}</p>
+          </div>
+        } @else if (memberRows().length === 0) {
+          <div class="grp-members__state">
+            <app-icon name="users" [size]="24" />
+            <p>{{ t('grpMembersEmpty') }}</p>
+          </div>
+        } @else if (filteredMemberRows().length === 0) {
+          <div class="grp-members__state">
+            <app-icon name="search" [size]="24" />
+            <p>{{ t('grpMembersNoResults') }}</p>
+          </div>
+        } @else {
+          <ul class="grp-members__list">
+            @for (row of filteredMemberRows(); track row.user.id) {
+              <li class="grp-member" [class.grp-member--in]="row.isMember">
+                <span class="grp-member__avatar" aria-hidden="true">{{ row.user.name.charAt(0) || '?' }}</span>
+                <span class="grp-member__id">
+                  <span class="grp-member__name">{{ row.user.name }}</span>
+                  <span class="grp-member__email">{{ row.user.email }}</span>
+                </span>
+                <button
+                  type="button"
+                  class="ui-btn ui-btn--sm grp-member__btn"
+                  [class.ui-btn--ghost]="row.isMember"
+                  [class.ui-btn--primary]="!row.isMember"
+                  [disabled]="row.busy"
+                  (click)="toggleMember(row)"
+                >
+                  @if (row.busy) {
+                    <span class="ui-spinner"></span>
+                  } @else if (row.isMember) {
+                    <app-icon name="x" [size]="14" /> {{ t('grpMemberRemove') }}
+                  } @else {
+                    <svg viewBox="0 0 24 24" class="grp-member__plus"><path d="M12 5v14M5 12h14" /></svg> {{ t('grpMemberAdd') }}
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="ui-modal__foot">
+        <button type="button" class="ui-btn ui-btn--primary" (click)="closeMembers()">{{ t('grpMembersDone') }}</button>
+      </div>
+    </div>
+  </div>
+}

@@ -8,6 +8,8 @@ import {
   analyticsTranslations,
   type AuthKey,
   authTranslations,
+  type ChannelsKey,
+  channelsTranslations,
   type ContactsKey,
   contactsTranslations,
   type DashboardKey,
@@ -24,12 +26,18 @@ import {
   settingsTranslations,
   type SharedKey,
   sharedTranslations,
+  type TagsKey,
+  tagsTranslations,
   type TeamsKey,
   teamsTranslations,
+  type PipelineKey,
+  pipelineTranslations,
   type TemplatesKey,
   templatesTranslations,
   type UsersKey,
   usersTranslations,
+  type WorkingHoursKey,
+  workingHoursTranslations,
 } from '../i18n';
 
 export type { AppLanguage, AppDirection };
@@ -46,11 +54,15 @@ export type TranslationKey =
   | InboxKey
   | UsersKey
   | TeamsKey
+  | PipelineKey
   | AnalyticsKey
   | ContactsKey
   | SettingsKey
   | OnboardingKey
-  | TemplatesKey;
+  | TemplatesKey
+  | ChannelsKey
+  | TagsKey
+  | WorkingHoursKey;
 
 // ─── Merged translations map ──────────────────────────────────────────────────
 
@@ -64,11 +76,15 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...inboxTranslations.en,
     ...usersTranslations.en,
     ...teamsTranslations.en,
+    ...pipelineTranslations.en,
     ...analyticsTranslations.en,
     ...contactsTranslations.en,
     ...settingsTranslations.en,
     ...onboardingTranslations.en,
     ...templatesTranslations.en,
+    ...channelsTranslations.en,
+    ...tagsTranslations.en,
+    ...workingHoursTranslations.en,
   } as Record<TranslationKey, string>,
   ar: {
     ...sharedTranslations.ar,
@@ -79,11 +95,15 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...inboxTranslations.ar,
     ...usersTranslations.ar,
     ...teamsTranslations.ar,
+    ...pipelineTranslations.ar,
     ...analyticsTranslations.ar,
     ...contactsTranslations.ar,
     ...settingsTranslations.ar,
     ...onboardingTranslations.ar,
     ...templatesTranslations.ar,
+    ...channelsTranslations.ar,
+    ...tagsTranslations.ar,
+    ...workingHoursTranslations.ar,
   } as Record<TranslationKey, string>,
 };
 

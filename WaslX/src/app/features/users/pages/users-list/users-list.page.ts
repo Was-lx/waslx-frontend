@@ -7,7 +7,7 @@ import { type TranslationKey, LanguageService } from '../../../../core/services/
 import { ToastService } from '../../../../core/services/toast.service';
 import { User, UsersApiService } from '../../../../core/api/users-api.service';
 import { AppRole } from '../../../../core/services/auth-session.service';
-import { apiErrorMessage } from '../../../../core/utils/api-error';
+import { apiError, apiErrorMessage } from '../../../../core/utils/api-error';
 
 type SortKey = 'name' | 'role' | 'status' | 'joined';
 type SortDir = 'asc' | 'desc';
@@ -131,6 +131,9 @@ export class UsersListPageComponent implements OnInit {
 
   // ─── Activate / deactivate with confirmation ───────────────────────────────
   requestToggle(user: User): void {
+    if (user.isOwner) {
+      return; // owner status is locked
+    }
     this.pendingUser.set(user);
   }
 
@@ -154,12 +157,15 @@ export class UsersListPageComponent implements OnInit {
         this.toastService.success(this.t('userStatusUpdated'), '');
       },
       error: (err) => {
-        this.toastService.error(this.t('error'), apiErrorMessage(err, this.t('genericError')));
+        this.handleOwnerLockOrError(err, user.id);
       }
     });
   }
 
   changeRole(user: User, newRole: string): void {
+    if (user.isOwner) {
+      return; // owner role is locked
+    }
     const role = newRole as AppRole;
     const previous = user.role;
     // Optimistically reflect the change, roll back if the server rejects it.
@@ -170,10 +176,24 @@ export class UsersListPageComponent implements OnInit {
       },
       error: (err) => {
         this.users.update(users => users.map(u => u.id === user.id ? { ...u, role: previous } : u));
-        this.toastService.error(this.t('error'), apiErrorMessage(err, this.t('genericError')));
+        this.handleOwnerLockOrError(err, user.id);
       }
 
     });
+  }
+
+  /**
+   * Surfaces a friendly message for the backend's `User.OwnerLocked` 403 and, when
+   * hit, marks the row as an owner so it locks even if the list was stale. Falls
+   * back to the generic error toast for everything else.
+   */
+  private handleOwnerLockOrError(err: unknown, userId: string): void {
+    if (apiError(err).code === 'User.OwnerLocked') {
+      this.users.update(users => users.map(u => u.id === userId ? { ...u, isOwner: true } : u));
+      this.toastService.error(this.t('error'), this.t('ownerLocked'));
+      return;
+    }
+    this.toastService.error(this.t('error'), apiErrorMessage(err, this.t('genericError')));
   }
 }
 

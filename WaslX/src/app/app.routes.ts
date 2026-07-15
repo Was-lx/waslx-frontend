@@ -78,6 +78,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/channels/channels.routes').then((m) => m.channelsRoutes)
       },
       {
+        path: 'channels-list',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/channels/channels-list.routes').then((m) => m.channelsListRoutes)
+      },
+      {
         path: 'templates',
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager'] },
@@ -94,6 +100,24 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager'] },
         loadChildren: () => import('./features/teams/teams.routes').then((m) => m.teamsRoutes)
+      },
+      {
+        path: 'pipeline',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/pipeline/pipeline.routes').then((m) => m.pipelineRoutes)
+      },
+      {
+        path: 'tags',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/tags/tags.routes').then((m) => m.tagsRoutes)
+      },
+      {
+        path: 'working-hours',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/working-hours/working-hours.routes').then((m) => m.workingHoursRoutes)
       },
       {
         path: 'analytics',

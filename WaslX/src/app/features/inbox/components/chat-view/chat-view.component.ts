@@ -18,8 +18,13 @@ import { MessageBubbleComponent } from '../message-bubble/message-bubble.compone
 import { MessageComposerComponent } from '../message-composer/message-composer.component';
 import { ContextPanelComponent } from '../context-panel/context-panel.component';
 import { TemplatePickerComponent, type TemplateSendPayload } from '../template-picker/template-picker.component';
+import { AssignmentBarComponent, type AssignEvent } from '../assignment-bar/assignment-bar.component';
 import type { ConversationDetail, ConversationNote } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
+import type { Assignment } from '../../../../core/api/assignment-api.service';
+import type { Tag } from '../../../../core/api/tags-api.service';
+import type { User } from '../../../../core/api/users-api.service';
+import type { Group } from '../../../../core/api/groups-api.service';
 
 /** Right pane: conversation header, message thread, composer, template picker, and context panel. */
 @Component({
@@ -28,7 +33,7 @@ import type { ConversationMessage } from '../../models/message.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AvatarComponent, MessageBubbleComponent, MessageComposerComponent,
-    ContextPanelComponent, TemplatePickerComponent
+    ContextPanelComponent, TemplatePickerComponent, AssignmentBarComponent
   ],
   template: `
     <div class="chat-wrap">
@@ -39,28 +44,43 @@ import type { ConversationMessage } from '../../models/message.model';
             <span class="chat__name">{{ customerName() }}</span>
             <span class="chat__phone">{{ customerPhone() }}</span>
           </div>
-          @if (detail()) {
-            @if (!windowClosed()) {
-              <span class="chat__window chat__window--open" [title]="t('windowOpen')">
-                <span class="chat__window-dot"></span>
-                @if (detail()?.windowType === 'FreeEntryPoint72h') {
-                  72h Free Entry
-                } @else {
-                  24h Customer Service
-                }
-                @if (countdown()) {
-                  <span class="chat__window-time">{{ t('windowRemaining') }} {{ countdown() }}</span>
-                }
-              </span>
-            } @else {
-              <span class="chat__window chat__window--closed" [title]="t('windowClosed')">
-                <span class="chat__window-dot"></span>
-                {{ t('windowClosed') }}
-              </span>
-            }
-          }
+
+          <app-assignment-bar
+            class="chat__tools"
+            [detail]="detail()"
+            [users]="users()"
+            [tags]="tags()"
+            [assignments]="assignments()"
+            [assigning]="assigning()"
+            [loadingHistory]="loadingAssignments()"
+            [statusChanging]="statusChanging()"
+            [infoOpen]="infoOpen()"
+            (assign)="assign.emit($event)"
+            (applyTag)="applyTag.emit($event)"
+            (removeTag)="removeTag.emit($event)"
+            (openHistory)="loadAssignments.emit()"
+            (changeStatus)="changeStatus.emit($event)"
+            (toggleInfo)="infoOpen.set(!infoOpen())"
+          />
         </header>
 
+        @if (detail()) {
+          <div class="chat__window" [class.chat__window--closed]="windowClosed()" [class.chat__window--open]="!windowClosed()">
+            <span class="chat__window-dot"></span>
+            @if (!windowClosed()) {
+              <span class="chat__window-label">
+                @if (detail()?.windowType === 'FreeEntryPoint72h') { 72h Free Entry } @else { 24h Customer Service }
+              </span>
+              @if (countdown()) {
+                <span class="chat__window-time">{{ t('windowRemaining') }} {{ countdown() }}</span>
+              }
+            } @else {
+              <span class="chat__window-label">{{ t('windowClosed') }}</span>
+            }
+          </div>
+        }
+
+        <div class="chat__body">
         <div class="chat__scroll" #scroll>
           @if (hasMore()) {
             <button type="button" class="chat__older" (click)="loadOlder.emit()">{{ t('inboxLoadOlder') }}</button>
@@ -70,7 +90,10 @@ import type { ConversationMessage } from '../../models/message.model';
           } @else if (messages().length === 0) {
             <div class="chat__state">{{ t('inboxThreadEmpty') }}</div>
           } @else {
-            @for (m of messages(); track m.id) {
+            @for (m of messages(); track m.id; let idx = $index) {
+              @if (showDaySep(idx)) {
+                <div class="chat__daysep"><span>{{ daySepLabel(m) }}</span></div>
+              }
               <app-message-bubble
                 [message]="m"
                 [retryLabel]="t('inboxRetry')"
@@ -102,58 +125,102 @@ import type { ConversationMessage } from '../../models/message.model';
           (attachError)="attachError.emit($event)"
           (openTemplates)="showPicker.set(true)"
         />
-      </section>
 
-      <app-context-panel
-        class="chat__context"
-        [detail]="detail()"
-        [notes]="notes()"
-        [addingNote]="addingNote()"
-        [statusChanging]="statusChanging()"
-        (changeStatus)="changeStatus.emit($event)"
-        (addNote)="addNote.emit($event)"
-      />
+          <!-- Customer / context drawer — overlays the thread body only (header + toolbar stay clickable) -->
+          @if (infoOpen()) {
+            <div class="chat__scrim" (click)="infoOpen.set(false)" aria-hidden="true"></div>
+            <app-context-panel
+              class="chat__drawer"
+              [detail]="detail()"
+              [notes]="notes()"
+              [addingNote]="addingNote()"
+              [statusChanging]="statusChanging()"
+              [groups]="groups()"
+              [currentGroupId]="currentGroupId()"
+              [routing]="routing()"
+              (changeStatus)="changeStatus.emit($event)"
+              (addNote)="addNote.emit($event)"
+              (route)="route.emit($event)"
+              (handoff)="handoff.emit($event)"
+              (close)="infoOpen.set(false)"
+            />
+          }
+        </div>
+      </section>
     </div>
   `,
   styles: [`
     :host { display: block; height: 100%; }
-    .chat-wrap { display: flex; height: 100%; min-width: 0; }
+    .chat-wrap { position: relative; display: flex; height: 100%; min-width: 0; overflow: hidden; }
     .chat { position: relative; flex: 1 1 auto; display: flex; flex-direction: column; height: 100%; min-width: 0; background: var(--surface-soft); }
-    .chat__context { flex: 0 0 300px; }
+    /* Thread body — messages + composer; the context drawer overlays only this region (not the header). */
+    .chat__body { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
     .chat__head {
       display: flex; align-items: center; gap: 12px;
-      padding: 14px 18px;
+      padding: 12px 18px;
       border-bottom: 1px solid var(--border-subtle);
       background: var(--surface);
     }
     .chat__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .chat__name { font-size: 0.96rem; font-weight: 700; color: var(--text-primary); }
+    .chat__name { font-size: 0.98rem; font-weight: 700; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .chat__phone { font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .chat__tools { margin-inline-start: auto; flex: 0 0 auto; }
+    /* Slim 24/72h window strip below the header (full width, subtle) */
     .chat__window {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-inline-start: auto;
-      padding: 5px 11px;
-      border-radius: 999px;
-      font-size: 0.74rem;
-      font-weight: 600;
-      white-space: nowrap;
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 20px;
+      font-size: 0.75rem; font-weight: 650;
+      border-bottom: 1px solid var(--border-subtle);
     }
     .chat__window-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
-    .chat__window--open { background: color-mix(in srgb, #16a34a 12%, var(--surface)); color: #15803d; }
-    .chat__window--open .chat__window-dot { background: #16a34a; }
-    .chat__window--closed { background: color-mix(in srgb, #d97706 12%, var(--surface)); color: #b45309; }
+    .chat__window-label { white-space: nowrap; }
+    .chat__window-time { margin-inline-start: auto; font-variant-numeric: tabular-nums; font-weight: 600; opacity: 0.9; }
+    .chat__window--open { background: color-mix(in srgb, #16a34a 8%, var(--surface)); color: #15803d; }
+    .chat__window--open .chat__window-dot { background: #16a34a; box-shadow: 0 0 0 3px color-mix(in srgb, #16a34a 20%, transparent); }
+    .chat__window--closed { background: color-mix(in srgb, #d97706 9%, var(--surface)); color: #b45309; }
     .chat__window--closed .chat__window-dot { background: #d97706; }
-    .chat__window-time { font-variant-numeric: tabular-nums; font-weight: 500; opacity: 0.85; }
+    /* Context drawer — slides over the thread from the inline-end edge */
+    .chat__drawer {
+      position: absolute; inset-block: 0; inset-inline-end: 0;
+      z-index: 8; width: min(360px, 88%);
+      box-shadow: -14px 0 40px -18px color-mix(in srgb, var(--text-primary) 40%, transparent);
+      animation: drawer-in 200ms var(--ease-out, ease);
+    }
+    .chat__scrim { position: absolute; inset: 0; z-index: 7; background: color-mix(in srgb, var(--text-primary) 12%, transparent); animation: scrim-in 200ms ease; }
+    @keyframes drawer-in { from { transform: translateX(var(--drawer-from, 12px)); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+    :host-context([dir="rtl"]) .chat__drawer { --drawer-from: -12px; }
     .chat__scroll {
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 20px;
+      padding: 22px 24px;
       overflow-y: auto;
       min-height: 0;
+      /* Warm, WhatsApp-like canvas: a whisper-faint dot texture over a soft vertical wash,
+         so the thread never reads as a flat empty void. Pure CSS (CSP-safe). */
+      background-color: var(--surface-soft);
+      background-image:
+        radial-gradient(circle, color-mix(in srgb, var(--text-primary) 4.5%, transparent) 1px, transparent 1.4px),
+        linear-gradient(180deg, color-mix(in srgb, var(--primary) 3%, transparent), transparent 220px);
+      background-size: 22px 22px, 100% 100%;
+      background-attachment: local, local;
+    }
+    /* Day divider between message groups (Today / Yesterday / date). */
+    .chat__daysep { display: flex; align-items: center; gap: 12px; margin: 8px 2px; }
+    .chat__daysep::before, .chat__daysep::after {
+      content: ''; flex: 1 1 auto; height: 1px;
+      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text-primary) 10%, transparent), transparent);
+    }
+    .chat__daysep span {
+      flex: 0 0 auto; padding: 4px 12px; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.01em;
+      color: var(--text-secondary);
+      background: color-mix(in srgb, var(--surface) 82%, transparent);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-xs);
+      backdrop-filter: blur(4px);
     }
     .chat__older {
       align-self: center;
@@ -171,9 +238,6 @@ import type { ConversationMessage } from '../../models/message.model';
       margin: auto;
       color: var(--text-muted);
       font-size: 0.88rem;
-    }
-    @media (max-width: 1100px) {
-      .chat__context { display: none; }
     }
   `]
 })
@@ -194,6 +258,16 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly addingNote = input(false);
   readonly statusChanging = input(false);
   readonly uploadProgress = input<number | null>(null);
+  // Assignment + tagging
+  readonly users = input<User[]>([]);
+  readonly tags = input<Tag[]>([]);
+  readonly assignments = input<Assignment[]>([]);
+  readonly assigning = input(false);
+  readonly loadingAssignments = input(false);
+  // Team routing / cross-team handoff
+  readonly groups = input<Group[]>([]);
+  readonly currentGroupId = input<number | null>(null);
+  readonly routing = input(false);
 
   readonly send = output<string>();
   readonly sendMedia = output<{ file: File; caption: string }>();
@@ -203,8 +277,16 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly changeStatus = output<string>();
   readonly addNote = output<string>();
   readonly sendTemplate = output<TemplateSendPayload>();
+  readonly assign = output<AssignEvent>();
+  readonly applyTag = output<number>();
+  readonly removeTag = output<number>();
+  readonly loadAssignments = output<void>();
+  readonly route = output<number>();
+  readonly handoff = output<number>();
 
   protected readonly showPicker = signal(false);
+  /** Whether the customer/context drawer is open (toggled by the profile button in the header toolbar). */
+  protected readonly infoOpen = signal(false);
 
   // Ticks on an interval so the 24h window also CLOSES on its own the moment it expires — without
   // needing a new server event or a manual refresh. The instant a customer reply arrives, the parent
@@ -265,6 +347,31 @@ export class ChatViewComponent implements AfterViewChecked {
     this.showPicker.set(false);
   }
 
+  /** True for the first message and whenever the calendar day changes from the previous message. */
+  protected showDaySep(idx: number): boolean {
+    if (idx <= 0) return true;
+    const msgs = this.messages();
+    const cur = msgs[idx]?.timestamp;
+    const prev = msgs[idx - 1]?.timestamp;
+    if (!cur || !prev) return false;
+    return !this.sameDay(new Date(cur), new Date(prev));
+  }
+
+  private sameDay(a: Date, b: Date): boolean {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  /** "Today" / "Yesterday" / a short weekday-date label for the day divider. */
+  protected daySepLabel(m: ConversationMessage): string {
+    const d = new Date(m.timestamp);
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (this.sameDay(d, now)) return this.t('inboxToday');
+    if (this.sameDay(d, yesterday)) return this.t('inboxYesterday');
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
   ngAfterViewChecked(): void {
     const el = this.scrollRef()?.nativeElement;
     if (!el) return;
@@ -275,6 +382,7 @@ export class ChatViewComponent implements AfterViewChecked {
       this.lastCount = 0;
       this.armedUnread = this.initialUnreadCount();
       this.showPicker.set(false);
+      this.infoOpen.set(false);
     }
 
     const count = this.messages().length;
