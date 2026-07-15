@@ -13,6 +13,7 @@ interface ApiUser {
   roles: string[];
   isDisabled: boolean;
   isEmailConfirmed: boolean;
+  isOwner: boolean;
 }
 
 /** View-model used by the Users screens. */
@@ -23,6 +24,9 @@ export interface User {
   role: string;
   isActive: boolean;
   emailConfirmed?: boolean;
+  /** Workspace owner — role/status are locked in the UI. */
+  isOwner: boolean;
+  phoneNumber: string | null;
   createdAt: string;
 }
 
@@ -38,6 +42,11 @@ export class UsersApiService {
 
   getUsers(): Observable<User[]> {
     return this.api.get<ApiUser[]>('/users').pipe(map((list) => list.map(toUser)));
+  }
+
+  /** Single user view-model — resolved from the tenant user list (no dedicated endpoint). */
+  getUser(userId: string): Observable<User | undefined> {
+    return this.getUsers().pipe(map((list) => list.find((u) => u.id === userId)));
   }
 
   /** Invite / create a user (backend emails a set-password link). */
@@ -70,6 +79,8 @@ function toUser(u: ApiUser): User {
     role: u.roles[0] ?? 'Agent',
     isActive: !u.isDisabled,
     emailConfirmed: u.isEmailConfirmed,
+    isOwner: u.isOwner ?? false,
+    phoneNumber: u.phoneNumber ?? null,
     createdAt: '',
   };
 }

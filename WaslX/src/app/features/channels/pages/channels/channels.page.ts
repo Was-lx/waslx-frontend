@@ -3,7 +3,10 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { Subscription as RxSubscription } from 'rxjs';
 
 import { environment } from '../../../../../environments/environment';
-import { WhatsAppApiService } from '../../../../core/api/whatsapp-api.service';
+import { WhatsAppApiService, stashConnectOptions } from '../../../../core/api/whatsapp-api.service';
+import type { ConnectWhatsAppOptions, DistributionMode } from '../../../../core/api/whatsapp-api.service';
+import { GroupsApiService } from '../../../../core/api/groups-api.service';
+import type { Group } from '../../../../core/api/groups-api.service';
 import { ChannelStatusService } from '../../../../core/services/channel-status.service';
 import { FacebookSdkService } from '../../../../core/services/facebook-sdk.service';
 import { LanguageService } from '../../../../core/services/language.service';
@@ -21,6 +24,39 @@ const CONTENT = {
     heroTitle: 'Connect your first WhatsApp number',
     heroText: 'Link your own number through Meta’s official Cloud API — you own the number and the data. We’ll guide you through verification in a few minutes.',
     heroCta: 'Start connection',
+    // ── Step 1 wizard ──
+    stepOf: 'Step {n} of 2',
+    step1Label: 'Configure',
+    step2Label: 'Connect with Meta',
+    wizTag: 'Setup',
+    wizTitle: 'Set up your number',
+    wizText: 'Name this number and choose how incoming chats reach your team. You’ll link the number itself with Meta in the next step.',
+    idHint: 'For your reference only — the authoritative number is confirmed by Meta.',
+    platformNameLabel: 'Platform name',
+    platformNamePh: 'e.g. Sales · Cairo store',
+    countryLabel: 'Country code',
+    phoneLabel: 'Phone number',
+    phonePh: '10 1234 5678',
+    distTitle: 'Distribution',
+    distText: 'Decide how new conversations on this number are handed to agents.',
+    modeLabel: 'Assignment mode',
+    modeByAdmin: 'By Admin',
+    modeRoundRobin: 'Round Robin',
+    modeRoundRobinWh: 'Round Robin by working hours',
+    offlineLabel: 'Distribute to offline agents?',
+    offlineYes: 'Yes',
+    offlineNo: 'No',
+    offlineHint: 'When on, agents can receive chats even while offline; when off, only online agents are included.',
+    reassignLabel: 'Reassign to online agents when an agent goes offline',
+    reassignHint: 'Automatically move a waiting chat to an available agent if its owner drops offline.',
+    whHint: 'Round Robin by working hours uses your configured shifts and company working hours — make sure those are set up first.',
+    startingGroupLabel: 'Starting team',
+    startingGroupNone: 'No specific team',
+    startingGroupHint: 'New conversations start in this team’s pipeline.',
+    next: 'Next',
+    back: 'Back',
+    errNeedPlatform: 'Please enter a platform name for this number.',
+    errNeedOffline: 'Please choose whether to distribute to offline agents.',
     pending: 'Verification pending',
     guide: 'Guided setup — no technical steps.',
     listTitle: 'Connected numbers',
@@ -60,6 +96,39 @@ const CONTENT = {
     heroTitle: 'اربط أول رقم واتساب ليك',
     heroText: 'اربط رقمك الخاص عبر Cloud API الرسمي من Meta — الرقم والبيانات ملكك. هنمشّيك في التحقق في دقائق.',
     heroCta: 'ابدأ الربط',
+    // ── Step 1 wizard ──
+    stepOf: 'خطوة {n} من 2',
+    step1Label: 'الإعداد',
+    step2Label: 'الربط مع Meta',
+    wizTag: 'إعداد',
+    wizTitle: 'جهّز رقمك',
+    wizText: 'سمّي الرقم ده واختار إزاي المحادثات الجديدة توصل لفريقك. هتربط الرقم نفسه مع Meta في الخطوة اللي بعدها.',
+    idHint: 'للعرض فقط — الرقم المعتمد بيتأكد من Meta.',
+    platformNameLabel: 'اسم المنصة',
+    platformNamePh: 'مثال: المبيعات · فرع القاهرة',
+    countryLabel: 'كود الدولة',
+    phoneLabel: 'رقم الهاتف',
+    phonePh: '10 1234 5678',
+    distTitle: 'التوزيع',
+    distText: 'حدد إزاي المحادثات الجديدة على الرقم ده تتوزّع على الموظفين.',
+    modeLabel: 'طريقة التعيين',
+    modeByAdmin: 'بواسطة المدير',
+    modeRoundRobin: 'توزيع دوري',
+    modeRoundRobinWh: 'توزيع دوري حسب ساعات العمل',
+    offlineLabel: 'توزيع على الموظفين غير المتصلين؟',
+    offlineYes: 'نعم',
+    offlineNo: 'لا',
+    offlineHint: 'لما يكون مفعّل، الموظفين يقدروا يستلموا محادثات حتى وهم غير متصلين؛ ولما يكون مقفول، المتصلين بس هما اللي يتوزّع عليهم.',
+    reassignLabel: 'إعادة التعيين لموظف متصل لو الموظف الحالي خرج',
+    reassignHint: 'نقل المحادثة المنتظرة تلقائيًا لموظف متاح لو صاحبها اتفصل.',
+    whHint: 'التوزيع الدوري حسب ساعات العمل بيعتمد على الورديات وساعات عمل الشركة المهيّأة — اتأكد إنها متظبطة الأول.',
+    startingGroupLabel: 'الفريق المبدئي',
+    startingGroupNone: 'من غير فريق محدد',
+    startingGroupHint: 'المحادثات الجديدة بتبدأ في مسار الفريق ده.',
+    next: 'التالي',
+    back: 'رجوع',
+    errNeedPlatform: 'من فضلك اكتب اسم منصة للرقم ده.',
+    errNeedOffline: 'من فضلك اختار إذا كنت عايز توزّع على الموظفين غير المتصلين.',
     pending: 'في انتظار التحقق',
     guide: 'إعداد موجّه — من غير خطوات تقنية.',
     listTitle: 'الأرقام المتصلة',
@@ -104,13 +173,176 @@ const CONTENT = {
           <h1>{{ c().title }}</h1>
           <p class="channels__lead">{{ c().lead }}</p>
         </div>
-        <button class="feature-page__btn" type="button" [disabled]="connecting() || !!account()" (click)="connect()">
+        <button class="feature-page__btn" type="button" [disabled]="connecting() || !!account()" (click)="advance()">
           <app-icon name="link" [size]="17" /> {{ connecting() ? c().connecting : c().connect }}
         </button>
       </header>
 
-      <!-- Connect hero (only while no number is connected yet) -->
+      <!-- 2-step connect wizard (only while no number is connected yet) -->
       @if (!account()) {
+
+      <!-- Stepper -->
+      <ol class="channels__stepper" [attr.aria-label]="c().stepsEyebrow">
+        <li class="channels__stepper-item" [class.is-active]="step() === 1" [class.is-done]="step() > 1">
+          <span class="channels__stepper-dot">
+            @if (step() > 1) { <app-icon name="check" [size]="13" /> } @else { 1 }
+          </span>
+          <span class="channels__stepper-label">{{ c().step1Label }}</span>
+        </li>
+        <span class="channels__stepper-line" aria-hidden="true"></span>
+        <li class="channels__stepper-item" [class.is-active]="step() === 2">
+          <span class="channels__stepper-dot">2</span>
+          <span class="channels__stepper-label">{{ c().step2Label }}</span>
+        </li>
+      </ol>
+      }
+
+      <!-- Step 1 — configuration form (in-page, NOT a popup) -->
+      @if (!account() && step() === 1) {
+      <div class="ui-card channels__wizard">
+        <div class="channels__wizard-head">
+          <span class="channels__wa-badge"><app-icon name="sliders" [size]="13" /> {{ c().wizTag }}</span>
+          <h2>{{ c().wizTitle }}</h2>
+          <p>{{ c().wizText }}</p>
+        </div>
+
+        <!-- Identity -->
+        <div class="channels__form-grid">
+          <div class="ui-field channels__field-wide">
+            <label class="ui-label" for="wa-platform">{{ c().platformNameLabel }}</label>
+            <input
+              id="wa-platform"
+              class="ui-input"
+              type="text"
+              [value]="platformName()"
+              (input)="onPlatformInput($event)"
+              [placeholder]="c().platformNamePh"
+              autocomplete="off"
+            />
+          </div>
+          <div class="ui-field">
+            <label class="ui-label" for="wa-cc">{{ c().countryLabel }}</label>
+            <select id="wa-cc" class="ui-select" [value]="countryCode()" (change)="onCountryChange($event)">
+              @for (cc of countryCodes; track cc.dial) {
+                <option [value]="cc.dial">{{ cc.dial }} · {{ cc.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="ui-field">
+            <label class="ui-label" for="wa-phone">{{ c().phoneLabel }}</label>
+            <input
+              id="wa-phone"
+              class="ui-input"
+              type="tel"
+              inputmode="tel"
+              [value]="phone()"
+              (input)="onPhoneInput($event)"
+              [placeholder]="c().phonePh"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <p class="channels__id-hint"><app-icon name="lock" [size]="13" /> {{ c().idHint }}</p>
+
+        <hr class="channels__divider" />
+
+        <!-- Distribution -->
+        <div class="channels__form-section">
+          <div class="channels__section-head">
+            <div class="channels__section-icon"><app-icon name="route" [size]="17" /></div>
+            <div>
+              <h3>{{ c().distTitle }}</h3>
+              <p>{{ c().distText }}</p>
+            </div>
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label" for="wa-mode">{{ c().modeLabel }}</label>
+            <select id="wa-mode" class="ui-select" [value]="distributionMode()" (change)="onModeChange($event)">
+              <option value="Manual">{{ c().modeByAdmin }}</option>
+              <option value="RoundRobin">{{ c().modeRoundRobin }}</option>
+              <option value="RoundRobinByWorkingHours">{{ c().modeRoundRobinWh }}</option>
+            </select>
+          </div>
+
+          <!-- Round Robin extras -->
+          @if (distributionMode() === 'RoundRobin') {
+          <div class="channels__subfield">
+            <div class="channels__choice-row">
+              <div class="channels__choice-copy">
+                <span class="ui-label">{{ c().offlineLabel }}</span>
+                <p class="channels__field-hint">{{ c().offlineHint }}</p>
+              </div>
+              <div class="ui-seg channels__choice-seg" role="group" [attr.aria-label]="c().offlineLabel">
+                <button
+                  type="button"
+                  class="ui-seg__btn"
+                  [class.is-active]="distributeToOffline() === true"
+                  (click)="setDistributeToOffline(true)"
+                >{{ c().offlineYes }}</button>
+                <button
+                  type="button"
+                  class="ui-seg__btn"
+                  [class.is-active]="distributeToOffline() === false"
+                  (click)="setDistributeToOffline(false)"
+                >{{ c().offlineNo }}</button>
+              </div>
+            </div>
+
+            <div class="channels__choice-row">
+              <div class="channels__choice-copy">
+                <span class="ui-label">{{ c().reassignLabel }}</span>
+                <p class="channels__field-hint">{{ c().reassignHint }}</p>
+              </div>
+              <button
+                type="button"
+                class="ui-toggle"
+                role="switch"
+                [attr.aria-checked]="reassignOnOffline()"
+                [class.is-on]="reassignOnOffline()"
+                (click)="reassignOnOffline.set(!reassignOnOffline())"
+              ></button>
+            </div>
+          </div>
+          }
+
+          <!-- Working-hours mode hint -->
+          @if (distributionMode() === 'RoundRobinByWorkingHours') {
+          <div class="channels__hint">
+            <app-icon name="clock" [size]="16" />
+            <span>{{ c().whHint }}</span>
+          </div>
+          }
+
+          <!-- Starting team (only when groups exist) -->
+          @if (groups().length) {
+          <div class="ui-field">
+            <label class="ui-label" for="wa-group">{{ c().startingGroupLabel }}</label>
+            <select id="wa-group" class="ui-select" [value]="startingGroupId() ?? ''" (change)="onGroupChange($event)">
+              <option value="">{{ c().startingGroupNone }}</option>
+              @for (g of groups(); track g.id) {
+                <option [value]="g.id">{{ g.name }}</option>
+              }
+            </select>
+            <span class="channels__field-hint">{{ c().startingGroupHint }}</span>
+          </div>
+          }
+        </div>
+
+        @if (step1Error(); as err) {
+        <p class="ui-error channels__form-error"><app-icon name="help-circle" [size]="14" /> {{ err }}</p>
+        }
+
+        <div class="channels__wizard-actions">
+          <button class="ui-btn ui-btn--primary channels__connect-btn" type="button" (click)="next()">
+            {{ c().next }} <app-icon name="arrow-right" [size]="16" />
+          </button>
+        </div>
+      </div>
+      }
+
+      <!-- Step 2 — EXISTING Meta connect action (unchanged), gated behind step 1 -->
+      @if (!account() && step() === 2) {
       <div class="ui-card channels__hero">
         <div class="channels__hero-glow" aria-hidden="true"></div>
         <div class="channels__hero-grid" aria-hidden="true"></div>
@@ -128,6 +360,9 @@ const CONTENT = {
             <span><app-icon name="zap" [size]="15" /> {{ c().f3 }}</span>
           </div>
           <div class="channels__hero-actions">
+            <button class="ui-btn ui-btn--ghost channels__back-btn" type="button" [disabled]="connecting()" (click)="back()">
+              <app-icon name="chevron-left" [size]="16" /> {{ c().back }}
+            </button>
             <button class="ui-btn ui-btn--primary channels__connect-btn" type="button" [disabled]="connecting()" (click)="connect()">
               {{ connecting() ? c().connecting : c().heroCta }} <app-icon name="arrow-right" [size]="16" />
             </button>
@@ -222,6 +457,76 @@ const CONTENT = {
   styles: [`
     :host { display: block; --wa: #25d366; --wa-deep: #128c7e; }
     .channels__lead { margin: 8px 0 0; color: var(--text-secondary); font-size: 0.95rem; max-width: 56ch; }
+
+    /* ── Stepper ── */
+    .channels__stepper { display: flex; align-items: center; gap: 12px; margin: 2px 0 -4px; padding: 0; list-style: none; }
+    .channels__stepper-item { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+    .channels__stepper-dot {
+      display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto;
+      font-size: 0.8rem; font-weight: 800; font-variant-numeric: tabular-nums;
+      color: var(--text-muted); background: var(--surface-soft);
+      border: 1px solid var(--border-subtle); transition: all 200ms var(--ease-out, ease);
+    }
+    .channels__stepper-dot svg { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .channels__stepper-label { font-size: 0.85rem; font-weight: 650; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .channels__stepper-item.is-active .channels__stepper-dot { color: #fff; background: linear-gradient(135deg, var(--wa), var(--wa-deep)); border-color: transparent; box-shadow: 0 4px 12px color-mix(in srgb, var(--wa) 32%, transparent); }
+    .channels__stepper-item.is-active .channels__stepper-label { color: var(--text-primary); }
+    .channels__stepper-item.is-done .channels__stepper-dot { color: var(--wa-deep); background: color-mix(in srgb, var(--wa) 14%, var(--surface)); border-color: color-mix(in srgb, var(--wa) 30%, transparent); }
+    .channels__stepper-item.is-done .channels__stepper-label { color: var(--text-secondary); }
+    .channels__stepper-line { flex: 1 1 auto; height: 2px; max-width: 120px; border-radius: 2px; background: var(--border-subtle); }
+
+    /* ── Step 1 wizard card ── */
+    .channels__wizard { display: flex; flex-direction: column; gap: 18px; padding: 26px 28px; }
+    .channels__wizard-head { display: flex; flex-direction: column; gap: 8px; }
+    .channels__wizard-head h2 { margin: 4px 0 0; font-size: clamp(1.25rem, 2.2vw, 1.5rem); font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); }
+    .channels__wizard-head > p { margin: 0; color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; max-width: 60ch; }
+
+    .channels__form-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 1fr); gap: 14px; }
+    .channels__field-wide { grid-column: 1 / -1; }
+    .channels__id-hint { display: inline-flex; align-items: center; gap: 6px; margin: -4px 0 0; font-size: 0.78rem; color: var(--text-muted); }
+    .channels__id-hint svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+
+    .channels__divider { height: 1px; border: 0; margin: 2px 0; background: var(--border-subtle); }
+
+    .channels__form-section { display: flex; flex-direction: column; gap: 16px; }
+    .channels__section-head { display: flex; align-items: flex-start; gap: 12px; }
+    .channels__section-icon {
+      display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; flex: 0 0 auto;
+      color: var(--wa-deep); background: color-mix(in srgb, var(--wa) 12%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--wa) 22%, transparent);
+    }
+    .channels__section-icon svg { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .channels__section-head h3 { margin: 0; font-size: 1rem; font-weight: 750; letter-spacing: -0.01em; color: var(--text-primary); }
+    .channels__section-head p { margin: 3px 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--text-muted); }
+
+    .channels__subfield {
+      display: flex; flex-direction: column; gap: 14px;
+      padding: 16px; border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      background: color-mix(in srgb, var(--wa) 4%, var(--surface-soft));
+    }
+    .channels__choice-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .channels__choice-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .channels__field-hint { margin: 0; font-size: 0.78rem; line-height: 1.45; color: var(--text-muted); }
+    .channels__choice-seg { flex: 0 0 auto; }
+
+    .channels__hint {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 13px 15px; border-radius: 13px;
+      font-size: 0.85rem; line-height: 1.55; color: color-mix(in srgb, var(--warning) 78%, var(--text-primary));
+      background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--warning) 26%, transparent);
+    }
+    .channels__hint svg { flex: 0 0 auto; margin-top: 1px; color: var(--warning); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .channels__form-error { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+    .channels__form-error svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .channels__wizard-actions { display: flex; justify-content: flex-end; margin-top: 2px; }
+    .channels__wizard-actions .channels__connect-btn svg,
+    .channels__back-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    [dir='rtl'] .channels__wizard-actions .channels__connect-btn svg,
+    [dir='rtl'] .channels__back-btn svg { transform: scaleX(-1); }
 
     /* ── Connect hero — two columns: copy + live chat preview ── */
     .channels__hero {
@@ -363,9 +668,20 @@ const CONTENT = {
       .channels__hero { grid-template-columns: 1fr; padding: 24px; }
       .channels__preview, [dir='rtl'] .channels__preview { justify-self: stretch; max-width: 340px; }
       .channels__steps-grid { grid-template-columns: 1fr; }
+      .channels__form-grid { grid-template-columns: 1fr 1fr; }
+      .channels__field-wide { grid-column: 1 / -1; }
     }
     @media (max-width: 640px) {
       .channels__hero { padding: 22px; }
+      .channels__wizard { padding: 22px; }
+      .channels__form-grid { grid-template-columns: 1fr; }
+      .channels__choice-row { flex-direction: column; align-items: stretch; }
+      .channels__choice-seg { align-self: flex-start; }
+      .channels__stepper-label { display: none; }
+      .channels__stepper-line { max-width: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .channels__stepper-dot { transition: none; }
     }
     @media (prefers-reduced-motion: reduce) {
       .channels__phone, .channels__step { transition: none; }
@@ -378,6 +694,7 @@ const CONTENT = {
 export class ChannelsPageComponent implements OnInit, OnDestroy {
   private readonly languageService = inject(LanguageService);
   private readonly whatsAppApi = inject(WhatsAppApiService);
+  private readonly groupsApi = inject(GroupsApiService);
   private readonly channelStatus = inject(ChannelStatusService);
   private readonly facebookSdk = inject(FacebookSdkService);
   private readonly toast = inject(ToastService);
@@ -390,11 +707,115 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
   readonly connecting = signal(false);
   readonly disconnecting = signal(false);
 
+  // ── 2-step connect wizard state ──
+  readonly step = signal<1 | 2>(1);
+  readonly groups = signal<Group[]>([]);
+  readonly step1Error = signal<string | null>(null);
+
+  readonly platformName = signal('');
+  readonly countryCode = signal('+20');
+  readonly phone = signal('');
+  readonly distributionMode = signal<DistributionMode>('RoundRobin');
+  readonly distributeToOffline = signal<boolean | null>(null);
+  readonly reassignOnOffline = signal(false);
+  readonly startingGroupId = signal<number | null>(null);
+
+  /** Country codes shown in the display-only phone field (MENA-first). */
+  readonly countryCodes: ReadonlyArray<{ dial: string; label: string }> = [
+    { dial: '+20', label: 'EG' },
+    { dial: '+966', label: 'SA' },
+    { dial: '+971', label: 'AE' },
+    { dial: '+965', label: 'KW' },
+    { dial: '+974', label: 'QA' },
+    { dial: '+973', label: 'BH' },
+    { dial: '+968', label: 'OM' },
+    { dial: '+962', label: 'JO' },
+    { dial: '+961', label: 'LB' },
+    { dial: '+212', label: 'MA' },
+    { dial: '+216', label: 'TN' },
+    { dial: '+213', label: 'DZ' },
+    { dial: '+970', label: 'PS' },
+    { dial: '+964', label: 'IQ' },
+  ];
+
   private subs: RxSubscription[] = [];
 
   ngOnInit(): void {
     this.loading.set(true);
     this.loadAccount();
+    this.loadGroups();
+  }
+
+  private loadGroups(): void {
+    this.subs.push(
+      this.groupsApi.getGroups().subscribe({
+        next: (groups) => this.groups.set(groups),
+        // Groups are optional context for the wizard — a failure just hides the picker.
+        error: () => this.groups.set([]),
+      })
+    );
+  }
+
+  // ── Step-1 field handlers ──
+  onPlatformInput(event: Event): void {
+    this.platformName.set((event.target as HTMLInputElement).value);
+    this.step1Error.set(null);
+  }
+
+  onCountryChange(event: Event): void {
+    this.countryCode.set((event.target as HTMLSelectElement).value);
+  }
+
+  onPhoneInput(event: Event): void {
+    this.phone.set((event.target as HTMLInputElement).value);
+  }
+
+  onModeChange(event: Event): void {
+    this.distributionMode.set((event.target as HTMLSelectElement).value as DistributionMode);
+    this.step1Error.set(null);
+  }
+
+  setDistributeToOffline(value: boolean): void {
+    this.distributeToOffline.set(value);
+    this.step1Error.set(null);
+  }
+
+  onGroupChange(event: Event): void {
+    const raw = (event.target as HTMLSelectElement).value;
+    this.startingGroupId.set(raw ? Number(raw) : null);
+  }
+
+  /** Header CTA — mirrors the current step's primary action. */
+  advance(): void {
+    if (this.connecting() || this.account()) {
+      return;
+    }
+    if (this.step() === 1) {
+      this.next();
+    } else {
+      this.connect();
+    }
+  }
+
+  /** Validate step 1, then reveal the (unchanged) Meta connect action in step 2. */
+  next(): void {
+    if (!this.platformName().trim()) {
+      this.step1Error.set(this.c().errNeedPlatform);
+      return;
+    }
+    if (this.distributionMode() === 'RoundRobin' && this.distributeToOffline() === null) {
+      this.step1Error.set(this.c().errNeedOffline);
+      return;
+    }
+    this.step1Error.set(null);
+    this.step.set(2);
+  }
+
+  back(): void {
+    if (this.connecting()) {
+      return;
+    }
+    this.step.set(1);
   }
 
   private loadAccount(): void {
@@ -423,12 +844,24 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
     this.subs.forEach((sub) => sub.unsubscribe());
   }
 
-  /** Navigates the whole page to Meta's OAuth dialog; the flow completes on /auth/meta-callback. */
+  /** Navigates the whole page to Meta's OAuth dialog; the flow completes on /auth/meta-callback.
+   *  Step-1 config is stashed first so the callback page can pass it into the connect call. */
   connect(): void {
     if (this.connecting()) {
       return;
     }
     this.connecting.set(true);
+
+    const isRoundRobin = this.distributionMode() === 'RoundRobin';
+    const options: ConnectWhatsAppOptions = {
+      platformName: this.platformName().trim() || undefined,
+      distributionMode: this.distributionMode(),
+      distributeToOffline: isRoundRobin ? (this.distributeToOffline() ?? undefined) : undefined,
+      reassignOnOffline: isRoundRobin ? this.reassignOnOffline() : undefined,
+      startingGroupId: this.startingGroupId(),
+    };
+    stashConnectOptions(options);
+
     this.facebookSdk.beginWhatsAppEmbeddedSignupRedirect(
       environment.facebookAppId,
       environment.whatsAppEmbeddedSignupConfigId,

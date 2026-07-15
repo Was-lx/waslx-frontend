@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { WhatsAppApiService } from '../../../../core/api/whatsapp-api.service';
+import { WhatsAppApiService, readAndClearConnectOptions } from '../../../../core/api/whatsapp-api.service';
 import { ChannelStatusService } from '../../../../core/services/channel-status.service';
 import { FacebookSdkService } from '../../../../core/services/facebook-sdk.service';
 import { LanguageService } from '../../../../core/services/language.service';
@@ -91,7 +91,8 @@ export class MetaCallbackPageComponent implements OnInit {
       return;
     }
 
-    this.whatsAppApi.connect(code, null, this.facebookSdk.redirectUri).subscribe({
+    const options = readAndClearConnectOptions();
+    this.whatsAppApi.connect(code, null, this.facebookSdk.redirectUri, options).subscribe({
       next: (account) => {
         this.channelStatus.set(account.status);
         void this.router.navigate(['/app/channels']);

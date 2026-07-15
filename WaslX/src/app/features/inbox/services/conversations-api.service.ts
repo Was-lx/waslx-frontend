@@ -18,14 +18,45 @@ export type MediaUploadEvent =
   | { kind: 'progress'; progress: number }
   | { kind: 'done'; result: SendMessageResult };
 
+/**
+ * Optional server-side filters for the conversation list (all additive query params).
+ * Empty / null values are omitted so the list falls back to the role-scoped default.
+ */
+export interface ConversationListFilters {
+  status?: string | null;
+  assignedUserId?: string | null;
+  unassigned?: boolean | null;
+  groupId?: number | null;
+  tagId?: number | null;
+  whatsAppAccountId?: number | null;
+  customerId?: number | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  search?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ConversationsApiService {
   private readonly api = inject(ApiClientService);
   private readonly http = inject(HttpClient);
 
-  /** Role-filtered, paginated conversation list (agents see own; managers/admins see all). */
-  list(page = 1, pageSize = 30): Observable<PagedResult<ConversationListItem>> {
-    return this.api.get<PagedResult<ConversationListItem>>('/conversations', { params: { page, pageSize } });
+  /**
+   * Role-filtered, paginated conversation list (agents see own; managers/admins see all).
+   * Any provided {@link ConversationListFilters} are forwarded as additive query params.
+   */
+  list(filters: ConversationListFilters = {}, page = 1, pageSize = 30): Observable<PagedResult<ConversationListItem>> {
+    const params: Record<string, string | number | boolean> = { page, pageSize };
+    if (filters.status) params['status'] = filters.status;
+    if (filters.assignedUserId) params['assignedUserId'] = filters.assignedUserId;
+    if (filters.unassigned) params['unassigned'] = true;
+    if (filters.groupId != null) params['groupId'] = filters.groupId;
+    if (filters.tagId != null) params['tagId'] = filters.tagId;
+    if (filters.whatsAppAccountId != null) params['whatsAppAccountId'] = filters.whatsAppAccountId;
+    if (filters.customerId != null) params['customerId'] = filters.customerId;
+    if (filters.dateFrom) params['dateFrom'] = filters.dateFrom;
+    if (filters.dateTo) params['dateTo'] = filters.dateTo;
+    if (filters.search && filters.search.trim()) params['search'] = filters.search.trim();
+    return this.api.get<PagedResult<ConversationListItem>>('/conversations', { params });
   }
 
   /** Rich detail for the customer-context panel + status controls. */
@@ -60,6 +91,27 @@ export class ConversationsApiService {
   /** Applies a manual lifecycle transition (server-side state machine rejects invalid moves). */
   changeStatus(conversationId: number, status: string): Observable<ConversationStatusResult> {
     return this.api.post<ConversationStatusResult>(`/conversations/${conversationId}/status`, { status });
+  }
+
+  /**
+   * Routes a conversation into a group / team; it lands on that group's first stage.
+   * (FR-GRP cross-team routing.)
+   */
+  routeToGroup(conversationId: number, groupId: number): Observable<void> {
+    return this.api.post<void>(`/conversations/${conversationId}/route`, { groupId });
+  }
+
+  /** Moves a conversation to a stage within its CURRENT group's pipeline (used by the board). */
+  moveToStage(conversationId: number, stageId: number): Observable<void> {
+    return this.api.post<void>(`/conversations/${conversationId}/stage`, { stageId });
+  }
+
+  /**
+   * Cross-team handoff: transfers a conversation to another team and clears its current assignment.
+   * The full message history, notes and timeline are preserved.
+   */
+  handoff(conversationId: number, targetGroupId: number): Observable<void> {
+    return this.api.post<void>(`/conversations/${conversationId}/handoff`, { targetGroupId });
   }
 
   /** Lists a conversation's internal team notes. */

@@ -121,6 +121,97 @@
   border: 2px solid var(--surface);
 }
 
+/* ── Presence / break chip ── */
+.topbar__presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.topbar__presence:hover,
+.topbar__presence.is-open {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--border-subtle));
+  background: var(--surface-soft);
+  color: var(--text-primary);
+}
+
+.topbar__presence.is-break {
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--border-subtle));
+  color: color-mix(in srgb, var(--warning) 70%, var(--text-primary));
+}
+
+.topbar__presence svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.topbar__presence-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 22%, transparent);
+}
+
+.topbar__presence.is-break .topbar__presence-dot {
+  background: var(--warning);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning) 22%, transparent);
+}
+
+.topbar__presence-label {
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.presence-state {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px 2px;
+  color: var(--text-primary);
+}
+
+.presence-state__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 20%, transparent);
+}
+
+.presence-state.is-break .presence-state__dot {
+  background: var(--warning);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning) 20%, transparent);
+}
+
+.presence-state strong {
+  font-size: 0.9rem;
+}
+
+.presence-hint {
+  margin: 4px 10px 6px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.menu__item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* ── Profile pill ── */
 .topbar__slot {
   position: relative;
@@ -385,6 +476,9 @@
     display: none;
   }
   .topbar__caret {
+    display: none;
+  }
+  .topbar__presence-label {
     display: none;
   }
 }

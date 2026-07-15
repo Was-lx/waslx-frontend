@@ -124,6 +124,34 @@
   color: var(--text-muted);
 }
 
+/* ── Access & routing section ───────────────────────────────────────────── */
+.create-user__access {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.create-user__access-hd h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.create-user__access-hd p {
+  margin: 5px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-width: 62ch;
+}
+
+/* Give the card room to breathe once the access grids appear. */
+.create-user__card:has(.create-user__access) {
+  max-width: 720px;
+}
+
 /* ── Actions ────────────────────────────────────────────────────────────── */
 .create-user__actions {
   display: flex;

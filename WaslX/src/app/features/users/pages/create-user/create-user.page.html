@@ -70,6 +70,23 @@
         </p>
       </div>
 
+      @if (showAccess()) {
+        <div class="create-user__access">
+          <div class="create-user__access-hd">
+            <h2>{{ t('accessSectionTitle') }}</h2>
+            <p>{{ t('accessSectionHint') }}</p>
+          </div>
+          <app-user-access-picker
+            [channels]="channels()"
+            [numbers]="numbers()"
+            [groups]="groups()"
+            [shifts]="shifts()"
+            [role]="inviteForm.get('role')?.value ?? 'Agent'"
+            [(value)]="access"
+          />
+        </div>
+      }
+
       <div class="create-user__actions">
         <a routerLink="../" class="ui-btn ui-btn--ghost">{{ t('cancel') }}</a>
         <button type="submit" class="ui-btn ui-btn--primary" [disabled]="inviteForm.invalid || loading()">

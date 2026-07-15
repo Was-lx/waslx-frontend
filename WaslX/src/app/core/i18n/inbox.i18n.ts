@@ -41,6 +41,8 @@ export type InboxKey =
   | 'inboxSelectPrompt'
   | 'inboxThreadEmpty'
   | 'inboxLoadOlder'
+  | 'inboxToday'
+  | 'inboxYesterday'
   | 'inboxLoading'
   | 'inboxSendErrorTitle'
   | 'inboxSendErrorMsg'
@@ -55,7 +57,51 @@ export type InboxKey =
   | 'inboxRemoveAttachment'
   | 'inboxCaptionPlaceholder'
   | 'inboxFileTooLarge'
-  | 'inboxMediaSendErrorMsg';
+  | 'inboxMediaSendErrorMsg'
+  // Number rail
+  | 'inboxAllNumbers'
+  | 'inboxNumbersTitle'
+  // Views + filters bar
+  | 'inboxViewInbox'
+  | 'inboxViewQueue'
+  | 'filterStatus'
+  | 'filterGroup'
+  | 'filterTag'
+  | 'filterAssignee'
+  | 'filterDateFrom'
+  | 'filterDateTo'
+  | 'filterAll'
+  | 'filterAssignedToMe'
+  | 'filterClear'
+  | 'filterToggle'
+  | 'savedViewsLabel'
+  | 'saveViewBtn'
+  | 'saveViewNamePlaceholder'
+  | 'saveViewDelete'
+  // Unassigned queue
+  | 'queueEmpty'
+  | 'queueAssign'
+  // Assignment controls
+  | 'assignAssignee'
+  | 'assignSelectAgent'
+  | 'assignAssign'
+  | 'assignReassign'
+  | 'assignReasonPlaceholder'
+  | 'assignHistory'
+  | 'assignHistoryEmpty'
+  | 'assignBy'
+  | 'assignSuccessTitle'
+  | 'assignSuccessMsg'
+  | 'assignErrorTitle'
+  | 'assignErrorMsg'
+  | 'assignMethodManual'
+  | 'assignMethodRoundRobin'
+  | 'assignMethodAI'
+  // Tag management on a conversation
+  | 'tagAdd'
+  | 'tagApplyError'
+  | 'tagRemoveError'
+  | 'tagNoneAvailable';
 
 export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = {
   en: {
@@ -96,6 +142,8 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxSelectPrompt: 'Select a conversation to view the thread',
     inboxThreadEmpty: 'No messages in this conversation yet',
     inboxLoadOlder: 'Load older messages',
+    inboxToday: 'Today',
+    inboxYesterday: 'Yesterday',
     inboxLoading: 'Loading…',
     inboxSendErrorTitle: 'Message not sent',
     inboxSendErrorMsg: 'Could not send your reply. Please try again.',
@@ -111,6 +159,45 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxCaptionPlaceholder: 'Add a caption…',
     inboxFileTooLarge: 'File is too large (max 20 MB)',
     inboxMediaSendErrorMsg: 'Could not send the file. Please try again.',
+    inboxAllNumbers: 'All numbers',
+    inboxNumbersTitle: 'WhatsApp numbers',
+    inboxViewInbox: 'Inbox',
+    inboxViewQueue: 'Unassigned queue',
+    filterStatus: 'Status',
+    filterGroup: 'Group',
+    filterTag: 'Tag',
+    filterAssignee: 'Assignee',
+    filterDateFrom: 'From',
+    filterDateTo: 'To',
+    filterAll: 'All',
+    filterAssignedToMe: 'Assigned to me',
+    filterClear: 'Clear',
+    filterToggle: 'Filters',
+    savedViewsLabel: 'Saved views',
+    saveViewBtn: 'Save view',
+    saveViewNamePlaceholder: 'Name this view…',
+    saveViewDelete: 'Remove view',
+    queueEmpty: 'The unassigned queue is empty.',
+    queueAssign: 'Assign',
+    assignAssignee: 'Assignee',
+    assignSelectAgent: 'Select agent…',
+    assignAssign: 'Assign',
+    assignReassign: 'Reassign',
+    assignReasonPlaceholder: 'Reason (optional)',
+    assignHistory: 'Assignment history',
+    assignHistoryEmpty: 'No assignment history yet.',
+    assignBy: 'by',
+    assignSuccessTitle: 'Conversation assigned',
+    assignSuccessMsg: 'The conversation was assigned successfully.',
+    assignErrorTitle: 'Could not assign',
+    assignErrorMsg: 'Something went wrong assigning the conversation. Please try again.',
+    assignMethodManual: 'Manual',
+    assignMethodRoundRobin: 'Round Robin',
+    assignMethodAI: 'AI',
+    tagAdd: 'Add tag',
+    tagApplyError: 'Could not add the tag. Please try again.',
+    tagRemoveError: 'Could not remove the tag. Please try again.',
+    tagNoneAvailable: 'No more tags to add.',
   },
   ar: {
     allConversations: 'كل المحادثات',
@@ -150,6 +237,8 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxSelectPrompt: 'اختر محادثة لعرض الرسائل',
     inboxThreadEmpty: 'لا توجد رسائل في هذه المحادثة بعد',
     inboxLoadOlder: 'تحميل رسائل أقدم',
+    inboxToday: 'اليوم',
+    inboxYesterday: 'أمس',
     inboxLoading: 'جاري التحميل…',
     inboxSendErrorTitle: 'لم يتم إرسال الرسالة',
     inboxSendErrorMsg: 'تعذّر إرسال ردّك. حاول مرة أخرى.',
@@ -165,5 +254,44 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxCaptionPlaceholder: 'أضف تعليق…',
     inboxFileTooLarge: 'حجم الملف كبير جدًا (الحد الأقصى 20 ميجابايت)',
     inboxMediaSendErrorMsg: 'تعذّر إرسال الملف. حاول مرة أخرى.',
+    inboxAllNumbers: 'كل الأرقام',
+    inboxNumbersTitle: 'أرقام واتساب',
+    inboxViewInbox: 'الوارد',
+    inboxViewQueue: 'طابور غير المعيّنة',
+    filterStatus: 'الحالة',
+    filterGroup: 'المجموعة',
+    filterTag: 'الوسم',
+    filterAssignee: 'المسؤول',
+    filterDateFrom: 'من',
+    filterDateTo: 'إلى',
+    filterAll: 'الكل',
+    filterAssignedToMe: 'المعيّنة لي',
+    filterClear: 'مسح',
+    filterToggle: 'الفلاتر',
+    savedViewsLabel: 'العروض المحفوظة',
+    saveViewBtn: 'حفظ العرض',
+    saveViewNamePlaceholder: 'سمِّ العرض…',
+    saveViewDelete: 'حذف العرض',
+    queueEmpty: 'طابور غير المعيّنة فارغ.',
+    queueAssign: 'تعيين',
+    assignAssignee: 'المسؤول',
+    assignSelectAgent: 'اختر وكيلاً…',
+    assignAssign: 'تعيين',
+    assignReassign: 'إعادة تعيين',
+    assignReasonPlaceholder: 'السبب (اختياري)',
+    assignHistory: 'سجل التعيين',
+    assignHistoryEmpty: 'لا يوجد سجل تعيين بعد.',
+    assignBy: 'بواسطة',
+    assignSuccessTitle: 'تم تعيين المحادثة',
+    assignSuccessMsg: 'تم تعيين المحادثة بنجاح.',
+    assignErrorTitle: 'تعذّر التعيين',
+    assignErrorMsg: 'حدث خطأ أثناء تعيين المحادثة. حاول مرة أخرى.',
+    assignMethodManual: 'يدوي',
+    assignMethodRoundRobin: 'بالتناوب',
+    assignMethodAI: 'ذكاء اصطناعي',
+    tagAdd: 'إضافة وسم',
+    tagApplyError: 'تعذّر إضافة الوسم. حاول مرة أخرى.',
+    tagRemoveError: 'تعذّر إزالة الوسم. حاول مرة أخرى.',
+    tagNoneAvailable: 'لا مزيد من الوسوم للإضافة.',
   },
 };

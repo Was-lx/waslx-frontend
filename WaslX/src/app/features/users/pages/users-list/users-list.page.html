@@ -109,16 +109,25 @@
                 <div class="user-cell">
                   <span class="user-cell__avatar" [attr.data-role]="user.role" aria-hidden="true">{{ user.name.charAt(0) }}</span>
                   <div class="user-cell__meta">
-                    <span class="user-cell__name">{{ user.name }}</span>
+                    <span class="user-cell__name">
+                      {{ user.name }}
+                      @if (user.isOwner) {
+                        <span class="owner-badge" [title]="t('ownerLockHint')">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /></svg>
+                          {{ t('ownerBadge') }}
+                        </span>
+                      }
+                    </span>
                     <span class="user-cell__email">{{ user.email }}</span>
                   </div>
                 </div>
               </td>
               <td>
-                <div class="role-select" [attr.data-role]="user.role">
+                <div class="role-select" [attr.data-role]="user.role" [class.role-select--locked]="user.isOwner">
                   <select
                     class="ui-select ui-field--sm"
                     [value]="user.role"
+                    [disabled]="user.isOwner"
                     (change)="changeRole(user, $any($event.target).value)"
                   >
                     <option value="Admin">Admin</option>
@@ -136,15 +145,29 @@
               </td>
               <td class="user-cell__joined">{{ user.createdAt | date:'mediumDate' }}</td>
               <td>
-                <button
-                  type="button"
-                  class="ui-btn ui-btn--sm"
-                  [class.ui-btn--danger]="user.isActive"
-                  [class.ui-btn--ghost]="!user.isActive"
-                  (click)="requestToggle(user)"
-                >
-                  {{ user.isActive ? t('deactivateUser') : t('activateUser') }}
-                </button>
+                <div class="users-row__actions">
+                  <a
+                    class="ui-btn ui-btn--ghost ui-btn--sm"
+                    [routerLink]="[user.id, 'edit']"
+                  >
+                    {{ t('editUserAction') }}
+                  </a>
+                  @if (user.isOwner) {
+                    <span class="users-row__locked" [title]="t('ownerLockHint')" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                    </span>
+                  } @else {
+                    <button
+                      type="button"
+                      class="ui-btn ui-btn--sm"
+                      [class.ui-btn--danger]="user.isActive"
+                      [class.ui-btn--ghost]="!user.isActive"
+                      (click)="requestToggle(user)"
+                    >
+                      {{ user.isActive ? t('deactivateUser') : t('activateUser') }}
+                    </button>
+                  }
+                </div>
               </td>
             </tr>
           }

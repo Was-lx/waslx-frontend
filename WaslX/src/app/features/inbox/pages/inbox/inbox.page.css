@@ -1,49 +1,73 @@
 /* ============================================================================
    WaslX — Shared Inbox (live). Token-driven, bilingual, RTL-safe (logical props).
-   Master-detail: conversation rail + thread pane inside one card.
+   Full-bleed cockpit: number rail + conversation column + thread pane. Fills the
+   shell content region edge-to-edge (under the navbar, beside the sidebar), so the
+   conversation thread gets the whole page.
    ========================================================================== */
 
-:host { display: block; }
-
-.inbox__lead {
-  margin: 8px 0 0;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  max-width: 56ch;
+:host {
+  /* Cancel the shell content padding so the inbox reaches the navbar + edges. The height is anchored
+     to the viewport minus the fixed navbar (robust regardless of percentage-height resolution). */
+  --bleed-x: 30px;
+  --bleed-t: 26px;
+  --bleed-b: 44px;
+  display: block;
+  height: calc(100dvh - var(--shell-navbar-h));
+  margin: calc(var(--bleed-t) * -1) calc(var(--bleed-x) * -1) calc(var(--bleed-b) * -1);
+  min-height: 0;
 }
 
+.inbox {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 14px;
+}
+
+/* ── Cockpit ─────────────────────────────────────────────────────────────────── */
 .inbox__cockpit {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
-  height: min(72vh, 720px);
-  padding: 0;
+  grid-template-columns: auto minmax(0, 316px) minmax(0, 1fr);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
-/* ── Rail ─────────────────────────────────────────────────────────────────── */
+.inbox__numbers { min-height: 0; }
+
+/* ── Conversation column ─────────────────────────────────────────────────────── */
 .inbox__rail {
   display: flex;
   flex-direction: column;
   min-height: 0;
   border-inline-end: 1px solid var(--border-subtle);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 4%, var(--surface)), var(--surface) 120px);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 4%, var(--surface)), var(--surface) 160px);
 }
 
-.inbox__search { padding: 14px 14px 8px; }
-.inbox__search-field {
-  width: 100%;
-  padding: 9px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border-soft);
-  background: var(--surface-soft);
-  color: var(--text-primary);
-  font: inherit;
-  font-size: 0.85rem;
+.inbox__rail-head {
+  flex: 0 0 auto;
+  padding: 12px 12px 4px;
 }
-.inbox__search-field:focus-visible {
-  outline: none;
-  border-color: color-mix(in srgb, var(--primary) 45%, var(--border-soft));
-  box-shadow: var(--focus-ring);
+.inbox__views { width: 100%; }
+.inbox__views .ui-seg__btn { flex: 1 1 0; }
+.inbox__view-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin-inline-start: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .inbox__list {
@@ -63,27 +87,91 @@
 }
 .inbox__empty { margin: 12px 4px; }
 
-/* ── Thread pane ──────────────────────────────────────────────────────────── */
+/* ── Unassigned queue rows ───────────────────────────────────────────────────── */
+.queue-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  cursor: pointer;
+  text-align: start;
+  transition: background-color 140ms ease;
+}
+.queue-row:hover { background: color-mix(in srgb, var(--primary) 5%, var(--surface)); }
+.queue-row--active {
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.queue-row__avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.queue-row__body { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+.queue-row__name {
+  font-size: 0.9rem; font-weight: 650; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.queue-row__phone { font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.queue-row__badge {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 80%, var(--text-primary));
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── Thread pane ──────────────────────────────────────────────────────────────── */
 .inbox__thread { min-width: 0; min-height: 0; display: flex; }
 .inbox__thread > app-chat-view { flex: 1 1 auto; min-width: 0; }
 
 .inbox__placeholder {
   flex: 1 1 auto;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   padding: 24px;
+  text-align: center;
   background:
-    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 60%),
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 60%),
+    radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--primary) 6%, transparent), transparent 60%),
     var(--surface-soft);
 }
-.inbox__placeholder-text {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+.inbox__placeholder-badge {
+  display: grid; place-items: center;
+  width: 64px; height: 64px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, var(--surface)), color-mix(in srgb, var(--accent) 14%, var(--surface)));
+  color: var(--primary);
+  box-shadow: var(--shadow-xs);
+}
+.inbox__placeholder-badge svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
+.inbox__placeholder-title { font-size: 1rem; font-weight: 750; color: var(--text-primary); }
+.inbox__placeholder-text { color: var(--text-muted); font-size: 0.9rem; max-width: 280px; }
+
+/* ── Responsive: stack to the list, hide thread until a row is chosen ──────────── */
+@media (max-width: 900px) {
+  .inbox__cockpit { grid-template-columns: auto minmax(0, 1fr); }
+  .inbox__thread { display: none; }
 }
 
-/* ── Responsive: stack to the list, hide thread until a row is chosen ──────── */
-@media (max-width: 860px) {
-  .inbox__cockpit { grid-template-columns: 1fr; height: auto; }
-  .inbox__rail { border-inline-end: 0; }
-  .inbox__thread { display: none; }
+@media (max-width: 720px) {
+  :host { --bleed-x: 16px; --bleed-t: 18px; --bleed-b: 32px; }
+  .inbox { padding: 10px; }
 }

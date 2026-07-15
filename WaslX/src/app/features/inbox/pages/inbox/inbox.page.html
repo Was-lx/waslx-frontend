@@ -1,52 +1,91 @@
-<section class="feature-page inbox" [attr.dir]="direction()">
-  <header class="feature-page__header">
-    <div>
-      <span class="feature-page__eyebrow">{{ t('inboxTitle') }}</span>
-      <h1>{{ t('inboxTitle') }}</h1>
-      <p class="inbox__lead">{{ t('inboxLead') }}</p>
-    </div>
-  </header>
+<section class="inbox" [attr.dir]="direction()">
+  <div class="inbox__cockpit">
+    <!-- WhatsApp number rail -->
+    <app-number-rail
+      class="inbox__numbers"
+      [accounts]="accounts()"
+      [selectedId]="selectedAccountId()"
+      (select)="onSelectAccount($event)"
+    />
 
-  <div class="ui-card inbox__cockpit">
-    <!-- Left rail: conversation list -->
+    <!-- Conversation column -->
     <aside class="inbox__rail">
-      <div class="inbox__search">
-        <input
-          type="search"
-          class="inbox__search-field"
-          [placeholder]="t('searchConversations')"
-          [value]="search()"
-          (input)="onSearch($event)"
-        />
+      <div class="inbox__rail-head">
+        <div class="ui-seg inbox__views" role="tablist">
+          <button type="button" class="ui-seg__btn" [class.is-active]="view() === 'inbox'" (click)="setView('inbox')">
+            {{ t('inboxViewInbox') }}
+          </button>
+          <button type="button" class="ui-seg__btn" [class.is-active]="view() === 'queue'" (click)="setView('queue')">
+            {{ t('inboxViewQueue') }}
+            @if (queueFiltered().length > 0) { <span class="inbox__view-count">{{ queueFiltered().length }}</span> }
+          </button>
+        </div>
       </div>
 
-      <div class="inbox__list">
-        @if (listLoading()) {
-          <div class="inbox__state">{{ t('inboxLoading') }}</div>
-        } @else if (filtered().length === 0) {
-          <div class="feature-page__empty inbox__empty">
-            <h3>{{ t('inboxEmptyTitle') }}</h3>
-            <p>{{ t('inboxEmptyDesc') }}</p>
-          </div>
-        } @else {
-          @for (c of filtered(); track c.id) {
-            <app-conversation-card
-              [item]="c"
-              [selected]="c.id === selectedId()"
-              (selectCard)="select($event)"
-              (deleteCard)="onDelete($event)"
-            />
+      @if (view() === 'inbox') {
+        <app-inbox-filters
+          [value]="filter()"
+          [groups]="groups()"
+          [tags]="tags()"
+          [users]="users()"
+          (valueChange)="onFilterChange($event)"
+          (clear)="onClearFilters()"
+        />
+
+        <div class="inbox__list">
+          @if (listLoading()) {
+            <div class="inbox__state">{{ t('inboxLoading') }}</div>
+          } @else if (conversations().length === 0) {
+            <div class="feature-page__empty inbox__empty">
+              <h3>{{ t('inboxEmptyTitle') }}</h3>
+              <p>{{ t('inboxEmptyDesc') }}</p>
+            </div>
+          } @else {
+            @for (c of conversations(); track c.id) {
+              <app-conversation-card
+                [item]="c"
+                [selected]="c.id === selectedId()"
+                (selectCard)="selectCard($event)"
+                (deleteCard)="onDelete($event)"
+              />
+            }
           }
-        }
-      </div>
+        </div>
+      } @else {
+        <div class="inbox__list">
+          @if (queueLoading()) {
+            <div class="inbox__state">{{ t('inboxLoading') }}</div>
+          } @else if (queueFiltered().length === 0) {
+            <div class="feature-page__empty inbox__empty">
+              <p>{{ t('queueEmpty') }}</p>
+            </div>
+          } @else {
+            @for (q of queueFiltered(); track q.conversationId) {
+              <button
+                type="button"
+                class="queue-row"
+                [class.queue-row--active]="q.conversationId === selectedId()"
+                (click)="selectQueue(q)"
+              >
+                <span class="queue-row__avatar">{{ (q.customerName || q.customerPhone).charAt(0).toUpperCase() }}</span>
+                <span class="queue-row__body">
+                  <span class="queue-row__name">{{ q.customerName || q.customerPhone }}</span>
+                  <span class="queue-row__phone">{{ q.customerPhone }}</span>
+                </span>
+                <span class="queue-row__badge">{{ t('unassigned') }}</span>
+              </button>
+            }
+          }
+        </div>
+      }
     </aside>
 
-    <!-- Right pane: thread -->
+    <!-- Thread pane -->
     <div class="inbox__thread">
-      @if (selected(); as conv) {
+      @if (openConv(); as conv) {
         <app-chat-view
-          [customerName]="conv.customerName"
-          [customerPhone]="conv.customerPhone"
+          [customerName]="detail()?.customerName || conv.customerName"
+          [customerPhone]="detail()?.customerPhone || conv.customerPhone"
           [conversationId]="selectedId()"
           [initialUnreadCount]="scrollUnreadCount()"
           [messages]="messages()"
@@ -58,6 +97,14 @@
           [addingNote]="addingNote()"
           [statusChanging]="statusChanging()"
           [uploadProgress]="uploadProgress()"
+          [users]="users()"
+          [tags]="tags()"
+          [assignments]="assignments()"
+          [assigning]="assigning()"
+          [loadingAssignments]="loadingAssignments()"
+          [groups]="groups()"
+          [currentGroupId]="routedGroupId()"
+          [routing]="routing()"
           (send)="onSend($event)"
           (sendMedia)="onSendMedia($event)"
           (attachError)="onAttachError($event)"
@@ -66,9 +113,17 @@
           (changeStatus)="onChangeStatus($event)"
           (addNote)="onAddNote($event)"
           (sendTemplate)="onSendTemplate($event)"
+          (assign)="onAssign($event)"
+          (applyTag)="onApplyTag($event)"
+          (removeTag)="onRemoveTag($event)"
+          (loadAssignments)="loadAssignments()"
+          (route)="onRouteToGroup($event)"
+          (handoff)="onHandoff($event)"
         />
       } @else {
         <div class="inbox__placeholder">
+          <span class="inbox__placeholder-badge"><app-icon name="message" [size]="26" /></span>
+          <span class="inbox__placeholder-title">{{ t('inboxTitle') }}</span>
           <span class="inbox__placeholder-text">{{ t('inboxSelectPrompt') }}</span>
         </div>
       }

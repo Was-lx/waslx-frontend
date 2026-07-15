@@ -1,0 +1,213 @@
+/* ============================================================================
+   WaslX — Conversation pipeline board (Kanban of conversations by stage)
+   Shares the stage-board visual language (styles/app-ui.css scaffolding).
+   Token-driven (light/dark), bilingual, RTL-safe.
+   ========================================================================== */
+
+:host { display: block; }
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.pip-hd { align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.pip-hd__lead { display: flex; flex-direction: column; gap: 4px; }
+.pip-hd__title { margin: 2px 0 0; }
+.pip-hd__desc { margin: 6px 0 0; color: var(--text-secondary); font-size: 0.94rem; max-width: 62ch; line-height: 1.6; }
+.pip-hd__controls { display: inline-flex; align-items: flex-end; gap: 10px; margin-inline-start: auto; flex-wrap: wrap; }
+
+.pip-picker { display: flex; flex-direction: column; gap: 6px; }
+.pip-picker__label {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.pip-picker__select { min-width: 220px; height: 40px; }
+.pip-refresh { height: 40px; }
+.pip-refresh svg { fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* ── Pipeline hint ── */
+.pip-hint {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 18px; padding: 9px 14px; border-radius: 12px;
+  font-size: 0.82rem; color: var(--text-secondary);
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface-soft));
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border-subtle));
+}
+.pip-hint svg { color: var(--primary); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+[dir='rtl'] .pip-hint svg { transform: scaleX(-1); }
+
+/* ── Board ──────────────────────────────────────────────────────────────────── */
+.pip-board {
+  display: flex; align-items: stretch; gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 18px;
+  scroll-snap-type: x proximity;
+}
+
+/* ── Column ── */
+.pip-col {
+  position: relative;
+  scroll-snap-align: start;
+  flex: 0 0 268px;
+  display: flex; flex-direction: column; gap: 14px;
+  min-height: 200px;
+  padding: 16px 14px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 80% at 50% -20%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 60%),
+    var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.pip-col--unstaged {
+  background:
+    radial-gradient(120% 80% at 50% -20%, color-mix(in srgb, var(--text-muted) 6%, transparent), transparent 60%),
+    var(--surface-soft);
+  border-style: dashed;
+}
+.pip-col__rail {
+  position: absolute; inset-inline: 0; inset-block-start: 0; block-size: 3px;
+  border-start-start-radius: 16px; border-start-end-radius: 16px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+.pip-col--unstaged .pip-col__rail { background: var(--border-strong, var(--border-subtle)); }
+
+/* Drag & drop — highlight a valid drop column while a card is in flight. */
+.pip-board--dragging .pip-col { transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease; }
+.pip-col--drop {
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--border-subtle));
+  border-style: solid;
+  background:
+    radial-gradient(120% 80% at 50% -20%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 60%),
+    color-mix(in srgb, var(--primary) 6%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent), var(--shadow-card);
+}
+.pip-manage { height: 40px; }
+.pip-manage svg { fill: none; stroke: currentColor; stroke-width: 2; }
+
+.pip-col__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pip-col__name {
+  margin: 0; flex: 1 1 auto;
+  font-size: 0.96rem; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.pip-col__count {
+  flex: 0 0 auto;
+  min-width: 24px; height: 22px; padding: 0 8px;
+  display: inline-grid; place-items: center;
+  font-size: 0.72rem; font-weight: 800; font-variant-numeric: tabular-nums;
+  border-radius: 999px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+}
+
+.pip-col__cards { display: flex; flex-direction: column; gap: 9px; }
+.pip-col__empty {
+  padding: 18px 8px; text-align: center;
+  font-size: 0.8rem; color: var(--text-muted);
+  border: 1px dashed var(--border-subtle); border-radius: 12px;
+}
+
+/* ── Conversation card ── */
+.pip-card {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 11px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 13px;
+  background: var(--surface);
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.04));
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.pip-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border-subtle));
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.pip-card--busy { opacity: 0.55; pointer-events: none; }
+.pip-card[draggable='true'] { cursor: grab; }
+.pip-card--dragging { opacity: 0.4; cursor: grabbing; box-shadow: var(--shadow-md); transform: rotate(-1deg); }
+/* Drag grip — a subtle handle hint (shown on hover) so the card reads as draggable. */
+.pip-card__grip {
+  position: absolute; inset-block-start: 8px; inset-inline-end: 8px;
+  display: inline-flex; gap: 2px; opacity: 0; transition: opacity 150ms ease;
+}
+.pip-card { position: relative; }
+.pip-card:hover .pip-card__grip { opacity: 0.4; }
+.pip-card__grip span {
+  display: block; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--text-muted);
+  box-shadow: 0 5px 0 var(--text-muted), 0 10px 0 var(--text-muted);
+}
+.pip-card__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-inline-end: 14px; }
+.pip-card__name {
+  font-size: 0.86rem; font-weight: 700; color: var(--text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pip-card__phone { font-size: 0.74rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.pip-card__status {
+  flex: 0 0 auto;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.02em;
+  padding: 2px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary);
+  text-transform: capitalize;
+}
+.pip-card__status--resolved { background: color-mix(in srgb, #16a34a 16%, transparent); color: #16a34a; }
+.pip-card__status--pending { background: color-mix(in srgb, #d97706 16%, transparent); color: #d97706; }
+.pip-card__status--reopened { background: color-mix(in srgb, #7c3aed 16%, transparent); color: #7c3aed; }
+.pip-card__status--new { background: color-mix(in srgb, #2563eb 16%, transparent); color: #2563eb; }
+
+.pip-card__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 3px; padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+.pip-card__assignee {
+  display: inline-flex; align-items: center; gap: 5px; min-width: 0;
+  font-size: 0.74rem; font-weight: 600; color: var(--text-secondary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pip-card__assignee svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; color: var(--text-muted); }
+
+.pip-card__move { display: inline-flex; gap: 4px; flex: 0 0 auto; }
+.pip-move {
+  display: grid; place-items: center; width: 28px; height: 28px;
+  border: 1px solid var(--border-subtle); border-radius: 8px;
+  background: var(--surface); color: var(--text-muted); cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+.pip-move svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+[dir='rtl'] .pip-move svg { transform: scaleX(-1); }
+.pip-move:hover:not(:disabled) { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 34%, var(--border-subtle)); background: var(--surface-soft); }
+.pip-move:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Arrow connector between columns ── */
+.pip-arrow {
+  flex: 0 0 auto; align-self: center;
+  display: grid; place-items: center; width: 24px; color: var(--text-muted);
+}
+.pip-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.5; }
+[dir='rtl'] .pip-arrow svg { transform: scaleX(-1); }
+
+/* ── Skeleton ── */
+.pip-col--skel { pointer-events: none; gap: 12px; }
+.pip-skel { display: block; border-radius: 10px; }
+.pip-skel--head { width: 55%; height: 16px; }
+.pip-skel--body { width: 100%; height: 54px; }
+.sk-shimmer {
+  background: linear-gradient(100deg,
+    var(--surface-soft) 30%,
+    color-mix(in srgb, var(--text-primary) 6%, var(--surface-soft)) 50%,
+    var(--surface-soft) 70%);
+  background-size: 200% 100%;
+  animation: pip-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes pip-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (max-width: 560px) {
+  .pip-col { flex-basis: 232px; }
+  .pip-hd__controls { margin-inline-start: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pip-card { transition: none; }
+  .pip-card:hover { transform: none; }
+  .sk-shimmer { animation: none; }
+}

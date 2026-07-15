@@ -1,0 +1,173 @@
+/* ============================================================================
+   WaslX — Stage pipeline board (Kanban-style)
+   Component-specific only. Shared scaffolding (.feature-page, .ui-*) lives in
+   styles/app-ui.css. Token-driven (light/dark), bilingual, RTL-safe.
+   ========================================================================== */
+
+:host { display: block; }
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.stg-hd { align-items: flex-start; }
+.stg-hd__lead { display: flex; flex-direction: column; gap: 4px; }
+.stg-back {
+  display: inline-flex; align-items: center; gap: 5px; align-self: flex-start;
+  margin-bottom: 8px; padding-block: 4px; padding-inline: 6px 10px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 600; text-decoration: none;
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+.stg-back:hover { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 30%, var(--border-subtle)); }
+.stg-back__ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+[dir='rtl'] .stg-back__ico { transform: scaleX(-1); }
+.stg-hd__title { margin: 2px 0 0; }
+.stg-hd__desc { margin: 6px 0 0; color: var(--text-secondary); font-size: 0.94rem; max-width: 60ch; line-height: 1.6; }
+
+/* ── Pipeline hint ── */
+.stg-hint {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 18px; padding: 9px 14px; border-radius: 12px;
+  font-size: 0.82rem; color: var(--text-secondary);
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface-soft));
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border-subtle));
+}
+.stg-hint svg { color: var(--primary); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Board ──────────────────────────────────────────────────────────────────── */
+.stg-board {
+  display: flex; align-items: stretch; gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 18px;
+  scroll-snap-type: x proximity;
+}
+.stg-board--busy { opacity: 0.75; pointer-events: none; }
+
+/* ── Column ── */
+.stg-col {
+  position: relative;
+  scroll-snap-align: start;
+  flex: 0 0 236px;
+  display: flex; flex-direction: column; gap: 14px;
+  min-height: 176px;
+  padding: 16px 16px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 80% at 50% -20%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 60%),
+    var(--surface);
+  box-shadow: var(--shadow-card);
+  transition: transform 180ms var(--ease-out, ease), box-shadow 180ms ease, border-color 180ms ease;
+}
+.stg-col:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 26%, var(--border-subtle));
+  box-shadow: var(--shadow-md);
+}
+.stg-col__rail {
+  position: absolute; inset-inline: 0; inset-block-start: 0; block-size: 3px;
+  border-start-start-radius: 16px; border-start-end-radius: 16px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.stg-col__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stg-col__seq {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.stg-col__badge {
+  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 999px;
+}
+.stg-col__badge--first { color: var(--success); background: color-mix(in srgb, var(--success) 14%, var(--surface)); }
+.stg-col__badge--last { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+
+.stg-col__name {
+  margin: 0; flex: 1 1 auto;
+  font-size: 1rem; font-weight: 700; line-height: 1.35; letter-spacing: -0.01em;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.stg-col__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: auto; padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.stg-col__move, .stg-col__actions { display: inline-flex; gap: 5px; }
+
+.stg-move, .stg-act {
+  display: grid; place-items: center; width: 30px; height: 30px;
+  border: 1px solid var(--border-subtle); border-radius: 9px;
+  background: var(--surface); color: var(--text-muted); cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+.stg-move svg, .stg-act svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.stg-move svg { width: 15px; height: 15px; }
+[dir='rtl'] .stg-move svg { transform: scaleX(-1); }
+.stg-move:hover:not(:disabled), .stg-act:hover { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 34%, var(--border-subtle)); background: var(--surface-soft); }
+.stg-act--danger:hover { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 34%, var(--border-subtle)); background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
+.stg-move:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Arrow connector between columns ── */
+.stg-arrow {
+  flex: 0 0 auto; align-self: center;
+  display: grid; place-items: center; width: 26px; color: var(--text-muted);
+}
+.stg-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.55; }
+[dir='rtl'] .stg-arrow svg { transform: scaleX(-1); }
+
+/* ── Add-stage tile ── */
+.stg-add {
+  scroll-snap-align: start;
+  flex: 0 0 250px;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 16px;
+  border: 1.5px dashed var(--border-strong, var(--border-subtle));
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+.stg-add__label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.stg-add__empty { display: flex; flex-direction: column; gap: 6px; text-align: center; padding: 6px 0 4px; }
+.stg-add__ico {
+  display: grid; place-items: center; width: 46px; height: 46px; margin: 0 auto 4px; border-radius: 13px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.stg-add__ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.stg-add__empty h3 { margin: 0; font-size: 0.98rem; font-weight: 700; color: var(--text-primary); }
+.stg-add__empty p { margin: 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+.stg-add__form { display: flex; flex-direction: column; gap: 9px; margin-top: auto; }
+.stg-add__btn { justify-content: center; }
+.stg-add__plus { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Skeleton ── */
+.stg-col--skel { pointer-events: none; gap: 14px; }
+.stg-skel { display: block; border-radius: 8px; }
+.stg-skel--head { width: 50%; height: 14px; }
+.stg-skel--body { width: 80%; height: 22px; }
+.sk-shimmer {
+  background: linear-gradient(100deg,
+    var(--surface-soft) 30%,
+    color-mix(in srgb, var(--text-primary) 6%, var(--surface-soft)) 50%,
+    var(--surface-soft) 70%);
+  background-size: 200% 100%;
+  animation: stg-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes stg-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.stg-modal { width: min(460px, 100%); }
+
+@media (max-width: 560px) {
+  .stg-col { flex-basis: 200px; }
+  .stg-add { flex-basis: 220px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stg-col { transition: none; }
+  .stg-col:hover { transform: none; }
+  .sk-shimmer { animation: none; }
+}

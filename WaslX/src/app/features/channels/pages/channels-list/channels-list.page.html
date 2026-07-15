@@ -1,0 +1,236 @@
+<section class="feature-page ch" [attr.dir]="direction()">
+  <header class="feature-page__header">
+    <div class="ch-hd">
+      <span class="feature-page__eyebrow">{{ t('chEyebrow') }}</span>
+      <h1>{{ t('chTitle') }}</h1>
+      <p class="ch-hd__lead">{{ t('chLead') }}</p>
+      @if (!loading() && !error() && channels().length > 0) {
+        <span class="ch-hd__count">
+          <span class="ch-hd__count-dot" aria-hidden="true"></span>
+          <strong>{{ channels().length }}</strong> {{ t('chCount') }}
+        </span>
+      }
+    </div>
+    <div class="feature-page__actions">
+      <label class="feature-page__search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+        <input
+          type="text"
+          [value]="search()"
+          (input)="onSearchChange($any($event.target).value)"
+          [placeholder]="t('chSearch')"
+        />
+      </label>
+      <button type="button" class="feature-page__btn" (click)="openCreate()">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+        {{ t('chNew') }}
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="ch-grid" aria-hidden="true">
+      @for (row of skeletonRows; track $index) {
+        <div class="ch-card ch-card--skel">
+          <span class="ch-skel ch-skel--title sk-shimmer"></span>
+          <span class="ch-skel ch-skel--line sk-shimmer"></span>
+          <span class="ch-skel ch-skel--pills sk-shimmer"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('chErrorTitle') }}</h3>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="loadAll()">{{ t('chRetry') }}</button>
+    </div>
+  } @else if (channels().length === 0) {
+    <div class="feature-page__empty ch-empty">
+      <span class="ch-empty__ico" aria-hidden="true"><app-icon name="inbox" [size]="26" /></span>
+      <h3>{{ t('chEmptyTitle') }}</h3>
+      <p>{{ t('chEmptyDesc') }}</p>
+      <button class="ui-btn ui-btn--primary ui-btn--sm ch-empty__cta" type="button" (click)="openCreate()">
+        <app-icon name="layers" [size]="15" /> {{ t('chEmptyCta') }}
+      </button>
+    </div>
+  } @else if (filteredChannels().length === 0) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+      <h3>{{ t('chNoResults') }}</h3>
+    </div>
+  } @else {
+    <div class="ch-grid">
+      @for (channel of filteredChannels(); track channel.id) {
+        <article class="ch-card">
+          <span class="ch-card__accent" aria-hidden="true"></span>
+
+          <div class="ch-card__head">
+            <span class="ch-card__ico" aria-hidden="true"><app-icon name="inbox" [size]="19" /></span>
+            <div class="ch-card__id">
+              <h3 class="ch-card__name">{{ channel.name }}</h3>
+              @if (channel.description) {
+                <p class="ch-card__desc">{{ channel.description }}</p>
+              }
+            </div>
+            <span class="ch-card__agents">
+              <app-icon name="users" [size]="14" />
+              <strong>{{ channel.agentCount }}</strong>
+              <span>{{ t('chAgentsLabel') }}</span>
+            </span>
+          </div>
+
+          <div class="ch-card__numbers">
+            <span class="ch-card__numbers-lbl">
+              <app-icon name="phone" [size]="13" /> {{ t('chNumbers') }}
+            </span>
+            @if (channel.whatsAppAccounts.length > 0) {
+              <div class="ch-card__pills">
+                @for (acc of channel.whatsAppAccounts; track acc.whatsAppAccountId) {
+                  <span class="ch-num-pill">
+                    <span class="ch-num-pill__dot" aria-hidden="true"></span>
+                    {{ acc.platformName || acc.phoneNumber }}
+                    @if (acc.platformName) {
+                      <span class="ch-num-pill__phone">{{ acc.phoneNumber }}</span>
+                    }
+                  </span>
+                }
+              </div>
+            } @else {
+              <span class="ch-card__no-numbers">{{ t('chNoNumbers') }}</span>
+            }
+          </div>
+
+          <div class="ch-card__foot">
+            <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="openEdit(channel)">
+              <app-icon name="settings" [size]="14" /> {{ t('chEdit') }}
+            </button>
+            <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm ch-card__del" (click)="requestDelete(channel)">
+              <app-icon name="trash" [size]="14" /> {{ t('chDelete') }}
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <!-- ── Create / edit modal ── -->
+  @if (modalOpen()) {
+    <div class="ui-overlay" (click)="closeModal()">
+      <div class="ui-modal ch-modal" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+        <div class="ui-modal__head">
+          <div>
+            <h2 class="ui-modal__title">{{ editing() ? t('chEditTitle') : t('chCreateTitle') }}</h2>
+            <p class="ui-modal__sub">{{ editing() ? t('chEditSub') : t('chCreateSub') }}</p>
+          </div>
+          <button type="button" class="ui-modal__close" (click)="closeModal()" [attr.aria-label]="t('chCancel')">
+            <app-icon name="x" [size]="17" />
+          </button>
+        </div>
+
+        <div class="ui-modal__body ch-modal__body">
+          <div class="ui-field">
+            <label class="ui-label" for="ch-name">{{ t('chName') }}</label>
+            <input
+              id="ch-name"
+              type="text"
+              class="ui-input"
+              [value]="draftName()"
+              (input)="draftName.set($any($event.target).value)"
+              [placeholder]="t('chNamePlaceholder')"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label" for="ch-desc">{{ t('chDescription') }}</label>
+            <textarea
+              id="ch-desc"
+              class="ui-textarea"
+              [value]="draftDescription()"
+              (input)="draftDescription.set($any($event.target).value)"
+              [placeholder]="t('chDescriptionPlaceholder')"
+            ></textarea>
+          </div>
+
+          <div class="ui-field">
+            <div class="ch-modal__numbers-hd">
+              <label class="ui-label">{{ t('chSelectNumbers') }}</label>
+              @if (selectedCount() > 0) {
+                <span class="ch-modal__sel-count">{{ selectedCount() }} {{ t('chNumbersSelected') }}</span>
+              }
+            </div>
+            <p class="ch-modal__hint">{{ t('chSelectNumbersHint') }}</p>
+
+            @if (numbers().length > 0) {
+              <div class="ch-picker">
+                @for (num of numbers(); track num.id) {
+                  <button
+                    type="button"
+                    class="ch-pick"
+                    [class.ch-pick--on]="isSelected(num.id)"
+                    (click)="toggleNumber(num.id)"
+                    [attr.aria-pressed]="isSelected(num.id)"
+                  >
+                    <span class="ch-pick__check" aria-hidden="true">
+                      <app-icon name="check" [size]="13" />
+                    </span>
+                    <span class="ch-pick__body">
+                      <span class="ch-pick__name">{{ num.platformName || num.phoneNumber }}</span>
+                      <span class="ch-pick__phone">{{ num.phoneNumber }}</span>
+                    </span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="ch-modal__no-numbers">
+                <app-icon name="phone" [size]="16" /> {{ t('chNoNumbersAvailable') }}
+              </div>
+            }
+          </div>
+
+          @if (formError()) {
+            <span class="ui-error ch-modal__error">{{ formError() }}</span>
+          }
+        </div>
+
+        <div class="ui-modal__foot">
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="closeModal()" [disabled]="saving()">
+            {{ t('chCancel') }}
+          </button>
+          <button type="button" class="ui-btn ui-btn--primary" (click)="save()" [disabled]="saving()">
+            @if (saving()) {
+              <span class="ui-spinner"></span> {{ t('chSaving') }}
+            } @else {
+              {{ t('chSave') }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Delete confirm ── -->
+  @if (pendingDelete(); as pending) {
+    <div class="ui-overlay" (click)="cancelDelete()">
+      <div class="ui-modal ui-confirm ch-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+        <div class="ui-confirm__icon">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /></svg>
+        </div>
+        <h3>{{ t('chDeleteTitle') }}</h3>
+        <p>{{ t('chDeleteBody') }} <strong>{{ pending.name }}</strong></p>
+        <div class="ui-confirm__actions">
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDelete()" [disabled]="deleting()">
+            {{ t('chCancel') }}
+          </button>
+          <button type="button" class="ui-btn ui-btn--danger" (click)="confirmDelete()" [disabled]="deleting()">
+            @if (deleting()) {
+              <span class="ui-spinner"></span> {{ t('chSaving') }}
+            } @else {
+              {{ t('chConfirmDelete') }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

@@ -109,6 +109,9 @@ export const templatesTranslations: Record<AppLanguage, Record<string, string>> 
 
     // Customer context panel
     ctxTitle: 'Customer',
+    ctxDrawerTitle: 'Customer details',
+    ctxProfileToggle: 'Customer details',
+    ctxClose: 'Close',
     ctxVip: 'VIP',
     ctxPhone: 'Phone',
     ctxStatus: 'Status',
@@ -122,6 +125,7 @@ export const templatesTranslations: Record<AppLanguage, Record<string, string>> 
 
     // Status controls
     statusChange: 'Change status',
+    statusNoTransitions: 'No status changes available',
     statusChangeError: 'Could not change the status',
     statusNew: 'New',
     statusAssigned: 'Assigned',
@@ -231,6 +235,9 @@ export const templatesTranslations: Record<AppLanguage, Record<string, string>> 
     notesAddError: 'تعذّر إضافة الملاحظة',
 
     ctxTitle: 'العميل',
+    ctxDrawerTitle: 'بيانات العميل',
+    ctxProfileToggle: 'بيانات العميل',
+    ctxClose: 'إغلاق',
     ctxVip: 'مميّز',
     ctxPhone: 'الهاتف',
     ctxStatus: 'الحالة',
@@ -243,6 +250,7 @@ export const templatesTranslations: Record<AppLanguage, Record<string, string>> 
     ctxMessages: 'الرسائل',
 
     statusChange: 'تغيير الحالة',
+    statusNoTransitions: 'لا توجد تغييرات متاحة للحالة',
     statusChangeError: 'تعذّر تغيير الحالة',
     statusNew: 'جديدة',
     statusAssigned: 'مُسندة',

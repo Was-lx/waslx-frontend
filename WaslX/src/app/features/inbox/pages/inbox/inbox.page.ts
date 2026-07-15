@@ -3,36 +3,61 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { AuthSessionService } from '../../../../core/services/auth-session.service';
 import { InboxRealtimeService, type RealtimeConversation, type RealtimeMessage, type RealtimeNote, type RealtimeStatus } from '../../../../core/services/inbox-realtime.service';
-import { WhatsAppApiService } from '../../../../core/api/whatsapp-api.service';
+import { WhatsAppApiService, type WhatsAppAccountSummary } from '../../../../core/api/whatsapp-api.service';
+import { AssignmentApiService, type Assignment, type UnassignedConversation } from '../../../../core/api/assignment-api.service';
+import { TagsApiService, type Tag } from '../../../../core/api/tags-api.service';
+import { GroupsApiService, type Group } from '../../../../core/api/groups-api.service';
+import { UsersApiService, type User } from '../../../../core/api/users-api.service';
 import { apiError, apiErrorMessage } from '../../../../core/utils/api-error';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ConversationCardComponent } from '../../components/conversation-card/conversation-card.component';
 import { ChatViewComponent } from '../../components/chat-view/chat-view.component';
-import { ConversationsApiService } from '../../services/conversations-api.service';
+import { NumberRailComponent } from '../../components/number-rail/number-rail.component';
+import { InboxFiltersComponent, EMPTY_INBOX_FILTER, type InboxFilterValue } from '../../components/inbox-filters/inbox-filters.component';
+import type { AssignEvent } from '../../components/assignment-bar/assignment-bar.component';
+import { ConversationsApiService, type ConversationListFilters } from '../../services/conversations-api.service';
 import type { ConversationDetail, ConversationListItem, ConversationNote } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
 import type { TemplateSendPayload } from '../../components/template-picker/template-picker.component';
 
 // SignalR pushes changes live; this slow sweep only backstops a missed event / dropped connection.
 const FALLBACK_REFRESH_MS = 60_000;
+// Debounce for filter-driven list reloads (covers text search typing without hammering the API).
+const FILTER_DEBOUNCE_MS = 220;
+
+/** The conversation currently open in the thread pane (from either the inbox list or the queue). */
+interface OpenConversation {
+  id: number;
+  customerName: string;
+  customerPhone: string;
+  unreadCount: number;
+}
 
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [ConversationCardComponent, ChatViewComponent],
+  imports: [ConversationCardComponent, ChatViewComponent, NumberRailComponent, InboxFiltersComponent, IconComponent],
   templateUrl: './inbox.page.html',
   styleUrl: './inbox.page.css'
 })
 export class InboxPageComponent implements OnInit, OnDestroy {
   private readonly api = inject(ConversationsApiService);
   private readonly whatsapp = inject(WhatsAppApiService);
+  private readonly assignmentApi = inject(AssignmentApiService);
+  private readonly tagsApi = inject(TagsApiService);
+  private readonly groupsApi = inject(GroupsApiService);
+  private readonly usersApi = inject(UsersApiService);
   private readonly realtime = inject(InboxRealtimeService);
   private readonly language = inject(LanguageService);
   private readonly toast = inject(ToastService);
+  private readonly auth = inject(AuthSessionService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly conversations = signal<ConversationListItem[]>([]);
   protected readonly selectedId = signal<number | null>(null);
+  protected readonly openConv = signal<OpenConversation | null>(null);
   protected readonly messages = signal<ConversationMessage[]>([]);
   protected readonly detail = signal<ConversationDetail | null>(null);
   protected readonly notes = signal<ConversationNote[]>([]);
@@ -43,31 +68,46 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   protected readonly statusChanging = signal(false);
   protected readonly uploadProgress = signal<number | null>(null);
   protected readonly hasMore = signal(false);
-  protected readonly search = signal('');
   protected readonly scrollUnreadCount = signal(0);
 
-  protected readonly selected = computed(() =>
-    this.conversations().find((c) => c.id === this.selectedId()) ?? null
-  );
+  // ── Number rail + filters + views ───────────────────────────────────────────
+  protected readonly accounts = signal<WhatsAppAccountSummary[]>([]);
+  protected readonly selectedAccountId = signal<number | null>(null);
+  protected readonly filter = signal<InboxFilterValue>({ ...EMPTY_INBOX_FILTER });
+  protected readonly view = signal<'inbox' | 'queue'>('inbox');
+  protected readonly queue = signal<UnassignedConversation[]>([]);
+  protected readonly queueLoading = signal(false);
 
-  protected readonly filtered = computed(() => {
-    const q = this.search().trim().toLowerCase();
-    if (!q) return this.conversations();
-    return this.conversations().filter(
-      (c) =>
-        c.customerName.toLowerCase().includes(q) ||
-        c.customerPhone.toLowerCase().includes(q) ||
-        (c.lastMessagePreview ?? '').toLowerCase().includes(q)
-    );
+  // ── Facets (assignment + tagging + filters) ─────────────────────────────────
+  protected readonly groups = signal<Group[]>([]);
+  protected readonly tags = signal<Tag[]>([]);
+  protected readonly users = signal<User[]>([]);
+  protected readonly assignments = signal<Assignment[]>([]);
+  protected readonly assigning = signal(false);
+  protected readonly loadingAssignments = signal(false);
+
+  // ── Team routing / cross-team handoff ───────────────────────────────────────
+  // The detail endpoint doesn't carry the current group, so we track the last team the
+  // conversation was routed / handed off to in-session to reflect it in the context panel.
+  protected readonly routedGroupId = signal<number | null>(null);
+  protected readonly routing = signal(false);
+
+  protected readonly queueFiltered = computed(() => {
+    const acc = this.selectedAccountId();
+    const items = this.queue();
+    return acc == null ? items : items.filter((i) => i.whatsAppAccountId === acc);
   });
 
   private fallback: ReturnType<typeof setInterval> | null = null;
+  private filterTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected t = (key: TranslationKey): string => this.language.text(key);
   protected direction = (): 'rtl' | 'ltr' => this.language.getDirection();
 
   ngOnInit(): void {
     this.loadList(true);
+    this.loadAccounts();
+    this.loadFacets();
 
     void this.realtime.start();
     this.realtime.messageReceived.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((m) => this.onRealtimeMessage(m));
@@ -80,25 +120,88 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.fallback) clearInterval(this.fallback);
+    if (this.filterTimer) clearTimeout(this.filterTimer);
     void this.realtime.stop();
   }
 
-  protected onSearch(event: Event): void {
-    this.search.set((event.target as HTMLInputElement).value);
+  // ── Number rail + filters + view switching ──────────────────────────────────
+  protected onSelectAccount(id: number | null): void {
+    this.selectedAccountId.set(id);
+    if (this.view() === 'inbox') this.loadList(true);
   }
 
-  protected select(id: number): void {
+  protected onFilterChange(value: InboxFilterValue): void {
+    this.filter.set(value);
+    this.debouncedReload();
+  }
+
+  protected onClearFilters(): void {
+    this.filter.set({ ...EMPTY_INBOX_FILTER });
+    this.loadList(true);
+  }
+
+  protected setView(view: 'inbox' | 'queue'): void {
+    if (this.view() === view) return;
+    this.view.set(view);
+    if (view === 'queue') this.loadQueue();
+    else this.loadList(true);
+  }
+
+  private debouncedReload(): void {
+    if (this.view() !== 'inbox') return;
+    if (this.filterTimer) clearTimeout(this.filterTimer);
+    this.filterTimer = setTimeout(() => this.loadList(true), FILTER_DEBOUNCE_MS);
+  }
+
+  /** Maps the number rail + UI filter model into the API query params. */
+  private buildFilters(): ConversationListFilters {
+    const f = this.filter();
+    const filters: ConversationListFilters = {
+      status: f.status,
+      groupId: f.groupId,
+      tagId: f.tagId,
+      dateFrom: f.dateFrom,
+      dateTo: f.dateTo,
+      search: f.search,
+      whatsAppAccountId: this.selectedAccountId(),
+    };
+    if (f.assignee === 'unassigned') filters.unassigned = true;
+    else if (f.assignee === 'me') filters.assignedUserId = this.auth.userProfile()?.id ?? null;
+    else if (f.assignee && f.assignee !== 'all') filters.assignedUserId = f.assignee;
+    return filters;
+  }
+
+  // ── Selection ───────────────────────────────────────────────────────────────
+  protected select(item: OpenConversation): void {
+    const id = item.id;
     if (this.selectedId() === id) return;
-    this.scrollUnreadCount.set(this.conversations().find((c) => c.id === id)?.unreadCount ?? 0);
+    this.scrollUnreadCount.set(item.unreadCount);
+    this.openConv.set(item);
     this.selectedId.set(id);
     this.messages.set([]);
     this.detail.set(null);
     this.notes.set([]);
+    this.assignments.set([]);
+    this.routedGroupId.set(null);
     this.loadMessages(id);
     this.loadDetail(id);
     this.loadNotes(id);
     this.markRead(id);
     this.realtime.joinConversation(id);
+  }
+
+  protected selectCard(id: number): void {
+    const c = this.conversations().find((x) => x.id === id);
+    if (c) this.select({ id: c.id, customerName: c.customerName, customerPhone: c.customerPhone, unreadCount: c.unreadCount });
+  }
+
+  protected selectQueue(item: UnassignedConversation): void {
+    this.select({
+      id: item.conversationId,
+      customerName: item.customerName || item.customerPhone,
+      customerPhone: item.customerPhone,
+      unreadCount: 0,
+    });
   }
 
   /** Advances the server read-cursor and optimistically zeroes the local unread badge. */
@@ -113,6 +216,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     );
   }
 
+  // ── Send (unchanged behaviour) ──────────────────────────────────────────────
   protected onSend(text: string): void {
     const id = this.selectedId();
     if (id == null || this.sending()) return;
@@ -166,7 +270,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
   protected onSendTemplate(payload: TemplateSendPayload): void {
     const id = this.selectedId();
-    const toPhone = this.detail()?.customerPhone ?? this.selected()?.customerPhone;
+    const toPhone = this.detail()?.customerPhone ?? this.openConv()?.customerPhone;
     if (id == null || !toPhone || this.sending()) return;
 
     const temp = this.optimistic(`[${payload.templateName}]`, 'Template');
@@ -248,12 +352,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.api.delete(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.conversations.update((list) => list.filter((c) => c.id !== id));
-        if (this.selectedId() === id) {
-          this.selectedId.set(null);
-          this.messages.set([]);
-          this.detail.set(null);
-          this.notes.set([]);
-        }
+        if (this.selectedId() === id) this.clearOpen();
       },
       error: () => this.toast.error(this.t('inboxDeleteErrorTitle'), this.t('inboxDeleteErrorMsg'))
     });
@@ -264,12 +363,106 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     if (id != null) this.loadMessages(id);
   }
 
-  // ── Realtime handlers ───────────────────────────────────────────────────────
+  // ── Assignment + tagging ────────────────────────────────────────────────────
+  protected onAssign(event: AssignEvent): void {
+    const id = this.selectedId();
+    if (id == null || this.assigning()) return;
+    const isReassign = this.detail()?.assignedUserId != null;
+
+    this.assigning.set(true);
+    const request = { targetUserId: event.userId, reason: event.reason ?? undefined };
+    const call = isReassign
+      ? this.assignmentApi.reassign(id, request)
+      : this.assignmentApi.assign(id, request);
+
+    call.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.assigning.set(false);
+        this.toast.success(this.t('assignSuccessTitle'), this.t('assignSuccessMsg'));
+        this.loadDetail(id);
+        this.loadAssignments();
+        this.loadList(false);
+        if (this.view() === 'queue') this.loadQueue();
+      },
+      error: (err) => {
+        this.assigning.set(false);
+        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
+      }
+    });
+  }
+
+  protected onApplyTag(tagId: number): void {
+    const id = this.selectedId();
+    if (id == null) return;
+    this.tagsApi.applyToConversation(id, tagId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.loadDetail(id),
+      error: (err) => this.toast.error(this.t('tagApplyError'), apiErrorMessage(err, this.t('tagApplyError')))
+    });
+  }
+
+  protected onRemoveTag(tagId: number): void {
+    const id = this.selectedId();
+    if (id == null) return;
+    this.tagsApi.removeFromConversation(id, tagId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.loadDetail(id),
+      error: (err) => this.toast.error(this.t('tagRemoveError'), apiErrorMessage(err, this.t('tagRemoveError')))
+    });
+  }
+
+  // ── Team routing / cross-team handoff ───────────────────────────────────────
+  protected onRouteToGroup(groupId: number): void {
+    const id = this.selectedId();
+    if (id == null || this.routing()) return;
+    this.routing.set(true);
+    this.api.routeToGroup(id, groupId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.routing.set(false);
+        this.routedGroupId.set(groupId);
+        this.toast.success(this.t('ctxRoutedToast'), '');
+        this.loadDetail(id);
+        this.loadList(false);
+      },
+      error: (err) => {
+        this.routing.set(false);
+        this.toast.error(this.t('ctxRouteError'), apiErrorMessage(err, this.t('ctxRouteError')));
+      }
+    });
+  }
+
+  protected onHandoff(targetGroupId: number): void {
+    const id = this.selectedId();
+    if (id == null || this.routing()) return;
+    this.routing.set(true);
+    this.api.handoff(id, targetGroupId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.routing.set(false);
+        this.routedGroupId.set(targetGroupId);
+        this.toast.success(this.t('ctxHandoffToast'), '');
+        this.loadDetail(id);
+        this.loadAssignments();
+        this.loadList(false);
+      },
+      error: (err) => {
+        this.routing.set(false);
+        this.toast.error(this.t('ctxHandoffError'), apiErrorMessage(err, this.t('ctxHandoffError')));
+      }
+    });
+  }
+
+  protected loadAssignments(): void {
+    const id = this.selectedId();
+    if (id == null) return;
+    this.loadingAssignments.set(true);
+    this.assignmentApi.getAssignments(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (list) => { if (this.selectedId() === id) this.assignments.set(list); this.loadingAssignments.set(false); },
+      error: () => this.loadingAssignments.set(false)
+    });
+  }
+
+  // ── Realtime handlers (unchanged behaviour) ─────────────────────────────────
   private onRealtimeMessage(m: RealtimeMessage): void {
     this.loadList(false);
     if (m.conversationId === this.selectedId()) {
-      // Refresh the 24h-window anchor (lastInboundAt) + status the instant a message arrives, so a
-      // customer reply unlocks the composer immediately — no manual/hard refresh required.
       this.loadDetail(m.conversationId);
       if (!this.sending()) {
         this.loadMessages(m.conversationId);
@@ -285,6 +478,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
   private onRealtimeConversation(c: RealtimeConversation): void {
     this.loadList(false);
+    if (this.view() === 'queue') this.loadQueue();
     if (c.conversationId === this.selectedId()) this.loadDetail(c.conversationId);
   }
 
@@ -295,8 +489,9 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
   // ── Loaders ─────────────────────────────────────────────────────────────────
   private loadList(showSpinner: boolean): void {
+    if (this.view() !== 'inbox') return;
     if (showSpinner) this.listLoading.set(true);
-    this.api.list().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.api.list(this.buildFilters()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (page) => {
         this.conversations.set(page.items);
         const openId = this.selectedId();
@@ -305,6 +500,27 @@ export class InboxPageComponent implements OnInit, OnDestroy {
       },
       error: () => this.listLoading.set(false)
     });
+  }
+
+  private loadQueue(): void {
+    this.queueLoading.set(true);
+    this.assignmentApi.getUnassigned().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (items) => { this.queue.set(items); this.queueLoading.set(false); },
+      error: () => this.queueLoading.set(false)
+    });
+  }
+
+  private loadAccounts(): void {
+    this.whatsapp.getAccounts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (accounts) => this.accounts.set(accounts),
+      error: () => {}
+    });
+  }
+
+  private loadFacets(): void {
+    this.groupsApi.getGroups().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (g) => this.groups.set(g), error: () => {} });
+    this.tagsApi.getTags().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (tg) => this.tags.set(tg), error: () => {} });
+    this.usersApi.getUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (u) => this.users.set(u.filter((x) => x.isActive)), error: () => {} });
   }
 
   private loadMessages(id: number): void {
@@ -321,7 +537,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
   private loadDetail(id: number): void {
     this.api.detail(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (detail) => { if (this.selectedId() === id) this.detail.set(detail); },
+      next: (detail) => { if (this.selectedId() === id) { this.detail.set(detail); this.routedGroupId.set(detail.groupId); } },
       error: () => {}
     });
   }
@@ -335,6 +551,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
   private refresh(): void {
     this.loadList(false);
+    if (this.view() === 'queue') this.loadQueue();
     const id = this.selectedId();
     if (id != null && !this.sending()) {
       this.loadMessages(id);
@@ -344,12 +561,15 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
-  /**
-   * If a send failed because the server reports the 24-hour window is closed, refresh the detail
-   * (so the composer locks on the fresh WindowExpiresAt) and show the window-closed message.
-   * Returns true when handled, so callers skip the generic send-error toast. Backstops the
-   * proactive client-side lock for the edge case where the client still thought the window was open.
-   */
+  private clearOpen(): void {
+    this.selectedId.set(null);
+    this.openConv.set(null);
+    this.messages.set([]);
+    this.detail.set(null);
+    this.notes.set([]);
+    this.assignments.set([]);
+  }
+
   private handledWindowClosed(err: unknown, conversationId: number): boolean {
     if (apiError(err).code !== 'WhatsApp.WindowClosed') return false;
     this.loadDetail(conversationId);
