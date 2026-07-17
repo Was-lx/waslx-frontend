@@ -7,7 +7,7 @@
 |---|---|
 | Story ID | `US-4.1` |
 | Track | Backend / Full-stack |
-| Sprint | Sprint 4 — AI Pipeline: RAG + Routing + Reply |
+| Sprint | Sprint 4 — AI Pipeline: RAG + Classification + AI Agent |
 | Priority | Must (High) |
 | FR Traceability | FR-RAG (RAG-01..06) |
 | ClickUp | https://app.clickup.com/t/86caddygy |
@@ -17,14 +17,15 @@
 > **As a** system, **I want** a RAG memory layer that embeds everything and retrieves the most relevant history just-in-time, **so that** replies are context-aware.
 
 ## 2. Context
-Part of **Sprint 4 — AI Pipeline: RAG + Routing + Reply**. Context, routing, and reply suggestions — the AI differentiator. See `PROJECT-CONTEXT.md` for the system-wide picture; this story
+Part of **Sprint 4 — AI Pipeline: RAG + Classification + AI Agent**. Per-customer memory (RAG), message classification, and an autonomous AI Agent — the AI differentiator. See `PROJECT-CONTEXT.md` for the system-wide picture; this story
 delivers one focused slice and must comply with every cross-cutting rule there.
 
 ## 3. Functional Requirements (the build list)
 - [ ] Embed every message/note/FAQ/catalog item (text-embedding-3-large) into SQL Server vector store
+- [ ] Ingest the tenant's **business knowledge** (FAQ, catalog, persona/tone, policies) so the **AI Agent** (US-4.6) can answer from it
 - [ ] Retrieve top-K similar prior items per customer (cosine)
 - [ ] Summarize long histories (gpt-4.1) into a concise context block
-- [ ] Return context to the Reply Engine; re-index each new message (memory loop)
+- [ ] Return context to the **AI Agent**; re-index each new message (memory loop)
 
 ## 4. Acceptance Criteria (the test plan)
 - [ ] Retrieval completes well under 1s and does not delay suggestions

@@ -7,7 +7,7 @@
 WasalX is a **multi-tenant, AI-powered WhatsApp team inbox** for customer-facing teams,
 **Arabic-first** (including Egyptian dialect) with full English support. Multiple agents share
 one WhatsApp Business number through a centralized inbox. An AI pipeline adds per-customer memory
-(RAG), smart routing, and reply suggestions. **The AI never sends autonomously** — agents stay in control.
+(RAG), message classification, and an **autonomous AI Agent** that replies to customers. The tenant enables/disables the Agent, a human can take over, and hard cases are handed to a human.
 
 ## 2. Actors / Roles
 - **Agent** — handles assigned conversations only.
@@ -19,15 +19,15 @@ one WhatsApp Business number through a centralized inbox. An AI pipeline adds pe
 ## 3. Architecture
 Angular SPA → **API Gateway** (auth + RBAC + rate limiting) → backend services → SQL Server.
 Real-time via **SignalR**. Inbound WhatsApp via **Cloud API webhook**; outbound via Cloud API.
-On each inbound message a **Backend Orchestrator** runs **RAG** + **Routing** in parallel, then the
-**Reply Engine** produces 1–3 suggestions. Target end-to-end latency **< 2s** (routing **< 1s**).
+On each inbound message a **Backend Orchestrator** runs **RAG** + **Classification** in parallel, then the
+**AI Agent** replies to the customer. Target end-to-end latency **< 2s** (routing **< 1s**).
 
 ## 4. Tech Stack
 - **Frontend:** Angular (TypeScript), SignalR client, RTL/i18n (Arabic/English).
 - **Backend:** ASP.NET Core (C#), EF Core, SignalR.
 - **Database:** SQL Server with **native vector search** for embeddings.
 - **AI:** OpenAI — `text-embedding-3-large` (embeddings), `gpt-4.1` (summarization),
-  `gpt-4.1-mini` (reply generation). Classification for routing.
+  `gpt-4.1-mini` (Agent replies + classification).
 - **Channel:** WhatsApp Business **Cloud API** (official).
 
 ## 5. Cross-Cutting Rules (apply to every story)
@@ -35,7 +35,7 @@ On each inbound message a **Backend Orchestrator** runs **RAG** + **Routing** in
 2. **RBAC** — enforced server-side at the gateway per the Role × Permission matrix; the UI mirrors it (defense in depth).
 3. **Encryption** — TLS in transit, encryption at rest.
 4. **WhatsApp compliance** — respect the 24-hour window; outside it, only pre-approved templates; task-specific automation only.
-5. **AI safety** — suggestions only; a human accepts/edits/sends.
+5. **AI Agent control** — the AI Agent replies autonomously only while the tenant enables it; a human can take over, hard cases are handed to a human, and every reply is audited.
 6. **Auditability** — key actions are logged immutably.
 7. **Localization** — Arabic-first; handle Arabic, English, and natural mixes.
 
