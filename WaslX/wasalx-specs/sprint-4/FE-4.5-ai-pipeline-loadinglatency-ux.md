@@ -1,4 +1,4 @@
-# FE-4.5 — Escalation, VIP & Sentiment Badges
+# FE-4.5 — AI Pipeline Loading/Latency UX
 
 > **Spec-Kit story spec.** Read [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) first for shared
 > architecture, actors, stack, and cross-cutting rules. This file is self-contained for implementation.
@@ -7,33 +7,32 @@
 |---|---|
 | Story ID | `FE-4.5` |
 | Track | Frontend (Angular) |
-| Sprint | Sprint 4 — AI Pipeline: RAG + Routing + Reply |
+| Sprint | Sprint 4 — AI Pipeline: RAG + Classification + AI Agent |
 | Priority | Should (Normal) |
-| FR Traceability | FR-AIR (AIR-03, 06) |
-| ClickUp | https://app.clickup.com/t/86cae06ra |
+| FR Traceability | NFR-PERF-01 · NFR-AVAIL-01 |
+| ClickUp | https://app.clickup.com/t/86cae06rw |
 | Status | Not started |
 
 ## 1. User Story
-> **As a** user, **I want** VIP, sentiment, and escalation indicators in the UI, **so that** high-priority conversations stand out.
+> **As a** Agent, **I want** clear loading/latency states for AI features, **so that** the UI feels responsive while the pipeline runs.
 
 ## 2. Context
-Part of **Sprint 4 — AI Pipeline: RAG + Routing + Reply**. Context, routing, and reply suggestions — the AI differentiator. See `PROJECT-CONTEXT.md` for the system-wide picture; this story
+Part of **Sprint 4 — AI Pipeline: RAG + Classification + AI Agent**. Per-customer memory (RAG), message classification, and an autonomous AI Agent — the AI differentiator. See `PROJECT-CONTEXT.md` for the system-wide picture; this story
 delivers one focused slice and must comply with every cross-cutting rule there.
 
 ## 3. Functional Requirements (the build list)
-- [ ] Badges/chips for VIP, sentiment, urgency
-- [ ] Escalation highlight in lists and chat header
+- [ ] Skeleton/typing indicators for suggestions, routing, summaries
+- [ ] Graceful timeout fallback
 
 ## 4. Acceptance Criteria (the test plan)
-- [ ] Angry/VIP/urgent conversations are visually prioritized
+- [ ] AI features show progressive loading and never block manual typing
 
 ## 5. Out of Scope
 - Backend/API logic (covered by the linked `US-*` story).
 - Business rules beyond presentation/validation.
 
 ## 6. Dependencies
-- `US-4.3`
-- `US-4.5`
+- `US-4.8`
 
 ## 7. Technical Notes
 - Angular + TypeScript; use the shared design system, RTL/i18n, and toast service.

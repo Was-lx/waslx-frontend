@@ -1,4 +1,4 @@
-# US-4.5 — Auto-Escalation of Urgent/VIP/Angry
+# US-4.5 — Escalation: Recommend vs Auto-Assign Mode
 
 > **Spec-Kit story spec.** Read [`PROJECT-CONTEXT.md`](../PROJECT-CONTEXT.md) first for shared
 > architecture, actors, stack, and cross-cutting rules. This file is self-contained for implementation.
@@ -7,28 +7,33 @@
 |---|---|
 | Story ID | `US-4.5` |
 | Track | Backend / Full-stack |
-| Sprint | Sprint 4 — AI Pipeline: RAG + Routing + Reply |
+| Sprint | Sprint 4 — AI Pipeline: RAG + Classification + AI Agent |
 | Priority | Must (High) |
-| FR Traceability | FR-AIR (AIR-06) · FR-NOTIF (NOTIF-02) |
-| ClickUp | https://app.clickup.com/t/86caddym5 |
+| FR Traceability | FR-AIR (AIR-07) |
+| ClickUp | https://app.clickup.com/t/86caddymt |
 | Status | Not started |
 
 ## 1. User Story
-> **As a** system, **I want** to immediately escalate urgent, VIP, or angry conversations to a senior agent/supervisor, **so that** high-stakes cases get fast attention.
+> **As an** Admin/Manager, **I want** to choose whether an **escalation** is auto-assigned to the chosen
+> senior agent or only **recommended** for me to confirm, **so that** I control the AI's autonomy over the
+> critical cases.
+
+> **⚠️ Applies to escalation only.** Normal distribution of ordinary conversations is unchanged (existing
+> systems). This toggle governs what happens when a case escalates (US-4.4).
 
 ## 2. Context
-Part of **Sprint 4 — AI Pipeline: RAG + Routing + Reply**. Context, routing, and reply suggestions — the AI differentiator. See `PROJECT-CONTEXT.md` for the system-wide picture; this story
-delivers one focused slice and must comply with every cross-cutting rule there.
+Part of **Sprint 4 — AI Pipeline** — **Component 3 (Classification & Escalation)**. See `PROJECT-CONTEXT.md`.
 
 ## 3. Functional Requirements (the build list)
-- [ ] Escalate urgent/VIP/angry to a senior agent/supervisor
-- [ ] Notify the relevant senior agent/supervisor
+- [ ] Configurable **escalation** mode: **recommend** (needs human confirmation) or **auto-assign**
 
 ## 4. Acceptance Criteria (the test plan)
-- [ ] An angry VIP is escalated ahead of the queue and the supervisor is notified
+- [ ] Recommend mode suggests the escalation target but doesn't change ownership until confirmed
+- [ ] Auto mode assigns the escalated conversation automatically
 
 ## 5. Out of Scope
-- UI/presentation (covered by the matching `FE-*` story).
+- Normal assignment of ordinary conversations (existing distribution systems).
+- UI/presentation (covered by `FE-4.2`).
 - Anything outside the listed Functional Requirements.
 
 ## 6. Dependencies
