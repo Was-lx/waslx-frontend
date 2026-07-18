@@ -45,6 +45,7 @@
               <app-conversation-card
                 [item]="c"
                 [selected]="c.id === selectedId()"
+                [badgeData]="badgeFor(c.id)"
                 (selectCard)="selectCard($event)"
                 (deleteCard)="onDelete($event)"
               />
@@ -112,6 +113,13 @@
           [summarySlow]="summarySlow()"
           [aiTyping]="aiTyping()"
           [takingOver]="takingOver()"
+          [badgeData]="badgeData()"
+          [escalationRecommendation]="escalationRecommendation()"
+          [escalationOwnershipTransfer]="escalationOwnershipTransfer()"
+          [isManagerOrAdmin]="isManagerOrAdmin()"
+          [escalationAgents]="escalationAgents()"
+          [escalationConfirming]="escalationConfirming()"
+          [showOverrideDialog]="showOverrideDialog()"
           (send)="onSend($event)"
           (sendMedia)="onSendMedia($event)"
           (attachError)="onAttachError($event)"
@@ -130,6 +138,10 @@
           (refreshSummary)="onRefreshSummary()"
           (retrySummary)="onRefreshSummary()"
           (takeOver)="onTakeOver()"
+          (escalationConfirm)="onEscalationConfirm($event)"
+          (escalationOverride)="onEscalationOverrideOpen()"
+          (escalationOverrideSubmit)="onEscalationOverrideSubmit($event)"
+          (escalationOverrideCancel)="onEscalationOverrideCancel()"
         />
       } @else {
         <div class="inbox__placeholder">
