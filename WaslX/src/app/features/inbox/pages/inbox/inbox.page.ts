@@ -10,6 +10,7 @@ import { AssignmentApiService, type Assignment, type UnassignedConversation } fr
 import { TagsApiService, type Tag } from '../../../../core/api/tags-api.service';
 import { GroupsApiService, type Group } from '../../../../core/api/groups-api.service';
 import { UsersApiService, type User } from '../../../../core/api/users-api.service';
+import { AiAgentApiService } from '../../../../core/api/ai-agent-api.service';
 import { apiError, apiErrorMessage } from '../../../../core/utils/api-error';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ConversationCardComponent } from '../../components/conversation-card/conversation-card.component';
@@ -18,7 +19,7 @@ import { NumberRailComponent } from '../../components/number-rail/number-rail.co
 import { InboxFiltersComponent, EMPTY_INBOX_FILTER, type InboxFilterValue } from '../../components/inbox-filters/inbox-filters.component';
 import type { AssignEvent } from '../../components/assignment-bar/assignment-bar.component';
 import { ConversationsApiService, type ConversationListFilters } from '../../services/conversations-api.service';
-import type { ConversationDetail, ConversationListItem, ConversationNote } from '../../models/conversation.model';
+import type { ConversationDetail, ConversationListItem, ConversationNote, ConversationSummary } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
 import type { TemplateSendPayload } from '../../components/template-picker/template-picker.component';
 
@@ -49,6 +50,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   private readonly tagsApi = inject(TagsApiService);
   private readonly groupsApi = inject(GroupsApiService);
   private readonly usersApi = inject(UsersApiService);
+  private readonly aiApi = inject(AiAgentApiService);
   private readonly realtime = inject(InboxRealtimeService);
   private readonly language = inject(LanguageService);
   private readonly toast = inject(ToastService);
@@ -69,6 +71,19 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   protected readonly uploadProgress = signal<number | null>(null);
   protected readonly hasMore = signal(false);
   protected readonly scrollUnreadCount = signal(0);
+
+  // ── AI conversation summary (FE-4.3 / US-4.7) ───────────────────────────────
+  protected readonly summary = signal<ConversationSummary | null>(null);
+  protected readonly summaryLoading = signal(false);
+  protected readonly summaryFullLoading = signal(false);
+  protected readonly summaryError = signal(false);
+  protected readonly summarySlow = signal(false);
+  private summarySlowTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // ── AI Agent presence (FE-4.1) ──────────────────────────────────────────────
+  // `aiTyping` is driven by a future realtime "AI Agent typing" event (US-4.6); kept wired for later.
+  protected readonly aiTyping = signal(false);
+  protected readonly takingOver = signal(false);
 
   // ── Number rail + filters + views ───────────────────────────────────────────
   protected readonly accounts = signal<WhatsAppAccountSummary[]>([]);
@@ -121,6 +136,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.fallback) clearInterval(this.fallback);
     if (this.filterTimer) clearTimeout(this.filterTimer);
+    this.disarmSummarySlow();
     void this.realtime.stop();
   }
 
@@ -183,9 +199,11 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.notes.set([]);
     this.assignments.set([]);
     this.routedGroupId.set(null);
+    this.resetSummary();
     this.loadMessages(id);
     this.loadDetail(id);
     this.loadNotes(id);
+    this.loadSummary(id);
     this.markRead(id);
     this.realtime.joinConversation(id);
   }
@@ -549,6 +567,87 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ── AI conversation summary (FE-4.3 / US-4.7) ───────────────────────────────
+  private loadSummary(id: number): void {
+    this.summaryLoading.set(true);
+    this.summaryError.set(false);
+    this.armSummarySlow();
+    this.api.summary(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (s) => {
+        if (this.selectedId() !== id) return;
+        this.summary.set(s);
+        this.summaryLoading.set(false);
+        this.disarmSummarySlow();
+      },
+      error: () => {
+        if (this.selectedId() !== id) return;
+        this.summaryLoading.set(false);
+        this.summaryError.set(true);
+        this.disarmSummarySlow();
+      }
+    });
+  }
+
+  /** Regenerates the short summary (used by both the refresh and error-retry affordances). */
+  protected onRefreshSummary(): void {
+    const id = this.selectedId();
+    if (id != null) this.loadSummary(id);
+  }
+
+  /** Generates the full structured summary on demand. */
+  protected onGenerateFullSummary(): void {
+    const id = this.selectedId();
+    if (id == null || this.summaryFullLoading()) return;
+    this.summaryFullLoading.set(true);
+    this.api.generateFullSummary(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (s) => {
+        if (this.selectedId() === id) this.summary.set(s);
+        this.summaryFullLoading.set(false);
+      },
+      error: (err) => {
+        this.summaryFullLoading.set(false);
+        this.toast.error(this.t('aiSummaryTitle'), apiErrorMessage(err, this.t('aiSummaryError')));
+      }
+    });
+  }
+
+  /** Human takes over an AI-handled conversation, stopping the Agent on it (FE-4.1). */
+  protected onTakeOver(): void {
+    const id = this.selectedId();
+    if (id == null || this.takingOver()) return;
+    this.takingOver.set(true);
+    this.aiApi.takeOver(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.takingOver.set(false);
+        this.toast.success(this.t('aiTakeOverDone'), '');
+        this.loadDetail(id);
+      },
+      error: (err) => {
+        this.takingOver.set(false);
+        this.toast.error(this.t('aiTakeOverError'), apiErrorMessage(err, this.t('aiTakeOverError')));
+      }
+    });
+  }
+
+  private resetSummary(): void {
+    this.summary.set(null);
+    this.summaryLoading.set(false);
+    this.summaryFullLoading.set(false);
+    this.summaryError.set(false);
+    this.disarmSummarySlow();
+  }
+
+  private armSummarySlow(): void {
+    this.disarmSummarySlow();
+    this.summarySlow.set(false);
+    this.summarySlowTimer = setTimeout(() => this.summarySlow.set(true), 4000);
+  }
+
+  private disarmSummarySlow(): void {
+    this.summarySlow.set(false);
+    if (this.summarySlowTimer) { clearTimeout(this.summarySlowTimer); this.summarySlowTimer = null; }
+  }
+
   private refresh(): void {
     this.loadList(false);
     if (this.view() === 'queue') this.loadQueue();
@@ -568,6 +667,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.detail.set(null);
     this.notes.set([]);
     this.assignments.set([]);
+    this.resetSummary();
   }
 
   private handledWindowClosed(err: unknown, conversationId: number): boolean {

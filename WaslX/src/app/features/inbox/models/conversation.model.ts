@@ -58,3 +58,13 @@ export interface PagedResult<T> {
   items: T[];
   hasMore: boolean;
 }
+
+/** AI conversation summary (FE-4.3 / US-4.7) — mirrors ConversationSummaryResponse. */
+export interface ConversationSummary {
+  conversationId: number;
+  shortSummary: string;
+  fullSummary: string | null;
+  messageCount: number;
+  isStale: boolean;
+  generatedAt: string;
+}

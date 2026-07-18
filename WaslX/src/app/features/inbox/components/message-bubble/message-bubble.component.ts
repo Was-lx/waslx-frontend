@@ -19,8 +19,15 @@ import type { ConversationMessage } from '../../models/message.model';
       [attr.data-mid]="message().id"
       [class.bubble--in]="incoming()"
       [class.bubble--out]="!incoming()"
+      [class.bubble--ai]="isAi()"
       [class.bubble--sticker]="kind() === 'Sticker'"
     >
+      @if (isAi()) {
+        <span class="bubble__ai" [title]="aiLabel()">
+          <app-icon name="sparkles" [size]="11" />
+          <span>{{ aiLabel() }}</span>
+        </span>
+      }
       @if (message().mediaUrl; as url) {
         @switch (kind()) {
           @case ('Image') {
@@ -150,6 +157,18 @@ import type { ConversationMessage } from '../../models/message.model';
       color: #fff;
       border-start-end-radius: 5px;
     }
+    /* AI Agent messages: distinct teal-violet treatment + a "Replied by AI Agent" marker (FE-4.1). */
+    .bubble--ai {
+      background: linear-gradient(135deg, #0ea5e9, #7c3aed);
+    }
+    .bubble__ai {
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-bottom: 5px;
+      font-size: 0.64rem; font-weight: 800; letter-spacing: 0.02em;
+      text-transform: uppercase;
+      opacity: 0.92;
+    }
+    .bubble__ai svg { fill: none; stroke: currentColor; stroke-width: 2.2; }
   `]
 })
 export class MessageBubbleComponent {
@@ -158,9 +177,12 @@ export class MessageBubbleComponent {
   readonly retryLabel = input('Retry');
   /** Localised label shown when a media message failed to download/store. */
   readonly mediaUnavailableLabel = input('Media unavailable');
+  /** Localised "Replied by AI Agent" marker shown on Agent messages sent by the AI (FE-4.1). */
+  readonly aiLabel = input('Replied by AI Agent');
   readonly retry = output<number>();
 
   protected readonly incoming = computed(() => this.message().senderType === 'Customer');
+  protected readonly isAi = computed(() => this.message().senderType === 'AI');
 
   protected readonly kind = computed(() => this.message().messageType);
   protected readonly isMediaKind = computed(() =>

@@ -9,6 +9,7 @@ import type {
   ConversationListItem,
   ConversationNote,
   ConversationStatusResult,
+  ConversationSummary,
   PagedResult
 } from '../models/conversation.model';
 import type { ConversationMessage, SendMessageResult } from '../models/message.model';
@@ -112,6 +113,19 @@ export class ConversationsApiService {
    */
   handoff(conversationId: number, targetGroupId: number): Observable<void> {
     return this.api.post<void>(`/conversations/${conversationId}/handoff`, { targetGroupId });
+  }
+
+  /**
+   * AI one-line conversation summary (FE-4.3 / US-4.7). Cached server-side and refreshed as new
+   * messages arrive; available on any conversation at any time.
+   */
+  summary(conversationId: number): Observable<ConversationSummary> {
+    return this.api.get<ConversationSummary>(`/conversations/${conversationId}/summary`);
+  }
+
+  /** Generates the full structured summary (key points · decisions · what's needed) on demand. */
+  generateFullSummary(conversationId: number): Observable<ConversationSummary> {
+    return this.api.post<ConversationSummary>(`/conversations/${conversationId}/summary/full`, {});
   }
 
   /** Lists a conversation's internal team notes. */
