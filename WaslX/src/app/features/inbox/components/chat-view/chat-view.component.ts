@@ -22,8 +22,15 @@ import { AssignmentBarComponent, type AssignEvent } from '../assignment-bar/assi
 import { ConversationSummaryComponent } from '../conversation-summary/conversation-summary.component';
 import { AiSkeletonComponent } from '../ai-skeleton/ai-skeleton.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { EscalationRecommendationComponent } from '../escalation-recommendation/escalation-recommendation.component';
+import { EscalationOwnershipTransferredComponent } from '../escalation-ownership-transferred/escalation-ownership-transferred.component';
+import { EscalationOverrideDialogComponent, type AgentOption } from '../escalation-override-dialog/escalation-override-dialog.component';
+import { ConversationBadgesComponent } from '../conversation-badges/conversation-badges.component';
+import { EscalationStatusChipComponent } from '../escalation-status-chip/escalation-status-chip.component';
 import type { ConversationDetail, ConversationNote, ConversationSummary } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
+import type { ConversationClassificationBadgeData } from '../../models/conversation-classification.model';
+import type { EscalationRecommendation, OwnershipTransferredPayload } from '../../models/escalation-recommendation.model';
 import type { Assignment } from '../../../../core/api/assignment-api.service';
 import type { Tag } from '../../../../core/api/tags-api.service';
 import type { User } from '../../../../core/api/users-api.service';
@@ -37,7 +44,9 @@ import type { Group } from '../../../../core/api/groups-api.service';
   imports: [
     AvatarComponent, MessageBubbleComponent, MessageComposerComponent,
     ContextPanelComponent, TemplatePickerComponent, AssignmentBarComponent,
-    ConversationSummaryComponent, AiSkeletonComponent, IconComponent
+    ConversationSummaryComponent, AiSkeletonComponent, IconComponent,
+    EscalationRecommendationComponent, EscalationOwnershipTransferredComponent, EscalationOverrideDialogComponent,
+    ConversationBadgesComponent, EscalationStatusChipComponent
   ],
   template: `
     <div class="chat-wrap">
@@ -47,6 +56,13 @@ import type { Group } from '../../../../core/api/groups-api.service';
           <div class="chat__who">
             <span class="chat__name">{{ customerName() }}</span>
             <span class="chat__phone">{{ customerPhone() }}</span>
+            <div class="chat__badges">
+              <app-escalation-status-chip
+                [status]="badgeData()?.escalationStatus"
+                [escalate]="badgeData()?.escalate"
+              />
+              <app-conversation-badges [data]="badgeData()" />
+            </div>
           </div>
 
           @if (aiActive()) {
@@ -102,6 +118,28 @@ import type { Group } from '../../../../core/api/groups-api.service';
             (generateFull)="generateSummary.emit()"
             (refresh)="refreshSummary.emit()"
             (retry)="retrySummary.emit()"
+          />
+        }
+
+        <div class="chat__escalation">
+          <app-escalation-ownership-transferred
+            [isWaiting]="!!escalationOwnershipTransfer() && escalationOwnershipTransfer()!.transitionType === 'Recommend'"
+            [isTransferred]="!!escalationOwnershipTransfer() && escalationOwnershipTransfer()!.transitionType !== 'Recommend'"
+          />
+          <app-escalation-recommendation
+            [recommendation]="escalationRecommendation()"
+            [isManagerOrAdmin]="isManagerOrAdmin()"
+            (confirm)="escalationConfirm.emit($event)"
+            (override)="escalationOverride.emit()"
+          />
+        </div>
+
+        @if (showOverrideDialog()) {
+          <app-escalation-override-dialog
+            [recommendation]="escalationRecommendation()"
+            [agents]="escalationAgents()"
+            (confirm)="escalationOverrideSubmit.emit($event)"
+            (cancel)="onOverrideCancel()"
           />
         }
 
@@ -195,6 +233,7 @@ import type { Group } from '../../../../core/api/groups-api.service';
     .chat__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .chat__name { font-size: 0.98rem; font-weight: 700; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .chat__phone { font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .chat__badges { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
     .chat__tools { flex: 0 0 auto; }
     /* "Take over from AI" — pinned to the header inline-end, before the tools bar (FE-4.1). */
     .chat__takeover {
@@ -286,6 +325,12 @@ import type { Group } from '../../../../core/api/groups-api.service';
       color: var(--text-muted);
       font-size: 0.88rem;
     }
+    .chat__escalation {
+      padding: 8px 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
   `]
 })
 export class ChatViewComponent implements AfterViewChecked {
@@ -324,6 +369,16 @@ export class ChatViewComponent implements AfterViewChecked {
   // AI Agent presence (FE-4.1)
   readonly aiTyping = input(false);
   readonly takingOver = input(false);
+  // Badges (FE-4.4)
+  readonly badgeData = input<ConversationClassificationBadgeData | null>(null);
+
+  // Escalation screening (FE-4.2)
+  readonly escalationRecommendation = input<EscalationRecommendation | null>(null);
+  readonly escalationOwnershipTransfer = input<OwnershipTransferredPayload | null>(null);
+  readonly isManagerOrAdmin = input(false);
+  readonly escalationAgents = input<AgentOption[]>([]);
+  readonly escalationConfirming = input(false);
+  readonly showOverrideDialog = input(false);
 
   readonly send = output<string>();
   readonly sendMedia = output<{ file: File; caption: string }>();
@@ -345,6 +400,11 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly retrySummary = output<void>();
   // AI Agent presence (FE-4.1)
   readonly takeOver = output<void>();
+  // Escalation screening (FE-4.2)
+  readonly escalationConfirm = output<{ escalationId: number; assigneeId: number }>();
+  readonly escalationOverride = output<void>();
+  readonly escalationOverrideSubmit = output<{ escalationId: number; assigneeId: number; reason: string }>();
+  readonly escalationOverrideCancel = output<void>();
 
   /** True while the AI Agent is the most recent responder — surfaces the "Take over" affordance. */
   protected readonly aiActive = computed(() => {
@@ -417,6 +477,10 @@ export class ChatViewComponent implements AfterViewChecked {
   protected onPickerSend(payload: TemplateSendPayload): void {
     this.sendTemplate.emit(payload);
     this.showPicker.set(false);
+  }
+
+  protected onOverrideCancel(): void {
+    this.escalationOverrideCancel.emit();
   }
 
   /** True for the first message and whenever the calendar day changes from the previous message. */

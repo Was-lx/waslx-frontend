@@ -11,6 +11,12 @@ import { TagsApiService, type Tag } from '../../../../core/api/tags-api.service'
 import { GroupsApiService, type Group } from '../../../../core/api/groups-api.service';
 import { UsersApiService, type User } from '../../../../core/api/users-api.service';
 import { AiAgentApiService } from '../../../../core/api/ai-agent-api.service';
+import { EscalationStore } from '../../store/escalation.store';
+import { ConversationBadgesStore } from '../../store/conversation-badges.store';
+import { EscalationRealtimeService } from '../../services/escalation-realtime.service';
+import { EscalationApiService } from '../../services/escalation-api.service';
+import type { OwnershipTransferredPayload } from '../../models/escalation-recommendation.model';
+import type { AgentOption } from '../../components/escalation-override-dialog/escalation-override-dialog.component';
 import { apiError, apiErrorMessage } from '../../../../core/utils/api-error';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ConversationCardComponent } from '../../components/conversation-card/conversation-card.component';
@@ -19,6 +25,7 @@ import { NumberRailComponent } from '../../components/number-rail/number-rail.co
 import { InboxFiltersComponent, EMPTY_INBOX_FILTER, type InboxFilterValue } from '../../components/inbox-filters/inbox-filters.component';
 import type { AssignEvent } from '../../components/assignment-bar/assignment-bar.component';
 import { ConversationsApiService, type ConversationListFilters } from '../../services/conversations-api.service';
+import type { ConversationClassificationBadgeData } from '../../models/conversation-classification.model';
 import type { ConversationDetail, ConversationListItem, ConversationNote, ConversationSummary } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
 import type { TemplateSendPayload } from '../../components/template-picker/template-picker.component';
@@ -85,6 +92,38 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   protected readonly aiTyping = signal(false);
   protected readonly takingOver = signal(false);
 
+  // ── Escalation screening (FE-4.2) ────────────────────────────────────────────
+  private readonly escalationStore = inject(EscalationStore);
+  private readonly badgesStore = inject(ConversationBadgesStore);
+  private readonly escalationRealtime = inject(EscalationRealtimeService);
+  private readonly escalationApi = inject(EscalationApiService);
+  protected readonly escalationRecommendation = computed(() => {
+    const id = this.selectedId();
+    return id != null ? this.escalationStore.getRecommendation(id) ?? null : null;
+  });
+  protected readonly escalationOwnershipTransfer = computed<OwnershipTransferredPayload | null>(() => {
+    const id = this.selectedId();
+    return id != null ? this.escalationStore.getOwnershipTransfer(id) ?? null : null;
+  });
+  protected readonly isManagerOrAdmin = computed(() => {
+    const role = this.auth.userProfile()?.role;
+    return role === 'Admin' || role === 'Manager';
+  });
+  protected readonly escalationAgents = computed<AgentOption[]>(() =>
+    this.users().map((u) => ({ id: Number(u.id), name: u.name }))
+  );
+  protected readonly escalationConfirming = signal(false);
+  protected readonly showOverrideDialog = signal(false);
+
+  // Badges (FE-4.4)
+  protected readonly badgeData = computed(() => {
+    const id = this.selectedId();
+    return id != null ? this.badgesStore.getBadgeData(id) ?? null : null;
+  });
+  protected badgeFor(id: number): ConversationClassificationBadgeData | null {
+    return this.badgesStore.getBadgeData(id);
+  }
+
   // ── Number rail + filters + views ───────────────────────────────────────────
   protected readonly accounts = signal<WhatsAppAccountSummary[]>([]);
   protected readonly selectedAccountId = signal<number | null>(null);
@@ -129,6 +168,13 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.realtime.messageStatusChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((s) => this.onRealtimeStatus(s));
     this.realtime.conversationChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((c) => this.onRealtimeConversation(c));
     this.realtime.noteAdded.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((n) => this.onRealtimeNote(n));
+
+    this.escalationStore.init();
+    this.badgesStore.init();
+    void this.escalationStore.loadSettings();
+    this.escalationRealtime.escalationRecommendationUpdated.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((r) => this.onEscalationRecommendation(r));
+    this.escalationRealtime.escalationAutoAssigned.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((r) => this.onEscalationAutoAssigned(r));
+    this.escalationRealtime.conversationOwnershipTransferred.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => this.onOwnershipTransferred(p));
 
     this.fallback = setInterval(() => this.refresh(), FALLBACK_REFRESH_MS);
   }
@@ -206,6 +252,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.loadSummary(id);
     this.markRead(id);
     this.realtime.joinConversation(id);
+    void this.escalationStore.loadRecommendation(id);
   }
 
   protected selectCard(id: number): void {
@@ -500,6 +547,67 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     if (c.conversationId === this.selectedId()) this.loadDetail(c.conversationId);
   }
 
+  // ── Escalation realtime handlers (FE-4.2) ────────────────────────────────────
+  private onEscalationRecommendation(r: import('../../models/escalation-recommendation.model').EscalationRecommendation): void {
+    this.loadList(false);
+  }
+
+  private onEscalationAutoAssigned(r: import('../../models/escalation-recommendation.model').EscalationRecommendation): void {
+    this.loadList(false);
+    if (this.auth.userProfile() && Number(this.auth.userProfile()!.id) === r.assignedToId) {
+      this.toast.info('', this.t('escalationAssignedToast'));
+    }
+  }
+
+  private onOwnershipTransferred(p: OwnershipTransferredPayload): void {
+    this.loadList(false);
+    const id = this.selectedId();
+    if (id != null) {
+      this.loadDetail(id);
+      this.loadAssignments();
+    }
+    if (this.view() === 'queue') this.loadQueue();
+  }
+
+  // ── Escalation actions (FE-4.2) ──────────────────────────────────────────────
+  protected onEscalationConfirm(event: { escalationId: number; assigneeId: number }): void {
+    this.escalationConfirming.set(true);
+    this.escalationApi.confirm(event.escalationId, event.assigneeId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (rec) => {
+        this.escalationConfirming.set(false);
+        this.escalationStore.setRecommendation(this.selectedId()!, rec);
+        this.loadDetail(this.selectedId()!);
+        this.loadList(false);
+      },
+      error: (err) => {
+        this.escalationConfirming.set(false);
+        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
+      }
+    });
+  }
+
+  protected onEscalationOverrideOpen(): void {
+    this.showOverrideDialog.set(true);
+  }
+
+  protected onEscalationOverrideSubmit(event: { escalationId: number; assigneeId: number; reason: string }): void {
+    this.showOverrideDialog.set(false);
+    this.escalationApi.override(event.escalationId, event.assigneeId, event.reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (rec) => {
+        this.escalationStore.setRecommendation(this.selectedId()!, rec);
+        this.loadDetail(this.selectedId()!);
+        this.loadList(false);
+      },
+      error: (err) => {
+        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
+      }
+    });
+  }
+
+  protected onEscalationOverrideCancel(): void {
+    this.showOverrideDialog.set(false);
+  }
+
   private onRealtimeNote(n: RealtimeNote): void {
     if (n.conversationId !== this.selectedId()) return;
     this.appendNote({ id: n.id, conversationId: n.conversationId, content: n.content, authorName: n.authorName, createdAt: n.createdAt });
@@ -706,5 +814,6 @@ function mapMediaKind(mimeType: string): string {
   if (mimeType === 'image/webp') return 'Sticker';
   if (mimeType.startsWith('image/')) return 'Image';
   if (mimeType.startsWith('video/')) return 'Video';
+  if (mimeType.startsWith('audio/')) return 'Audio';
   return 'Document';
 }

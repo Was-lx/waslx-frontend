@@ -64,6 +64,7 @@ export class InboxRealtimeService {
   readonly conversationChanged = new Subject<RealtimeConversation>();
   readonly noteAdded = new Subject<RealtimeNote>();
   readonly presenceChanged = new Subject<RealtimePresence>();
+  readonly messageClassificationUpdated = new Subject<any>();
 
   private hubUrl(): string {
     // environment.apiUrl ends with "/api"; the hub is served at the host root under /hubs/inbox.
@@ -84,6 +85,7 @@ export class InboxRealtimeService {
     this.hub.on('ConversationChanged', (c: RealtimeConversation) => this.conversationChanged.next(c));
     this.hub.on('NoteAdded', (n: RealtimeNote) => this.noteAdded.next(n));
     this.hub.on('PresenceChanged', (p: RealtimePresence) => this.presenceChanged.next(p));
+    this.hub.on('MessageClassificationUpdated', (p: any) => this.messageClassificationUpdated.next(p));
 
     this.hub.onreconnected(() => this.connected.set(true));
     this.hub.onclose(() => this.connected.set(false));
