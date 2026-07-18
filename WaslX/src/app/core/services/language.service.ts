@@ -38,6 +38,8 @@ import {
   usersTranslations,
   type WorkingHoursKey,
   workingHoursTranslations,
+  type AiKey,
+  aiTranslations,
 } from '../i18n';
 
 export type { AppLanguage, AppDirection };
@@ -62,7 +64,8 @@ export type TranslationKey =
   | TemplatesKey
   | ChannelsKey
   | TagsKey
-  | WorkingHoursKey;
+  | WorkingHoursKey
+  | AiKey;
 
 // ─── Merged translations map ──────────────────────────────────────────────────
 
@@ -85,6 +88,7 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...channelsTranslations.en,
     ...tagsTranslations.en,
     ...workingHoursTranslations.en,
+    ...aiTranslations.en,
   } as Record<TranslationKey, string>,
   ar: {
     ...sharedTranslations.ar,
@@ -104,6 +108,7 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...channelsTranslations.ar,
     ...tagsTranslations.ar,
     ...workingHoursTranslations.ar,
+    ...aiTranslations.ar,
   } as Record<TranslationKey, string>,
 };
 

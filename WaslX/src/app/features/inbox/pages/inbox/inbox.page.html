@@ -105,6 +105,13 @@
           [groups]="groups()"
           [currentGroupId]="routedGroupId()"
           [routing]="routing()"
+          [summary]="summary()"
+          [summaryLoading]="summaryLoading()"
+          [summaryFullLoading]="summaryFullLoading()"
+          [summaryError]="summaryError()"
+          [summarySlow]="summarySlow()"
+          [aiTyping]="aiTyping()"
+          [takingOver]="takingOver()"
           (send)="onSend($event)"
           (sendMedia)="onSendMedia($event)"
           (attachError)="onAttachError($event)"
@@ -119,6 +126,10 @@
           (loadAssignments)="loadAssignments()"
           (route)="onRouteToGroup($event)"
           (handoff)="onHandoff($event)"
+          (generateSummary)="onGenerateFullSummary()"
+          (refreshSummary)="onRefreshSummary()"
+          (retrySummary)="onRefreshSummary()"
+          (takeOver)="onTakeOver()"
         />
       } @else {
         <div class="inbox__placeholder">
