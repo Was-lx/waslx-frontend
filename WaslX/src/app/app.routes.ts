@@ -114,6 +114,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/tags/tags.routes').then((m) => m.tagsRoutes)
       },
       {
+        path: 'knowledge-base',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/knowledge-base/knowledge-base.routes').then((m) => m.knowledgeBaseRoutes)
+      },
+      {
         path: 'working-hours',
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager'] },
