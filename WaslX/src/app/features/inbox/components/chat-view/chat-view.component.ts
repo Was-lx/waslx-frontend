@@ -19,8 +19,18 @@ import { MessageComposerComponent } from '../message-composer/message-composer.c
 import { ContextPanelComponent } from '../context-panel/context-panel.component';
 import { TemplatePickerComponent, type TemplateSendPayload } from '../template-picker/template-picker.component';
 import { AssignmentBarComponent, type AssignEvent } from '../assignment-bar/assignment-bar.component';
-import type { ConversationDetail, ConversationNote } from '../../models/conversation.model';
+import { ConversationSummaryComponent } from '../conversation-summary/conversation-summary.component';
+import { AiSkeletonComponent } from '../ai-skeleton/ai-skeleton.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { EscalationRecommendationComponent } from '../escalation-recommendation/escalation-recommendation.component';
+import { EscalationOwnershipTransferredComponent } from '../escalation-ownership-transferred/escalation-ownership-transferred.component';
+import { EscalationOverrideDialogComponent, type AgentOption } from '../escalation-override-dialog/escalation-override-dialog.component';
+import { ConversationBadgesComponent } from '../conversation-badges/conversation-badges.component';
+import { EscalationStatusChipComponent } from '../escalation-status-chip/escalation-status-chip.component';
+import type { ConversationDetail, ConversationNote, ConversationSummary } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
+import type { ConversationClassificationBadgeData } from '../../models/conversation-classification.model';
+import type { EscalationRecommendation, OwnershipTransferredPayload } from '../../models/escalation-recommendation.model';
 import type { Assignment } from '../../../../core/api/assignment-api.service';
 import type { Tag } from '../../../../core/api/tags-api.service';
 import type { User } from '../../../../core/api/users-api.service';
@@ -33,7 +43,10 @@ import type { Group } from '../../../../core/api/groups-api.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AvatarComponent, MessageBubbleComponent, MessageComposerComponent,
-    ContextPanelComponent, TemplatePickerComponent, AssignmentBarComponent
+    ContextPanelComponent, TemplatePickerComponent, AssignmentBarComponent,
+    ConversationSummaryComponent, AiSkeletonComponent, IconComponent,
+    EscalationRecommendationComponent, EscalationOwnershipTransferredComponent, EscalationOverrideDialogComponent,
+    ConversationBadgesComponent, EscalationStatusChipComponent
   ],
   template: `
     <div class="chat-wrap">
@@ -43,7 +56,22 @@ import type { Group } from '../../../../core/api/groups-api.service';
           <div class="chat__who">
             <span class="chat__name">{{ customerName() }}</span>
             <span class="chat__phone">{{ customerPhone() }}</span>
+            <div class="chat__badges">
+              <app-escalation-status-chip
+                [status]="badgeData()?.escalationStatus"
+                [escalate]="badgeData()?.escalate"
+              />
+              <app-conversation-badges [data]="badgeData()" />
+            </div>
           </div>
+
+          @if (aiActive()) {
+            <button type="button" class="chat__takeover" [title]="t('aiTakeOverTitle')"
+                    [disabled]="takingOver()" (click)="takeOver.emit()">
+              <app-icon name="sparkles" [size]="14" />
+              <span>{{ t('aiTakeOver') }}</span>
+            </button>
+          }
 
           <app-assignment-bar
             class="chat__tools"
@@ -80,6 +108,41 @@ import type { Group } from '../../../../core/api/groups-api.service';
           </div>
         }
 
+        @if (detail() || summary() || summaryLoading()) {
+          <app-conversation-summary
+            [summary]="summary()"
+            [loading]="summaryLoading()"
+            [fullLoading]="summaryFullLoading()"
+            [error]="summaryError()"
+            [slow]="summarySlow()"
+            (generateFull)="generateSummary.emit()"
+            (refresh)="refreshSummary.emit()"
+            (retry)="retrySummary.emit()"
+          />
+        }
+
+        <div class="chat__escalation">
+          <app-escalation-ownership-transferred
+            [isWaiting]="!!escalationOwnershipTransfer() && escalationOwnershipTransfer()!.transitionType === 'Recommend'"
+            [isTransferred]="!!escalationOwnershipTransfer() && escalationOwnershipTransfer()!.transitionType !== 'Recommend'"
+          />
+          <app-escalation-recommendation
+            [recommendation]="escalationRecommendation()"
+            [isManagerOrAdmin]="isManagerOrAdmin()"
+            (confirm)="escalationConfirm.emit($event)"
+            (override)="escalationOverride.emit()"
+          />
+        </div>
+
+        @if (showOverrideDialog()) {
+          <app-escalation-override-dialog
+            [recommendation]="escalationRecommendation()"
+            [agents]="escalationAgents()"
+            (confirm)="escalationOverrideSubmit.emit($event)"
+            (cancel)="onOverrideCancel()"
+          />
+        }
+
         <div class="chat__body">
         <div class="chat__scroll" #scroll>
           @if (hasMore()) {
@@ -98,9 +161,15 @@ import type { Group } from '../../../../core/api/groups-api.service';
                 [message]="m"
                 [retryLabel]="t('inboxRetry')"
                 [mediaUnavailableLabel]="t('inboxMediaUnavailable')"
+                [aiLabel]="t('aiRepliedBy')"
                 (retry)="retry.emit($event)"
               />
             }
+          }
+          @if (aiTyping()) {
+            <div class="chat__ai-typing">
+              <app-ai-skeleton variant="typing" [label]="t('aiTyping')" />
+            </div>
           }
         </div>
 
@@ -164,7 +233,24 @@ import type { Group } from '../../../../core/api/groups-api.service';
     .chat__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .chat__name { font-size: 0.98rem; font-weight: 700; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .chat__phone { font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-    .chat__tools { margin-inline-start: auto; flex: 0 0 auto; }
+    .chat__badges { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+    .chat__tools { flex: 0 0 auto; }
+    /* "Take over from AI" — pinned to the header inline-end, before the tools bar (FE-4.1). */
+    .chat__takeover {
+      margin-inline-start: auto; flex: 0 0 auto;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-soft));
+      background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+      color: var(--accent); font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease;
+    }
+    .chat__takeover:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+    .chat__takeover:disabled { opacity: 0.55; cursor: not-allowed; }
+    .chat__takeover svg { fill: none; stroke: currentColor; stroke-width: 2; }
+    /* When no take-over button is present the tools bar carries the auto-margin instead. */
+    .chat__head:not(:has(.chat__takeover)) .chat__tools { margin-inline-start: auto; }
+    .chat__ai-typing { align-self: flex-start; padding: 6px 4px; }
     /* Slim 24/72h window strip below the header (full width, subtle) */
     .chat__window {
       display: flex; align-items: center; gap: 8px;
@@ -239,6 +325,12 @@ import type { Group } from '../../../../core/api/groups-api.service';
       color: var(--text-muted);
       font-size: 0.88rem;
     }
+    .chat__escalation {
+      padding: 8px 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
   `]
 })
 export class ChatViewComponent implements AfterViewChecked {
@@ -268,6 +360,25 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly groups = input<Group[]>([]);
   readonly currentGroupId = input<number | null>(null);
   readonly routing = input(false);
+  // AI conversation summary (FE-4.3)
+  readonly summary = input<ConversationSummary | null>(null);
+  readonly summaryLoading = input(false);
+  readonly summaryFullLoading = input(false);
+  readonly summaryError = input(false);
+  readonly summarySlow = input(false);
+  // AI Agent presence (FE-4.1)
+  readonly aiTyping = input(false);
+  readonly takingOver = input(false);
+  // Badges (FE-4.4)
+  readonly badgeData = input<ConversationClassificationBadgeData | null>(null);
+
+  // Escalation screening (FE-4.2)
+  readonly escalationRecommendation = input<EscalationRecommendation | null>(null);
+  readonly escalationOwnershipTransfer = input<OwnershipTransferredPayload | null>(null);
+  readonly isManagerOrAdmin = input(false);
+  readonly escalationAgents = input<AgentOption[]>([]);
+  readonly escalationConfirming = input(false);
+  readonly showOverrideDialog = input(false);
 
   readonly send = output<string>();
   readonly sendMedia = output<{ file: File; caption: string }>();
@@ -283,6 +394,27 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly loadAssignments = output<void>();
   readonly route = output<number>();
   readonly handoff = output<number>();
+  // AI conversation summary (FE-4.3)
+  readonly generateSummary = output<void>();
+  readonly refreshSummary = output<void>();
+  readonly retrySummary = output<void>();
+  // AI Agent presence (FE-4.1)
+  readonly takeOver = output<void>();
+  // Escalation screening (FE-4.2)
+  readonly escalationConfirm = output<{ escalationId: number; assigneeId: number }>();
+  readonly escalationOverride = output<void>();
+  readonly escalationOverrideSubmit = output<{ escalationId: number; assigneeId: number; reason: string }>();
+  readonly escalationOverrideCancel = output<void>();
+
+  /** True while the AI Agent is the most recent responder — surfaces the "Take over" affordance. */
+  protected readonly aiActive = computed(() => {
+    const msgs = this.messages();
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].senderType === 'Customer') return false;
+      if (msgs[i].senderType === 'AI') return true;
+    }
+    return false;
+  });
 
   protected readonly showPicker = signal(false);
   /** Whether the customer/context drawer is open (toggled by the profile button in the header toolbar). */
@@ -345,6 +477,10 @@ export class ChatViewComponent implements AfterViewChecked {
   protected onPickerSend(payload: TemplateSendPayload): void {
     this.sendTemplate.emit(payload);
     this.showPicker.set(false);
+  }
+
+  protected onOverrideCancel(): void {
+    this.escalationOverrideCancel.emit();
   }
 
   /** True for the first message and whenever the calendar day changes from the previous message. */

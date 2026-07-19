@@ -132,6 +132,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/analytics/analytics.routes').then((m) => m.analyticsRoutes)
       },
       {
+        path: 'ai-agent',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/ai-agent/ai-agent.routes').then((m) => m.aiAgentRoutes)
+      },
+      {
         path: 'settings',
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager', 'Agent'] },

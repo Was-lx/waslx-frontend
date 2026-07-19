@@ -19,4 +19,3 @@ export { type TemplatesKey, templatesTranslations } from './templates.i18n';
 export { type ChannelsKey, channelsTranslations } from './channels.i18n';
 export { type TagsKey, tagsTranslations } from './tags.i18n';
 export { type WorkingHoursKey, workingHoursTranslations } from './working-hours.i18n';
-export { type KnowledgeBaseKey, knowledgeBaseTranslations } from './knowledge-base.i18n';

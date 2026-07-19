@@ -56,7 +56,6 @@ export class ManagerLayoutComponent {
           { id: 'teams', label: t('teams'), description: t('teamsDesc'), icon: 'shield', routerLink: '/app/teams' },
           { id: 'pipeline', label: t('pipeline'), description: t('pipelineDesc'), icon: 'layers', routerLink: '/app/pipeline' },
           { id: 'tags', label: t('tagsNav'), description: t('tagsNavDesc'), icon: 'tag', routerLink: '/app/tags' },
-          { id: 'knowledge-base', label: t('kbNav'), description: t('kbNavDesc'), icon: 'bot', routerLink: '/app/knowledge-base' },
           { id: 'analytics', label: t('analytics'), description: t('analyticsDesc'), icon: 'chart', routerLink: '/app/analytics' }
         ]
       },

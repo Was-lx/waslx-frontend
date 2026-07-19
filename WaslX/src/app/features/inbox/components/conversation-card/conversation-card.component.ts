@@ -3,14 +3,16 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output } f
 import { LanguageService } from '../../../../core/services/language.service';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { ConversationBadgesComponent } from '../conversation-badges/conversation-badges.component';
 import type { ConversationListItem } from '../../models/conversation.model';
+import type { ConversationClassificationBadgeData } from '../../models/conversation-classification.model';
 
 /** One row in the inbox conversation list. */
 @Component({
   selector: 'app-conversation-card',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AvatarComponent, IconComponent],
+  imports: [AvatarComponent, IconComponent, ConversationBadgesComponent],
   template: `
     <div
       class="conv"
@@ -18,6 +20,7 @@ import type { ConversationListItem } from '../../models/conversation.model';
       tabindex="0"
       [class.conv--active]="selected()"
       [class.conv--unread]="hasUnread()"
+      [class.conv--escalated]="isEscalated()"
       (click)="selectCard.emit(item().id)"
       (keydown.enter)="selectCard.emit(item().id)"
     >
@@ -27,6 +30,7 @@ import type { ConversationListItem } from '../../models/conversation.model';
           <span class="conv__name">{{ item().customerName }}</span>
           <span class="conv__time">{{ relativeTime() }}</span>
         </span>
+        <app-conversation-badges [data]="badgeData()" />
         <span class="conv__bottom">
           <span class="conv__preview">{{ item().lastMessagePreview || '—' }}</span>
           @if (hasUnread()) {
@@ -75,6 +79,20 @@ import type { ConversationListItem } from '../../models/conversation.model';
       border-radius: 999px;
       background: linear-gradient(180deg, var(--primary), var(--accent));
     }
+    .conv--escalated { background: color-mix(in srgb, #EF4444 4%, var(--surface)); }
+    .conv--escalated:hover { background: color-mix(in srgb, #EF4444 8%, var(--surface)); }
+    .conv--escalated::before {
+      content: '';
+      position: absolute;
+      inset-inline-start: 0;
+      top: 14px;
+      bottom: 14px;
+      width: 3px;
+      border-radius: 999px;
+      background: #EF4444;
+    }
+    .conv--escalated.conv--active { background: color-mix(in srgb, #EF4444 6%, var(--surface)); }
+    .conv--escalated.conv--active::before { background: linear-gradient(180deg, #EF4444, var(--accent)); }
     .conv__body { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; }
     .conv__top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
     .conv__name {
@@ -123,10 +141,18 @@ export class ConversationCardComponent {
 
   readonly item = input.required<ConversationListItem>();
   readonly selected = input(false);
+  readonly badgeData = input<ConversationClassificationBadgeData | null>(null);
   readonly selectCard = output<number>();
   readonly deleteCard = output<number>();
 
   protected readonly hasUnread = computed(() => this.item().unreadCount > 0);
+  protected readonly isEscalated = computed(() => {
+    const d = this.badgeData();
+    if (!d) return false;
+    if (d.escalate) return true;
+    const s = d.escalationStatus;
+    return s === 'open' || s === 'recommended' || s === 'assigned';
+  });
   protected readonly unreadLabel = computed(() => `${this.item().unreadCount} ${this.language.text('inboxUnread')}`);
   protected readonly deleteLabel = computed(() => this.language.text('inboxDeleteChat'));
 
