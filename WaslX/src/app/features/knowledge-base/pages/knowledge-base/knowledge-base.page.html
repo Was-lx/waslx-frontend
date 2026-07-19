@@ -1,0 +1,318 @@
+<section class="feature-page kb" [attr.dir]="direction()">
+  <header class="feature-page__header">
+    <div class="kb__lead">
+      <span class="feature-page__eyebrow">{{ t('kbEyebrow') }}</span>
+      <h1>{{ t('kbTitle') }}</h1>
+      <p class="kb__lead-text">{{ t('kbLead') }}</p>
+    </div>
+  </header>
+
+  <div class="kb__tabs" role="tablist">
+    <button type="button" class="kb__tab" [class.is-active]="tab() === 'faqs'" (click)="selectTab('faqs')">
+      <app-icon name="message" [size]="15" /> {{ t('kbTabFaqs') }}
+    </button>
+    <button type="button" class="kb__tab" [class.is-active]="tab() === 'documents'" (click)="selectTab('documents')">
+      <app-icon name="file-text" [size]="15" /> {{ t('kbTabDocuments') }}
+    </button>
+    <button type="button" class="kb__tab" [class.is-active]="tab() === 'websites'" (click)="selectTab('websites')">
+      <app-icon name="globe" [size]="15" /> {{ t('kbTabWebsites') }}
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════ FAQs ══════════════════════════ -->
+  @if (tab() === 'faqs') {
+    <div class="feature-page__actions kb__toolbar">
+      <label class="feature-page__search">
+        <app-icon name="search" [size]="17" />
+        <input type="text" [value]="faqSearch()" (input)="faqSearch.set($any($event.target).value)" [placeholder]="t('kbFaqSearch')" />
+      </label>
+      <button class="feature-page__btn" type="button" (click)="openCreateFaq()">
+        <app-icon name="plus" [size]="17" /> {{ t('kbFaqNew') }}
+      </button>
+    </div>
+
+    @if (faqsLoading()) {
+      <div class="feature-page__empty kb__state"><div class="ui-spinner"></div><p>{{ t('kbFaqLoading') }}</p></div>
+    } @else if (faqsError()) {
+      <div class="feature-page__empty">
+        <app-icon name="message" [size]="26" />
+        <h3>{{ t('kbFaqErrorTitle') }}</h3>
+        <button class="ui-btn ui-btn--ghost ui-btn--sm" type="button" (click)="loadFaqs()">{{ t('kbRetry') }}</button>
+      </div>
+    } @else if (faqs().length === 0) {
+      <div class="feature-page__empty">
+        <app-icon name="message" [size]="26" />
+        <h3>{{ t('kbFaqEmptyTitle') }}</h3>
+        <p>{{ t('kbFaqEmptyDesc') }}</p>
+        <button class="ui-btn ui-btn--primary ui-btn--sm" type="button" (click)="openCreateFaq()">{{ t('kbFaqEmptyCta') }}</button>
+      </div>
+    } @else if (filteredFaqs().length === 0) {
+      <div class="feature-page__empty"><app-icon name="search" [size]="26" /><h3>{{ t('kbFaqNoResults') }}</h3></div>
+    } @else {
+      <div class="kb__grid">
+        @for (faq of filteredFaqs(); track faq.id) {
+          <article class="kb-card">
+            <div class="kb-card__head">
+              <span class="ui-pill" [class]="statusPillClass(faq.indexStatus || 'Pending')">{{ statusLabel(faq.indexStatus || 'Pending') }}</span>
+              <div class="kb-card__actions">
+                <button type="button" class="kb-card__act" [attr.aria-label]="t('kbEdit')" (click)="openEditFaq(faq)">
+                  <app-icon name="settings" [size]="15" />
+                </button>
+                <button type="button" class="kb-card__act kb-card__act--danger" [attr.aria-label]="t('kbDelete')" (click)="requestDeleteFaq(faq)">
+                  <app-icon name="trash" [size]="15" />
+                </button>
+              </div>
+            </div>
+            <h3 class="kb-card__title">{{ faq.question }}</h3>
+            <p class="kb-card__desc">{{ faq.answer }}</p>
+            @if (!faq.isActive) { <span class="ui-pill ui-pill--muted kb-card__inactive">{{ t('kbFaqActiveLabel') }}: {{ 'Off' }}</span> }
+          </article>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══════════════════════════════════════════ Documents ═════════════════════ -->
+  @if (tab() === 'documents') {
+    <div class="feature-page__actions kb__toolbar">
+      <button class="feature-page__btn" type="button" (click)="openUploadDocument()">
+        <app-icon name="paperclip" [size]="17" /> {{ t('kbDocUpload') }}
+      </button>
+    </div>
+
+    @if (documentsLoading()) {
+      <div class="feature-page__empty kb__state"><div class="ui-spinner"></div><p>{{ t('kbDocLoading') }}</p></div>
+    } @else if (documents().length === 0) {
+      <div class="feature-page__empty">
+        <app-icon name="file-text" [size]="26" />
+        <h3>{{ t('kbDocEmptyTitle') }}</h3>
+        <p>{{ t('kbDocEmptyDesc') }}</p>
+        <button class="ui-btn ui-btn--primary ui-btn--sm" type="button" (click)="openUploadDocument()">{{ t('kbDocUpload') }}</button>
+      </div>
+    } @else {
+      <div class="kb__list">
+        @for (doc of documents(); track doc.id) {
+          <article class="kb-row">
+            <app-icon name="file-text" [size]="20" class="kb-row__icon" />
+            <div class="kb-row__body">
+              <span class="kb-row__title">{{ doc.title }}</span>
+              @if (doc.errorMessage) { <span class="kb-row__error">{{ doc.errorMessage }}</span> }
+            </div>
+            <span class="ui-pill" [class]="statusPillClass(doc.status)">{{ statusLabel(doc.status) }}</span>
+            <span class="kb-row__chunks">{{ doc.chunkCount }} {{ t('kbChunksCount') }}</span>
+            <div class="kb-row__actions">
+              <button type="button" class="kb-card__act" [attr.aria-label]="t('kbReindex')" (click)="reindexDocument(doc)">
+                <app-icon name="refresh-cw" [size]="15" />
+              </button>
+              <button type="button" class="kb-card__act kb-card__act--danger" [attr.aria-label]="t('kbDelete')" (click)="requestDeleteDocument(doc)">
+                <app-icon name="trash" [size]="15" />
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══════════════════════════════════════════ Websites ══════════════════════ -->
+  @if (tab() === 'websites') {
+    <div class="feature-page__actions kb__toolbar">
+      <button class="feature-page__btn" type="button" (click)="openAddWebsite()">
+        <app-icon name="globe" [size]="17" /> {{ t('kbWebAdd') }}
+      </button>
+    </div>
+
+    @if (websitesLoading()) {
+      <div class="feature-page__empty kb__state"><div class="ui-spinner"></div><p>{{ t('kbWebLoading') }}</p></div>
+    } @else if (websites().length === 0) {
+      <div class="feature-page__empty">
+        <app-icon name="globe" [size]="26" />
+        <h3>{{ t('kbWebEmptyTitle') }}</h3>
+        <p>{{ t('kbWebEmptyDesc') }}</p>
+        <button class="ui-btn ui-btn--primary ui-btn--sm" type="button" (click)="openAddWebsite()">{{ t('kbWebAdd') }}</button>
+      </div>
+    } @else {
+      <div class="kb__list">
+        @for (doc of websites(); track doc.id) {
+          <article class="kb-row">
+            <app-icon name="globe" [size]="20" class="kb-row__icon" />
+            <div class="kb-row__body">
+              <span class="kb-row__title">{{ doc.title }}</span>
+              <span class="kb-row__url">{{ doc.sourceUrl }}</span>
+              @if (doc.errorMessage) { <span class="kb-row__error">{{ doc.errorMessage }}</span> }
+            </div>
+            <span class="ui-pill" [class]="statusPillClass(doc.status)">{{ statusLabel(doc.status) }}</span>
+            <span class="kb-row__chunks">{{ doc.chunkCount }} {{ t('kbChunksCount') }}</span>
+            <div class="kb-row__actions">
+              <button type="button" class="kb-card__act" [attr.aria-label]="t('kbReindex')" (click)="reindexWebsite(doc)">
+                <app-icon name="refresh-cw" [size]="15" />
+              </button>
+              <button type="button" class="kb-card__act kb-card__act--danger" [attr.aria-label]="t('kbDelete')" (click)="requestDeleteWebsite(doc)">
+                <app-icon name="trash" [size]="15" />
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>
+
+<!-- ══════════════════════════════ FAQ create/edit modal ══════════════════════ -->
+@if (faqEditorOpen()) {
+  <div class="ui-overlay" (click)="closeFaqEditor()">
+    <div class="ui-modal kb-modal" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-modal__head">
+        <h2 class="ui-modal__title">{{ editingFaq() ? t('kbFaqEditTitle') : t('kbFaqCreateTitle') }}</h2>
+        <button type="button" class="ui-modal__close" [attr.aria-label]="t('kbCancel')" (click)="closeFaqEditor()">
+          <app-icon name="x" [size]="18" />
+        </button>
+      </div>
+      <div class="ui-modal__body">
+        <div class="ui-field">
+          <label class="ui-label" for="kb-question">{{ t('kbQuestionLabel') }}</label>
+          <input id="kb-question" class="ui-input" type="text" [(ngModel)]="faqForm.question" (ngModelChange)="faqFormError.set(null)" [placeholder]="t('kbQuestionPlaceholder')" maxlength="300" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="kb-answer">{{ t('kbAnswerLabel') }}</label>
+          <textarea id="kb-answer" class="ui-textarea" [(ngModel)]="faqForm.answer" (ngModelChange)="faqFormError.set(null)" [placeholder]="t('kbAnswerPlaceholder')" rows="4"></textarea>
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="kb-lang">{{ t('kbLanguageLabel') }}</label>
+          <select id="kb-lang" class="ui-input" [(ngModel)]="faqForm.language">
+            <option value="English">{{ t('kbLanguageEnglish') }}</option>
+            <option value="Arabic">{{ t('kbLanguageArabic') }}</option>
+          </select>
+        </div>
+        <label class="kb-checkbox">
+          <input type="checkbox" [(ngModel)]="faqForm.isActive" />
+          {{ t('kbFaqActiveLabel') }}
+        </label>
+        @if (faqFormError()) { <span class="ui-error">{{ faqFormError() }}</span> }
+      </div>
+      <div class="ui-modal__foot">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="closeFaqEditor()">{{ t('kbCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--primary" [disabled]="faqSaving()" (click)="saveFaq()">
+          {{ faqSaving() ? t('kbSaving') : t('kbSave') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════ FAQ delete confirm ══════════════════════════ -->
+@if (pendingDeleteFaq(); as pending) {
+  <div class="ui-overlay" (click)="cancelDeleteFaq()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <h3>{{ t('kbFaqDeleteTitle') }}</h3>
+      <p>{{ t('kbFaqDeleteBody') }}</p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDeleteFaq()">{{ t('kbCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--danger" [disabled]="deletingFaq()" (click)="confirmDeleteFaq()">{{ t('kbConfirmDelete') }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════ Document upload modal ═══════════════════════ -->
+@if (documentUploadOpen()) {
+  <div class="ui-overlay" (click)="closeUploadDocument()">
+    <div class="ui-modal kb-modal" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-modal__head">
+        <h2 class="ui-modal__title">{{ t('kbDocUpload') }}</h2>
+        <button type="button" class="ui-modal__close" [attr.aria-label]="t('kbCancel')" (click)="closeUploadDocument()">
+          <app-icon name="x" [size]="18" />
+        </button>
+      </div>
+      <div class="ui-modal__body">
+        <div class="ui-field">
+          <label class="ui-label" for="kb-file">{{ t('kbDocChooseFile') }}</label>
+          <input id="kb-file" type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" (change)="onFileSelected($event)" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="kb-doc-title">{{ t('kbDocTitleLabel') }}</label>
+          <input id="kb-doc-title" class="ui-input" type="text" [(ngModel)]="docTitle" [placeholder]="t('kbDocTitlePlaceholder')" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="kb-doc-lang">{{ t('kbLanguageLabel') }}</label>
+          <select id="kb-doc-lang" class="ui-input" [(ngModel)]="docLanguage">
+            <option value="English">{{ t('kbLanguageEnglish') }}</option>
+            <option value="Arabic">{{ t('kbLanguageArabic') }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="ui-modal__foot">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="closeUploadDocument()">{{ t('kbCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--primary" [disabled]="documentUploading() || !selectedFile()" (click)="uploadDocument()">
+          {{ documentUploading() ? t('kbDocUploading') : t('kbDocUpload') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════ Document delete confirm ═════════════════════ -->
+@if (pendingDeleteDocument(); as pending) {
+  <div class="ui-overlay" (click)="cancelDeleteDocument()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <h3>{{ t('kbDocDeleteTitle') }}</h3>
+      <p>{{ t('kbDocDeleteBody') }}</p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDeleteDocument()">{{ t('kbCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--danger" [disabled]="deletingDocument()" (click)="confirmDeleteDocument()">{{ t('kbConfirmDelete') }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════ Website add modal ════════════════════════════ -->
+@if (websiteAddOpen()) {
+  <div class="ui-overlay" (click)="closeAddWebsite()">
+    <div class="ui-modal kb-modal" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-modal__head">
+        <h2 class="ui-modal__title">{{ t('kbWebAdd') }}</h2>
+        <button type="button" class="ui-modal__close" [attr.aria-label]="t('kbCancel')" (click)="closeAddWebsite()">
+          <app-icon name="x" [size]="18" />
+        </button>
+      </div>
+      <div class="ui-modal__body">
+        <div class="ui-field">
+          <label class="ui-label" for="kb-web-url">{{ t('kbWebUrlLabel') }}</label>
+          <input id="kb-web-url" class="ui-input" type="url" [(ngModel)]="webUrl" (ngModelChange)="websiteFormError.set(null)" [placeholder]="t('kbWebUrlPlaceholder')" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="kb-web-title">{{ t('kbWebTitleLabel') }}</label>
+          <input id="kb-web-title" class="ui-input" type="text" [(ngModel)]="webTitle" [placeholder]="t('kbWebTitlePlaceholder')" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="kb-web-lang">{{ t('kbLanguageLabel') }}</label>
+          <select id="kb-web-lang" class="ui-input" [(ngModel)]="webLanguage">
+            <option value="English">{{ t('kbLanguageEnglish') }}</option>
+            <option value="Arabic">{{ t('kbLanguageArabic') }}</option>
+          </select>
+        </div>
+        @if (websiteFormError()) { <span class="ui-error">{{ websiteFormError() }}</span> }
+      </div>
+      <div class="ui-modal__foot">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="closeAddWebsite()">{{ t('kbCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--primary" [disabled]="websiteAdding()" (click)="addWebsite()">
+          {{ websiteAdding() ? t('kbWebAdding') : t('kbWebAdd') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════ Website delete confirm ═══════════════════════ -->
+@if (pendingDeleteWebsite(); as pending) {
+  <div class="ui-overlay" (click)="cancelDeleteWebsite()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <h3>{{ t('kbWebDeleteTitle') }}</h3>
+      <p>{{ t('kbWebDeleteBody') }}</p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDeleteWebsite()">{{ t('kbCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--danger" [disabled]="deletingWebsite()" (click)="confirmDeleteWebsite()">{{ t('kbConfirmDelete') }}</button>
+      </div>
+    </div>
+  </div>
+}
