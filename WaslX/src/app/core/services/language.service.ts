@@ -4,6 +4,8 @@ import { Inject, Injectable, effect, signal } from '@angular/core';
 import { type AppLanguage, type AppDirection } from '../i18n/language.types';
 
 import {
+  type AiKey,
+  aiTranslations,
   type AnalyticsKey,
   analyticsTranslations,
   type AuthKey,
@@ -16,6 +18,8 @@ import {
   dashboardTranslations,
   type InboxKey,
   inboxTranslations,
+  type KnowledgeBaseKey,
+  knowledgeBaseTranslations,
   type LayoutKey,
   layoutTranslations,
   type LandingKey,
@@ -46,6 +50,8 @@ export type { AppLanguage, AppDirection };
 // All keys from all i18n files merged into one union type.
 
 export type TranslationKey =
+  | AiKey
+  | KnowledgeBaseKey
   | SharedKey
   | LayoutKey
   | AuthKey
@@ -85,6 +91,8 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...channelsTranslations.en,
     ...tagsTranslations.en,
     ...workingHoursTranslations.en,
+    ...aiTranslations.en,
+    ...knowledgeBaseTranslations.en,
   } as Record<TranslationKey, string>,
   ar: {
     ...sharedTranslations.ar,
@@ -104,6 +112,8 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...channelsTranslations.ar,
     ...tagsTranslations.ar,
     ...workingHoursTranslations.ar,
+    ...aiTranslations.ar,
+    ...knowledgeBaseTranslations.ar,
   } as Record<TranslationKey, string>,
 };
 
