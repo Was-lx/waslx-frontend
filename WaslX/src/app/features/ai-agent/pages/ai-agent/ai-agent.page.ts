@@ -1,7 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DestroyRef } from '@angular/core';
-import { switchMap } from 'rxjs/operators';
 
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -15,7 +14,7 @@ import {
   type AiKnowledgeFile,
 } from '../../../../core/api/ai-agent-api.service';
 import { EscalationApiService } from '../../../inbox/services/escalation-api.service';
-import type { EscalationModeSettings } from '../../../inbox/models/escalation-recommendation.model';
+import type { EscalationMode } from '../../../inbox/models/escalation-recommendation.model';
 
 const DEFAULT_SETTINGS: AiAgentSettings = {
   enabled: false,
@@ -85,27 +84,6 @@ const DEFAULT_SETTINGS: AiAgentSettings = {
         }
       </div>
 
-      <!-- Escalation mode -->
-      <div class="aip__card">
-        <div class="aip__card-head">
-          <div>
-            <h2 class="aip__card-title">{{ t('aiEscMode') }}</h2>
-            <p class="aip__muted" style="margin-top:2px">{{ t('aiEscDesc') }}</p>
-          </div>
-          <label class="aip__switch">
-            <input type="checkbox" [checked]="escalationAutoMode()"
-                   (change)="setEscalationMode($any($event.target).checked)" />
-            <span class="aip__switch-track"><span class="aip__switch-thumb"></span></span>
-          </label>
-        </div>
-        <div class="aip__card-row">
-          <span class="aip__badge" [class.aip__badge--auto]="escalationAutoMode()">
-            {{ escalationAutoMode() ? 'AutoAssign' : 'Recommend' }}
-          </span>
-          <span class="aip__muted">{{ escalationAutoMode() ? t('aiEscAutoDesc') : t('aiEscRecDesc') }}</span>
-        </div>
-      </div>
-
       <!-- Persona & tone -->
       <div class="aip__card">
         <h2 class="aip__card-title">{{ t('aiPersonaTitle') }}</h2>
@@ -163,6 +141,19 @@ const DEFAULT_SETTINGS: AiAgentSettings = {
                  [value]="thresholdPct()" (input)="setThreshold($any($event.target).value)" />
           <span class="aip__slider-val">{{ thresholdPct() }}%</span>
         </div>
+      </div>
+
+      <!-- Escalation mode (US-4.4) -->
+      <div class="aip__card">
+        <div class="aip__card-head">
+          <h2 class="aip__card-title">{{ t('aiEscMode') }}</h2>
+          <label class="aip__switch">
+            <input type="checkbox" [checked]="escalationMode() === 'autoAssign'"
+                   (change)="setEscalationMode($any($event.target).checked)" />
+            <span class="aip__switch-track"><span class="aip__switch-thumb"></span></span>
+          </label>
+        </div>
+        <p class="aip__muted">{{ escalationMode() === 'autoAssign' ? t('aiEscAutoDesc') : t('aiEscRecDesc') }}</p>
       </div>
 
       <!-- Monitoring -->
@@ -237,10 +228,6 @@ const DEFAULT_SETTINGS: AiAgentSettings = {
     .aip__switch input:checked + .aip__switch-track { background: var(--primary); }
     .aip__switch input:checked + .aip__switch-track .aip__switch-thumb { transform: translateX(20px); }
     :host-context([dir="rtl"]) .aip__switch input:checked + .aip__switch-track .aip__switch-thumb { transform: translateX(-20px); }
-    /* Escalation mode */
-    .aip__card-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .aip__badge { font-size: 0.72rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
-    .aip__badge--auto { background: color-mix(in srgb, #dc2626 12%, transparent); color: #b91c1c; }
     /* Per-number */
     .aip__numbers { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px dashed var(--border-subtle); }
     .aip__number-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); }
@@ -281,12 +268,12 @@ export class AiAgentPageComponent implements OnInit {
   protected readonly accounts = signal<WhatsAppAccountSummary[]>([]);
   protected readonly saving = signal(false);
   protected readonly unavailable = signal(false);
-  protected readonly escalationAutoMode = signal(false);
+  protected readonly escalationMode = signal<EscalationMode>('recommend');
 
   protected readonly thresholdPct = computed(() => Math.round(this.settings().handoffThreshold * 100));
 
   protected t = (key: TranslationKey): string => this.language.text(key);
-  protected direction = (): 'ltr' | 'rtl' => this.language.getDirection();
+  protected direction = (): 'rtl' | 'ltr' => this.language.getDirection();
 
   ngOnInit(): void {
     this.whatsapp.getAccounts().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -305,18 +292,10 @@ export class AiAgentPageComponent implements OnInit {
       next: (c) => this.monitored.set(c), error: () => {}
     });
 
-    this.loadEscalationMode();
-  }
-
-  private loadEscalationMode(): void {
     this.escalationApi.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (s) => this.escalationAutoMode.set(s.mode === 'autoAssign'),
-      error: () => {} // defaults to Recommend
+      next: (s) => this.escalationMode.set(s.mode),
+      error: () => {} // Default to recommend
     });
-  }
-
-  protected setEscalationMode(enabled: boolean): void {
-    this.escalationAutoMode.set(enabled);
   }
 
   protected patch(part: Partial<AiAgentSettings>): void {
@@ -329,6 +308,14 @@ export class AiAgentPageComponent implements OnInit {
 
   protected setThreshold(pct: string): void {
     this.patch({ handoffThreshold: Math.max(0, Math.min(100, Number(pct))) / 100 });
+  }
+
+  protected setEscalationMode(autoAssign: boolean): void {
+    const mode: EscalationMode = autoAssign ? 'autoAssign' : 'recommend';
+    this.escalationMode.set(mode);
+    this.escalationApi.updateSettings(mode).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      error: () => this.escalationMode.set(mode === 'autoAssign' ? 'recommend' : 'autoAssign')
+    });
   }
 
   protected isNumberEnabled(accountId: number): boolean {
@@ -366,17 +353,11 @@ export class AiAgentPageComponent implements OnInit {
 
   protected save(): void {
     this.saving.set(true);
-    this.aiApi.updateSettings(this.settings()).pipe(
-      switchMap((s) => {
+    this.aiApi.updateSettings(this.settings()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (s) => {
         this.settings.set({ ...DEFAULT_SETTINGS, ...s });
-        this.unavailable.set(false);
-        const mode = this.escalationAutoMode() ? 'autoAssign' : 'recommend';
-        return this.escalationApi.updateSettings(mode);
-      }),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: () => {
         this.saving.set(false);
+        this.unavailable.set(false);
         this.toast.success(this.t('aiSettingsSaved'), '');
       },
       error: (err) => {
