@@ -58,6 +58,11 @@ export type AiKey =
   | 'aiSettingsSaved'
   | 'aiSettingsError'
   | 'aiUnavailableHint'
+  // Escalation mode (FE-4.5)
+  | 'aiEscMode'
+  | 'aiEscDesc'
+  | 'aiEscRecDesc'
+  | 'aiEscAutoDesc'
   // Escalation recommendation (FE-4.2)
   | 'aiEscTitle'
   | 'aiEscReasonLabel'
@@ -138,8 +143,13 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiSettingsSaved: 'AI Agent settings saved',
     aiSettingsError: 'Could not save the AI Agent settings',
     aiUnavailableHint: 'The AI Agent service is not connected yet.',
+    // Escalation mode
+    aiEscMode: 'Escalation mode',
+    aiEscDesc: 'When set to auto-assign, escalations are automatically assigned to the best-performing agent. When set to recommend, a manager must approve each assignment.',
+    aiEscRecDesc: 'Managers must approve each escalation.',
+    aiEscAutoDesc: 'Escalations are assigned automatically.',
     // Escalation
-    aiEscTitle: 'Escalation recommended',
+    aiEscTitle: 'Escalation',
     aiEscReasonLabel: 'Reason',
     aiEscSuggestedLabel: 'Suggested senior agent',
     aiEscConfirm: 'Confirm escalation',
@@ -217,6 +227,11 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiSettingsSaved: 'تم حفظ إعدادات الوكيل الذكي',
     aiSettingsError: 'تعذّر حفظ إعدادات الوكيل الذكي',
     aiUnavailableHint: 'خدمة الوكيل الذكي غير متصلة بعد.',
+    // Escalation mode
+    aiEscMode: 'وضع التصعيد',
+    aiEscDesc: 'عند تعيينه على التعيين التلقائي، يتم تعيين التصعيد تلقائيًا لأفضل وكيل أداءً. عند تعيينه على التوصية، يجب على المدير الموافقة على كل تعيين.',
+    aiEscRecDesc: 'يجب على المديرين الموافقة على كل تصعيد.',
+    aiEscAutoDesc: 'يتم تعيين التصعيد تلقائيًا.',
     // Escalation
     aiEscTitle: 'يُوصى بالتصعيد',
     aiEscReasonLabel: 'السبب',
