@@ -58,11 +58,6 @@ export type AiKey =
   | 'aiSettingsSaved'
   | 'aiSettingsError'
   | 'aiUnavailableHint'
-  // Escalation mode (FE-4.5)
-  | 'aiEscMode'
-  | 'aiEscDesc'
-  | 'aiEscRecDesc'
-  | 'aiEscAutoDesc'
   // Escalation recommendation (FE-4.2)
   | 'aiEscTitle'
   | 'aiEscReasonLabel'
@@ -73,6 +68,10 @@ export type AiKey =
   | 'aiEscOverridden'
   | 'aiEscError'
   | 'aiEscSelectAgent'
+  // Escalation mode toggle (US-4.4)
+  | 'aiEscMode'
+  | 'aiEscRecDesc'
+  | 'aiEscAutoDesc'
   // Badges (FE-4.4)
   | 'aiBadgeVip'
   | 'aiBadgeUrgent'
@@ -143,13 +142,8 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiSettingsSaved: 'AI Agent settings saved',
     aiSettingsError: 'Could not save the AI Agent settings',
     aiUnavailableHint: 'The AI Agent service is not connected yet.',
-    // Escalation mode
-    aiEscMode: 'Escalation mode',
-    aiEscDesc: 'When set to auto-assign, escalations are automatically assigned to the best-performing agent. When set to recommend, a manager must approve each assignment.',
-    aiEscRecDesc: 'Managers must approve each escalation.',
-    aiEscAutoDesc: 'Escalations are assigned automatically.',
     // Escalation
-    aiEscTitle: 'Escalation',
+    aiEscTitle: 'Escalation recommended',
     aiEscReasonLabel: 'Reason',
     aiEscSuggestedLabel: 'Suggested senior agent',
     aiEscConfirm: 'Confirm escalation',
@@ -158,6 +152,10 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiEscOverridden: 'Recommendation overridden',
     aiEscError: 'Could not update the escalation',
     aiEscSelectAgent: 'Choose a different agent',
+    // Escalation mode
+    aiEscMode: 'Escalation mode',
+    aiEscRecDesc: 'Recommend — Manager/Admin must confirm before assignment.',
+    aiEscAutoDesc: 'Auto-assign — Best agent is assigned automatically.',
     // Badges
     aiBadgeVip: 'VIP',
     aiBadgeUrgent: 'Urgent',
@@ -227,11 +225,6 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiSettingsSaved: 'تم حفظ إعدادات الوكيل الذكي',
     aiSettingsError: 'تعذّر حفظ إعدادات الوكيل الذكي',
     aiUnavailableHint: 'خدمة الوكيل الذكي غير متصلة بعد.',
-    // Escalation mode
-    aiEscMode: 'وضع التصعيد',
-    aiEscDesc: 'عند تعيينه على التعيين التلقائي، يتم تعيين التصعيد تلقائيًا لأفضل وكيل أداءً. عند تعيينه على التوصية، يجب على المدير الموافقة على كل تعيين.',
-    aiEscRecDesc: 'يجب على المديرين الموافقة على كل تصعيد.',
-    aiEscAutoDesc: 'يتم تعيين التصعيد تلقائيًا.',
     // Escalation
     aiEscTitle: 'يُوصى بالتصعيد',
     aiEscReasonLabel: 'السبب',
@@ -242,6 +235,10 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiEscOverridden: 'تم تجاوز التوصية',
     aiEscError: 'تعذّر تحديث التصعيد',
     aiEscSelectAgent: 'اختر موظفًا آخر',
+    // Escalation mode
+    aiEscMode: 'وضع التصعيد',
+    aiEscRecDesc: 'توصية — يجب على المدير/المشرف تأكيد التعيين.',
+    aiEscAutoDesc: 'تعيين تلقائي — يتم تعيين أفضل موظف تلقائيًا.',
     // Badges
     aiBadgeVip: 'VIP',
     aiBadgeUrgent: 'عاجل',
