@@ -24,6 +24,12 @@ export type AiKey =
   | 'aiTakeOverTitle'
   | 'aiTakeOverDone'
   | 'aiTakeOverError'
+  | 'aiActive'
+  | 'aiActiveTitle'
+  | 'aiPaused'
+  | 'aiPausedTitle'
+  | 'aiHuman'
+  | 'aiHumanTitle'
   | 'aiTyping'
   // Control panel (FE-4.1)
   | 'aiAgentNav'
@@ -108,6 +114,12 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiTakeOverTitle: 'Take over this conversation from the AI Agent',
     aiTakeOverDone: 'You have taken over this conversation',
     aiTakeOverError: 'Could not take over the conversation',
+    aiActive: 'AI Active',
+    aiActiveTitle: 'AI is automatically replying. Click to pause.',
+    aiPaused: 'AI Paused',
+    aiPausedTitle: 'AI is paused for this conversation. Click to resume.',
+    aiHuman: 'Human',
+    aiHumanTitle: 'AI is disabled. Click to enable AI.',
     aiTyping: 'AI Agent is typing…',
     // Control panel
     aiAgentNav: 'AI Agent',
@@ -191,6 +203,12 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiTakeOverTitle: 'تولّي هذه المحادثة من الوكيل الذكي',
     aiTakeOverDone: 'لقد تولّيت هذه المحادثة',
     aiTakeOverError: 'تعذّر تولّي المحادثة',
+    aiActive: 'الذكاء الاصطناعي نشط',
+    aiActiveTitle: 'الذكاء الاصطناعي يرد تلقائياً. انقر للإيقاف المؤقت.',
+    aiPaused: 'الذكاء الاصطناعي متوقف مؤقتاً',
+    aiPausedTitle: 'الذكاء الاصطناعي متوقف مؤقتاً لهذه المحادثة. انقر للاستئناف.',
+    aiHuman: 'بشري',
+    aiHumanTitle: 'الذكاء الاصطناعي معطل. انقر لتفعيله.',
     aiTyping: 'الوكيل الذكي يكتب…',
     // Control panel
     aiAgentNav: 'الوكيل الذكي',

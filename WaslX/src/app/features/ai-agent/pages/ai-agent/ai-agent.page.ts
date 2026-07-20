@@ -288,14 +288,17 @@ export class AiAgentPageComponent implements OnInit {
     this.aiApi.getKnowledge().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (k) => this.knowledge.set(k), error: () => {}
     });
-    this.aiApi.getHandledConversations().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (c) => this.monitored.set(c), error: () => {}
-    });
 
-    this.escalationApi.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (s) => this.escalationMode.set(s.mode),
-      error: () => {} // Default to recommend
-    });
+    const loadMonitored = () => {
+      this.aiApi.getHandledConversations().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: (c) => this.monitored.set(c), error: () => {}
+      });
+    };
+    
+    loadMonitored();
+    const monitorInterval = setInterval(loadMonitored, 30000);
+    this.destroyRef.onDestroy(() => clearInterval(monitorInterval));
+
   }
 
   protected patch(part: Partial<AiAgentSettings>): void {
