@@ -74,6 +74,10 @@ export type AiKey =
   | 'aiEscOverridden'
   | 'aiEscError'
   | 'aiEscSelectAgent'
+  // Escalation mode toggle (US-4.4)
+  | 'aiEscMode'
+  | 'aiEscRecDesc'
+  | 'aiEscAutoDesc'
   // Badges (FE-4.4)
   | 'aiBadgeVip'
   | 'aiBadgeUrgent'
@@ -160,6 +164,10 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiEscOverridden: 'Recommendation overridden',
     aiEscError: 'Could not update the escalation',
     aiEscSelectAgent: 'Choose a different agent',
+    // Escalation mode
+    aiEscMode: 'Escalation mode',
+    aiEscRecDesc: 'Recommend — Manager/Admin must confirm before assignment.',
+    aiEscAutoDesc: 'Auto-assign — Best agent is assigned automatically.',
     // Badges
     aiBadgeVip: 'VIP',
     aiBadgeUrgent: 'Urgent',
@@ -245,6 +253,10 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiEscOverridden: 'تم تجاوز التوصية',
     aiEscError: 'تعذّر تحديث التصعيد',
     aiEscSelectAgent: 'اختر موظفًا آخر',
+    // Escalation mode
+    aiEscMode: 'وضع التصعيد',
+    aiEscRecDesc: 'توصية — يجب على المدير/المشرف تأكيد التعيين.',
+    aiEscAutoDesc: 'تعيين تلقائي — يتم تعيين أفضل موظف تلقائيًا.',
     // Badges
     aiBadgeVip: 'VIP',
     aiBadgeUrgent: 'عاجل',

@@ -14,22 +14,22 @@ export class EscalationApiService {
   private readonly api = inject(ApiClientService);
 
   getRecommendation(conversationId: number): Observable<EscalationRecommendation> {
-    return this.api.get<EscalationRecommendation>(`/api/conversations/${conversationId}/escalation-recommendation`);
+    return this.api.get<EscalationRecommendation>(`/conversations/${conversationId}/escalation-recommendation`);
   }
 
   confirm(escalationId: number, assigneeId: number): Observable<EscalationRecommendation> {
-    return this.api.post<EscalationRecommendation>(`/api/escalations/${escalationId}/confirm`, { assigneeId } satisfies ConfirmRequest);
+    return this.api.post<EscalationRecommendation>(`/escalations/${escalationId}/confirm`, { assigneeId } satisfies ConfirmRequest);
   }
 
   override(escalationId: number, assigneeId: number, reason: string): Observable<EscalationRecommendation> {
-    return this.api.post<EscalationRecommendation>(`/api/escalations/${escalationId}/override`, { assigneeId, reason } satisfies OverrideRequest);
+    return this.api.post<EscalationRecommendation>(`/escalations/${escalationId}/override`, { assigneeId, reason } satisfies OverrideRequest);
   }
 
   getSettings(): Observable<EscalationModeSettings> {
-    return this.api.get<EscalationModeSettings>('/api/escalation/settings');
+    return this.api.get<EscalationModeSettings>('/escalation/settings');
   }
 
   updateSettings(mode: string): Observable<EscalationModeSettings> {
-    return this.api.put<EscalationModeSettings>('/api/escalation/settings', { mode });
+    return this.api.put<EscalationModeSettings>('/escalation/settings', { mode });
   }
 }
