@@ -29,8 +29,14 @@ export interface RealtimeStatus {
 export interface RealtimeConversation {
   conversationId: number;
   status: string;
-  assignedUserId: number | null;
   lastMessageAt: string | null;
+  handledByAi: boolean;
+  aiMode: 'Active' | 'Human' | 'Paused';
+}
+
+export interface RealtimeAiModeChanged {
+  conversationId: number;
+  aiMode: 'Active' | 'Human' | 'Paused';
 }
 
 export interface RealtimeNote {
@@ -62,6 +68,7 @@ export class InboxRealtimeService {
   readonly messageReceived = new Subject<RealtimeMessage>();
   readonly messageStatusChanged = new Subject<RealtimeStatus>();
   readonly conversationChanged = new Subject<RealtimeConversation>();
+  readonly conversationAiModeChanged = new Subject<RealtimeAiModeChanged>();
   readonly noteAdded = new Subject<RealtimeNote>();
   readonly presenceChanged = new Subject<RealtimePresence>();
   readonly messageClassificationUpdated = new Subject<any>();
@@ -83,6 +90,7 @@ export class InboxRealtimeService {
     this.hub.on('MessageReceived', (m: RealtimeMessage) => this.messageReceived.next(m));
     this.hub.on('MessageStatusChanged', (s: RealtimeStatus) => this.messageStatusChanged.next(s));
     this.hub.on('ConversationChanged', (c: RealtimeConversation) => this.conversationChanged.next(c));
+    this.hub.on('ConversationAiModeChanged', (payload: RealtimeAiModeChanged) => this.conversationAiModeChanged.next(payload));
     this.hub.on('NoteAdded', (n: RealtimeNote) => this.noteAdded.next(n));
     this.hub.on('PresenceChanged', (p: RealtimePresence) => this.presenceChanged.next(p));
     this.hub.on('MessageClassificationUpdated', (p: any) => this.messageClassificationUpdated.next(p));

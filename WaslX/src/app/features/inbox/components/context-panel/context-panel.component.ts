@@ -4,7 +4,8 @@ import { LanguageService, type TranslationKey } from '../../../../core/services/
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import type { Group } from '../../../../core/api/groups-api.service';
-import type { ConversationDetail, ConversationNote } from '../../models/conversation.model';
+import type { ConversationDetail, ConversationNote, ConversationSummary } from '../../models/conversation.model';
+import { ConversationSummaryComponent } from '../conversation-summary/conversation-summary.component';
 
 /**
  * Right-hand customer context panel (FE-2.8): phone, tags, status + status controls (FE-2.12),
@@ -15,7 +16,7 @@ import type { ConversationDetail, ConversationNote } from '../../models/conversa
   selector: 'app-context-panel',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AvatarComponent, IconComponent],
+  imports: [AvatarComponent, IconComponent, ConversationSummaryComponent],
   template: `
     @if (detail(); as d) {
       <aside class="ctx" [attr.dir]="direction()">
@@ -25,6 +26,21 @@ import type { ConversationDetail, ConversationNote } from '../../models/conversa
             <app-icon name="x" [size]="17" />
           </button>
         </div>
+
+        @if (summary() || summaryLoading()) {
+          <div class="ctx__block">
+            <app-conversation-summary
+              [summary]="summary()"
+              [loading]="summaryLoading()"
+              [fullLoading]="summaryFullLoading()"
+              [error]="summaryError()"
+              [slow]="summarySlow()"
+              (generateFull)="generateFull.emit()"
+              (refresh)="refresh.emit()"
+              (retry)="retry.emit()"
+            />
+          </div>
+        }
 
         <section class="ctx__block ctx__customer">
           <app-avatar [name]="d.customerName" [size]="48" />
@@ -256,12 +272,24 @@ export class ContextPanelComponent {
   readonly groups = input<Group[]>([]);
   readonly currentGroupId = input<number | null>(null);
   readonly routing = input(false);
+  
+  // Summary inputs
+  readonly summary = input<ConversationSummary | null>(null);
+  readonly summaryLoading = input(false);
+  readonly summaryFullLoading = input(false);
+  readonly summaryError = input(false);
+  readonly summarySlow = input(false);
 
   readonly changeStatus = output<string>();
   readonly addNote = output<string>();
   readonly route = output<number>();
   readonly handoff = output<number>();
   readonly close = output<void>();
+
+  // Summary outputs
+  readonly generateFull = output<void>();
+  readonly refresh = output<void>();
+  readonly retry = output<void>();
 
   protected readonly draft = signal('');
   protected readonly routeSel = signal('');

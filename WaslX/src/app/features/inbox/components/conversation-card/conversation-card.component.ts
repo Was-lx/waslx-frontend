@@ -32,7 +32,12 @@ import type { ConversationClassificationBadgeData } from '../../models/conversat
         </span>
         <app-conversation-badges [data]="badgeData()" />
         <span class="conv__bottom">
-          <span class="conv__preview">{{ item().lastMessagePreview || '—' }}</span>
+          <span class="conv__preview">
+            @if (item().handledByAi) {
+              <app-icon name="sparkles" [size]="14" style="color: #8b5cf6; margin-inline-end: 4px; vertical-align: text-bottom;" />
+            }
+            {{ item().lastMessagePreview || '—' }}
+          </span>
           @if (hasUnread()) {
             <span class="conv__unread" [attr.aria-label]="unreadLabel()">{{ item().unreadCount }}</span>
           }

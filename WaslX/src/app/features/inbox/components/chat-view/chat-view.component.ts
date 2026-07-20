@@ -65,13 +65,27 @@ import type { Group } from '../../../../core/api/groups-api.service';
             </div>
           </div>
 
-          @if (aiActive()) {
-            <button type="button" class="chat__takeover" [title]="t('aiTakeOverTitle')"
-                    [disabled]="takingOver()" (click)="takeOver.emit()">
-              <app-icon name="sparkles" [size]="14" />
-              <span>{{ t('aiTakeOver') }}</span>
-            </button>
-          }
+          <div class="chat__ai-controls">
+            @if (aiMode() === 'Active') {
+              <button type="button" class="chat__ai-btn chat__ai-btn--active" [title]="t('aiActiveTitle')"
+                      [disabled]="aiModeChanging()" (click)="changeAiMode.emit('Paused')">
+                <app-icon name="sparkles" [size]="14" />
+                <span>{{ t('aiActive') }}</span>
+              </button>
+            } @else if (aiMode() === 'Paused') {
+              <button type="button" class="chat__ai-btn chat__ai-btn--paused" [title]="t('aiPausedTitle')"
+                      [disabled]="aiModeChanging()" (click)="changeAiMode.emit('Active')">
+                <app-icon name="pause-circle" [size]="14" />
+                <span>{{ t('aiPaused') }}</span>
+              </button>
+            } @else if (aiMode() === 'Human') {
+              <button type="button" class="chat__ai-btn chat__ai-btn--human" [title]="t('aiHumanTitle')"
+                      [disabled]="aiModeChanging()" (click)="changeAiMode.emit('Active')">
+                <app-icon name="user" [size]="14" />
+                <span>{{ t('aiHuman') }}</span>
+              </button>
+            }
+          </div>
 
           <app-assignment-bar
             class="chat__tools"
@@ -108,18 +122,6 @@ import type { Group } from '../../../../core/api/groups-api.service';
           </div>
         }
 
-        @if (detail() || summary() || summaryLoading()) {
-          <app-conversation-summary
-            [summary]="summary()"
-            [loading]="summaryLoading()"
-            [fullLoading]="summaryFullLoading()"
-            [error]="summaryError()"
-            [slow]="summarySlow()"
-            (generateFull)="generateSummary.emit()"
-            (refresh)="refreshSummary.emit()"
-            (retry)="retrySummary.emit()"
-          />
-        }
 
         <div class="chat__escalation">
           <app-escalation-ownership-transferred
@@ -207,10 +209,18 @@ import type { Group } from '../../../../core/api/groups-api.service';
               [groups]="groups()"
               [currentGroupId]="currentGroupId()"
               [routing]="routing()"
+              [summary]="summary()"
+              [summaryLoading]="summaryLoading()"
+              [summaryFullLoading]="summaryFullLoading()"
+              [summaryError]="summaryError()"
+              [summarySlow]="summarySlow()"
               (changeStatus)="changeStatus.emit($event)"
               (addNote)="addNote.emit($event)"
               (route)="route.emit($event)"
               (handoff)="handoff.emit($event)"
+              (generateFull)="generateSummary.emit()"
+              (refresh)="refreshSummary.emit()"
+              (retry)="retrySummary.emit()"
               (close)="infoOpen.set(false)"
             />
           }
@@ -235,21 +245,39 @@ import type { Group } from '../../../../core/api/groups-api.service';
     .chat__phone { font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
     .chat__badges { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
     .chat__tools { flex: 0 0 auto; }
-    /* "Take over from AI" — pinned to the header inline-end, before the tools bar (FE-4.1). */
-    .chat__takeover {
+    /* AI Control Buttons */
+    .chat__ai-controls {
       margin-inline-start: auto; flex: 0 0 auto;
+      display: flex; gap: 8px; align-items: center;
+    }
+    .chat__ai-btn {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 7px 12px; border-radius: 10px;
-      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-soft));
-      background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-      color: var(--accent); font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer;
       transition: background-color 150ms ease, border-color 150ms ease;
     }
-    .chat__takeover:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
-    .chat__takeover:disabled { opacity: 0.55; cursor: not-allowed; }
-    .chat__takeover svg { fill: none; stroke: currentColor; stroke-width: 2; }
+    .chat__ai-btn--active {
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-soft));
+      background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+      color: var(--accent);
+    }
+    .chat__ai-btn--active:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+    .chat__ai-btn--paused {
+      border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border-soft));
+      background: color-mix(in srgb, var(--warning) 10%, var(--surface));
+      color: var(--warning);
+    }
+    .chat__ai-btn--paused:hover:not(:disabled) { background: color-mix(in srgb, var(--warning) 16%, var(--surface)); }
+    .chat__ai-btn--human {
+      border: 1px solid var(--border-soft);
+      background: var(--surface-soft);
+      color: var(--text-muted);
+    }
+    .chat__ai-btn--human:hover:not(:disabled) { background: color-mix(in srgb, var(--text-muted) 10%, var(--surface-soft)); }
+    .chat__ai-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .chat__ai-btn svg { fill: none; stroke: currentColor; stroke-width: 2; }
     /* When no take-over button is present the tools bar carries the auto-margin instead. */
-    .chat__head:not(:has(.chat__takeover)) .chat__tools { margin-inline-start: auto; }
+    .chat__head:not(:has(.chat__ai-controls)) .chat__tools { margin-inline-start: auto; }
     .chat__ai-typing { align-self: flex-start; padding: 6px 4px; }
     /* Slim 24/72h window strip below the header (full width, subtle) */
     .chat__window {
@@ -368,7 +396,9 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly summarySlow = input(false);
   // AI Agent presence (FE-4.1)
   readonly aiTyping = input(false);
-  readonly takingOver = input(false);
+  readonly aiMode = input<'Active' | 'Human' | 'Paused'>();
+  readonly aiModeChanging = input(false);
+  
   // Badges (FE-4.4)
   readonly badgeData = input<ConversationClassificationBadgeData | null>(null);
 
@@ -398,23 +428,14 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly generateSummary = output<void>();
   readonly refreshSummary = output<void>();
   readonly retrySummary = output<void>();
-  // AI Agent presence (FE-4.1)
+  // AI Agent control
+  readonly changeAiMode = output<'Active' | 'Human' | 'Paused'>();
   readonly takeOver = output<void>();
   // Escalation screening (FE-4.2)
   readonly escalationConfirm = output<{ escalationId: number; assigneeId: number }>();
   readonly escalationOverride = output<void>();
   readonly escalationOverrideSubmit = output<{ escalationId: number; assigneeId: number; reason: string }>();
   readonly escalationOverrideCancel = output<void>();
-
-  /** True while the AI Agent is the most recent responder — surfaces the "Take over" affordance. */
-  protected readonly aiActive = computed(() => {
-    const msgs = this.messages();
-    for (let i = msgs.length - 1; i >= 0; i--) {
-      if (msgs[i].senderType === 'Customer') return false;
-      if (msgs[i].senderType === 'AI') return true;
-    }
-    return false;
-  });
 
   protected readonly showPicker = signal(false);
   /** Whether the customer/context drawer is open (toggled by the profile button in the header toolbar). */

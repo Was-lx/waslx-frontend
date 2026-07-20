@@ -10,6 +10,8 @@ export interface ConversationListItem {
   lastMessageAt: string | null;
   assignedUserId: number | null;
   unreadCount: number;
+  handledByAi: boolean;
+  aiMode: 'Active' | 'Human' | 'Paused';
 }
 
 /** Rich detail for the customer-context panel + status controls (mirrors ConversationDetailResponse). */
@@ -35,6 +37,8 @@ export interface ConversationDetail {
   groupName: string | null;
   currentStageId: number | null;
   currentStageName: string | null;
+  handledByAi: boolean;
+  aiMode: 'Active' | 'Human' | 'Paused';
 }
 
 /** Result of a status change (mirrors ConversationStatusResponse). */

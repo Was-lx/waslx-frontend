@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { AuthSessionService } from '../../../../core/services/auth-session.service';
-import { InboxRealtimeService, type RealtimeConversation, type RealtimeMessage, type RealtimeNote, type RealtimeStatus } from '../../../../core/services/inbox-realtime.service';
+import { InboxRealtimeService, type RealtimeAiModeChanged, type RealtimeConversation, type RealtimeMessage, type RealtimeNote, type RealtimeStatus } from '../../../../core/services/inbox-realtime.service';
 import { WhatsAppApiService, type WhatsAppAccountSummary } from '../../../../core/api/whatsapp-api.service';
 import { AssignmentApiService, type Assignment, type UnassignedConversation } from '../../../../core/api/assignment-api.service';
 import { TagsApiService, type Tag } from '../../../../core/api/tags-api.service';
@@ -90,7 +90,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   // ── AI Agent presence (FE-4.1) ──────────────────────────────────────────────
   // `aiTyping` is driven by a future realtime "AI Agent typing" event (US-4.6); kept wired for later.
   protected readonly aiTyping = signal(false);
-  protected readonly takingOver = signal(false);
+  protected readonly aiModeChanging = signal(false);
 
   // ── Escalation screening (FE-4.2) ────────────────────────────────────────────
   private readonly escalationStore = inject(EscalationStore);
@@ -167,6 +167,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.realtime.messageReceived.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((m) => this.onRealtimeMessage(m));
     this.realtime.messageStatusChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((s) => this.onRealtimeStatus(s));
     this.realtime.conversationChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((c) => this.onRealtimeConversation(c));
+    this.realtime.conversationAiModeChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => this.onConversationAiModeChanged(p));
     this.realtime.noteAdded.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((n) => this.onRealtimeNote(n));
 
     this.escalationStore.init();
@@ -547,6 +548,13 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     if (c.conversationId === this.selectedId()) this.loadDetail(c.conversationId);
   }
 
+  private onConversationAiModeChanged(p: RealtimeAiModeChanged): void {
+    this.conversations.update((list) => list.map(c => c.id === p.conversationId ? { ...c, aiMode: p.aiMode } : c));
+    if (p.conversationId === this.selectedId()) {
+      this.detail.update(d => d ? { ...d, aiMode: p.aiMode } : d);
+    }
+  }
+
   // ── Escalation realtime handlers (FE-4.2) ────────────────────────────────────
   private onEscalationRecommendation(r: import('../../models/escalation-recommendation.model').EscalationRecommendation): void {
     this.loadList(false);
@@ -719,20 +727,25 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Human takes over an AI-handled conversation, stopping the Agent on it (FE-4.1). */
-  protected onTakeOver(): void {
+  /** Human explicitly controls the AI Mode for a conversation. */
+  protected onChangeAiMode(mode: 'Active' | 'Human' | 'Paused'): void {
     const id = this.selectedId();
-    if (id == null || this.takingOver()) return;
-    this.takingOver.set(true);
-    this.aiApi.takeOver(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    if (id == null || this.aiModeChanging()) return;
+    this.aiModeChanging.set(true);
+    this.api.changeAiMode(id, mode).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        this.takingOver.set(false);
-        this.toast.success(this.t('aiTakeOverDone'), '');
-        this.loadDetail(id);
+        this.aiModeChanging.set(false);
+        this.detail.update(d => d ? { ...d, aiMode: mode } : d);
+        // Toast is optional here; realtime event will also sync state
+        this.toast.success('AI Mode Updated', `Conversation AI mode changed to ${mode}.`);
       },
       error: (err) => {
-        this.takingOver.set(false);
-        this.toast.error(this.t('aiTakeOverError'), apiErrorMessage(err, this.t('aiTakeOverError')));
+        this.aiModeChanging.set(false);
+        if (err.status === 403 && apiError(err).code === 'AI.NumberDisabled') {
+          this.toast.error('AI Disabled', 'AI is disabled for this WhatsApp number by the administrator.');
+        } else {
+          this.toast.error('Update Failed', apiErrorMessage(err, 'Failed to update AI mode.'));
+        }
       }
     });
   }
