@@ -1,27 +1,32 @@
-@switch (userRole()) {
-  @case ('SuperAdmin') {
-    <app-superadmin-layout>
-      <router-outlet />
-    </app-superadmin-layout>
+<!-- Pinned app-wide impersonation banner (renders only while a session is active). -->
+<app-impersonation-banner />
+
+<div class="base-shell" [class.base-shell--imp]="impersonating()">
+  @switch (userRole()) {
+    @case ('SuperAdmin') {
+      <app-superadmin-layout>
+        <router-outlet />
+      </app-superadmin-layout>
+    }
+    @case ('Admin') {
+      <app-admin-layout>
+        <router-outlet />
+      </app-admin-layout>
+    }
+    @case ('Manager') {
+      <app-manager-layout>
+        <router-outlet />
+      </app-manager-layout>
+    }
+    @case ('Agent') {
+      <app-agent-layout>
+        <router-outlet />
+      </app-agent-layout>
+    }
+    @default {
+      <app-viewer-layout>
+        <router-outlet />
+      </app-viewer-layout>
+    }
   }
-  @case ('Admin') {
-    <app-admin-layout>
-      <router-outlet />
-    </app-admin-layout>
-  }
-  @case ('Manager') {
-    <app-manager-layout>
-      <router-outlet />
-    </app-manager-layout>
-  }
-  @case ('Agent') {
-    <app-agent-layout>
-      <router-outlet />
-    </app-agent-layout>
-  }
-  @default {
-    <app-viewer-layout>
-      <router-outlet />
-    </app-viewer-layout>
-  }
-}
+</div>

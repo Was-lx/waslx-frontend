@@ -14,7 +14,10 @@ import { ToastService } from '../../../core/services/toast.service';
   standalone: true,
   imports: [NavbarComponent, SidebarComponent, FooterComponent],
   templateUrl: '../../shared/shell-layout.html',
-  styleUrl: '../../shared/shell-layout.css'
+  styleUrl: '../../shared/shell-layout.css',
+  // `is-platform-console` flips the shared shell into "platform mode":
+  // deeper --primary-deep chrome + PLATFORM eyebrow (see sidebar/navbar CSS).
+  host: { class: 'is-platform-console' }
 })
 export class SuperAdminLayoutComponent {
   readonly authSessionService = inject(AuthSessionService);
@@ -25,7 +28,8 @@ export class SuperAdminLayoutComponent {
 
   readonly brandName = computed(() => (this.languageService.language() === 'ar' ? 'WaslX Platform' : 'WaslX Platform'));
   readonly brandSubtitle = computed(() => this.languageService.text('brandSubtitle'));
-  readonly sidebarSubtitle = computed(() => this.languageService.text('sidebarSubtitle'));
+  // Platform-mode eyebrow (rendered uppercased by the deep-chrome sidebar CSS).
+  readonly sidebarSubtitle = computed(() => this.languageService.text('platformConsole'));
   readonly searchPlaceholder = computed(() => this.languageService.text('searchPlaceholder'));
   readonly notificationLabel = computed(() => this.languageService.text('openNotifications'));
   readonly profileLabel = computed(() => this.languageService.text('openProfileMenu'));
@@ -40,8 +44,22 @@ export class SuperAdminLayoutComponent {
         id: 'platform',
         label: t('platform'),
         items: [
+          { id: 'admins', label: t('admins'), description: t('adminsDesc'), icon: 'shield', routerLink: '/app/superadmin/admins' },
           { id: 'tenants', label: t('tenants'), description: t('tenantsDesc'), icon: 'building', routerLink: '/app/superadmin/tenants' },
-          { id: 'plans', label: t('plans'), description: t('plansDesc'), icon: 'layers', routerLink: '/app/superadmin/plans' }
+          { id: 'plans', label: t('plans'), description: t('plansDesc'), icon: 'layers', routerLink: '/app/superadmin/plans' },
+          { id: 'billing', label: t('billing'), description: t('billingDesc'), icon: 'credit-card', routerLink: '/app/superadmin/billing' },
+          { id: 'usage', label: t('usage'), description: t('usageDesc'), icon: 'chart', routerLink: '/app/superadmin/usage' },
+          { id: 'ai-cost', label: t('aiCost'), description: t('aiCostDesc'), icon: 'cpu', routerLink: '/app/superadmin/ai-cost' },
+          { id: 'settings', label: t('platformSettings'), description: t('platformSettingsDesc'), icon: 'sliders', routerLink: '/app/superadmin/settings' }
+        ]
+      },
+      {
+        id: 'oversight',
+        label: t('pcNavOversight'),
+        items: [
+          { id: 'audit', label: t('pcNavAudit'), description: t('pcNavAuditDesc'), icon: 'history', routerLink: '/app/superadmin/audit' },
+          { id: 'health', label: t('pcNavHealth'), description: t('pcNavHealthDesc'), icon: 'zap', routerLink: '/app/superadmin/health' },
+          { id: 'announcements', label: t('pcNavAnnouncements'), description: t('pcNavAnnouncementsDesc'), icon: 'megaphone', routerLink: '/app/superadmin/announcements' }
         ]
       }
     ];

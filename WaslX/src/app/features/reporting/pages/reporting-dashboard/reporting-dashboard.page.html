@@ -1,0 +1,335 @@
+<section class="feature-page rpt" [attr.dir]="direction()">
+  <header class="feature-page__header rpt-hd">
+    <div class="rpt-hd__intro">
+      <span class="feature-page__eyebrow">{{ t('rptEyebrow') }}</span>
+      <h1>{{ t('rptTitle') }}</h1>
+      <p class="rpt-hd__lead">{{ t('rptLead') }}</p>
+      <span class="rpt-scope" [class.rpt-scope--personal]="isAgent()">
+        <span class="rpt-scope__dot" aria-hidden="true"></span>
+        {{ isAgent() ? t('rptScopePersonal') : t('rptScopeOrg') }}
+      </span>
+    </div>
+
+    <div class="feature-page__actions rpt-controls">
+      <!-- Date range: presets + custom popover -->
+      <div class="ui-daterange" (click)="stop($event)">
+        <div class="ui-seg" role="tablist" [attr.aria-label]="t('rptRangeLabel')">
+          @for (p of presets; track p.value) {
+            <button
+              type="button"
+              class="ui-seg__btn"
+              [class.is-active]="preset() === p.value"
+              (click)="selectPreset(p.value)"
+            >
+              {{ t(p.key) }}
+            </button>
+          }
+        </div>
+        @if (rangePopoverOpen()) {
+          <div class="ui-daterange__pop" [attr.dir]="direction()">
+            <label class="ui-daterange__field">
+              <span class="ui-label">{{ t('rptRangeFrom') }}</span>
+              <input
+                class="ui-input ui-field--sm"
+                type="date"
+                [value]="customFrom()"
+                [max]="customTo()"
+                (change)="setCustomFrom($any($event.target).value)"
+              />
+            </label>
+            <label class="ui-daterange__field">
+              <span class="ui-label">{{ t('rptRangeTo') }}</span>
+              <input
+                class="ui-input ui-field--sm"
+                type="date"
+                [value]="customTo()"
+                [min]="customFrom()"
+                (change)="setCustomTo($any($event.target).value)"
+              />
+            </label>
+            <button type="button" class="ui-btn ui-btn--primary ui-btn--sm ui-btn--block" (click)="applyCustomRange()">
+              {{ t('rptRangeApply') }}
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Team filter (Admin / Manager only) -->
+      @if (canFilterTeam()) {
+        <label class="rpt-team">
+          <span class="rpt-team__label">{{ t('rptTeamLabel') }}</span>
+          <select class="ui-select ui-field--sm" (change)="onTeamChange($any($event.target).value)">
+            <option value="">{{ t('rptTeamAll') }}</option>
+            @for (team of teams(); track team.id) {
+              <option [value]="team.id" [selected]="teamId() === team.id">{{ team.name }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      <!-- Export menu -->
+      <div class="rpt-export" (click)="stop($event)">
+        <button
+          type="button"
+          class="ui-btn ui-btn--ghost"
+          [class.is-open]="exportMenuOpen()"
+          (click)="toggleExportMenu($event)"
+          [disabled]="exporting()"
+        >
+          @if (exporting()) {
+            <span class="ui-spinner"></span> {{ t('rptExporting') }}
+          } @else {
+            <app-icon name="send" [size]="16" /> {{ t('rptExport') }}
+            <app-icon name="chevron-down" [size]="14" />
+          }
+        </button>
+        @if (exportMenuOpen()) {
+          <div class="rpt-menu" role="menu">
+            <button type="button" class="rpt-menu__item" role="menuitem" (click)="exportReport('csv')">
+              <app-icon name="folder" [size]="15" /> {{ t('rptExportCsv') }}
+            </button>
+            <button type="button" class="rpt-menu__item" role="menuitem" (click)="exportReport('pdf')">
+              <app-icon name="receipt" [size]="15" /> {{ t('rptExportPdf') }}
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <!-- Skeleton — matches the final layout to keep CLS ≈ 0 -->
+    <div class="rpt-kpiband" aria-hidden="true">
+      @for (s of skeletonKpis; track $index) {
+        <div class="ui-stat rpt-kpi">
+          <span class="rpt-sk rpt-sk--sh" style="width: 55%; height: 11px"></span>
+          <span class="rpt-sk rpt-sk--sh" style="width: 40%; height: 26px; margin-top: 8px"></span>
+          <span class="rpt-sk rpt-sk--sh" style="width: 100%; height: 30px; margin-top: 12px; border-radius: 8px"></span>
+        </div>
+      }
+    </div>
+    <div class="rpt-grid" aria-hidden="true">
+      @for (s of skeletonTiles; track $index) {
+        <div class="ui-chart rpt-tile" [class.rpt-tile--wide]="$index === 0 || $index === 3">
+          <span class="rpt-sk rpt-sk--sh" style="width: 180px; height: 14px"></span>
+          <span class="rpt-sk rpt-sk--sh" style="width: 100%; height: 220px; margin-top: 16px; border-radius: 12px"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('rptErrorTitle') }}</h3>
+      <p>{{ t('rptErrorBody') }}</p>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="load(true)">{{ t('rptRetry') }}</button>
+    </div>
+  } @else if (isEmpty()) {
+    <div class="feature-page__empty rpt-empty">
+      <span class="rpt-empty__ico" aria-hidden="true"><app-icon name="chart" [size]="26" /></span>
+      <h3>{{ t('rptEmptyTitle') }}</h3>
+      <p>{{ t('rptEmptyBody') }}</p>
+      <button class="ui-btn ui-btn--primary ui-btn--sm" (click)="resetRange()">{{ t('rptResetRange') }}</button>
+    </div>
+  } @else {
+    <!-- KPI band -->
+    <div class="rpt-kpiband" aria-live="polite">
+      @for (k of overview().kpis; track k.key) {
+        <div class="ui-stat rpt-kpi">
+          <span class="ui-stat__label">{{ kpiLabel(k) }}</span>
+          <div class="rpt-kpi__row">
+            <span class="ui-stat__value">{{ kpiValue(k) }}</span>
+            <span [class]="trendClass(k)">
+              <span aria-hidden="true">{{ trendArrow(k) }}</span> {{ trendText(k) }}
+            </span>
+          </div>
+          @if (k.spark.length > 0) {
+            <span class="ui-sparkline">
+              <svg viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true">
+                <path [attr.d]="sparkPath(k.spark)" />
+              </svg>
+            </span>
+          }
+          <span class="rpt-kpi__vs">{{ t('rptVsPrev') }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Report tiles -->
+    <div class="rpt-grid" [class.is-swapping]="refreshing()">
+      <!-- Conversation volume -->
+      <div class="ui-chart rpt-tile rpt-tile--wide">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ t('rptVolumeTitle') }}</h2>
+            <p class="ui-chart__sub">{{ t('rptVolumeSub') }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasVolume()) {
+            <apx-chart
+              [series]="volumeSeries()"
+              [chart]="volumeChart"
+              [colors]="volumeColors"
+              [stroke]="volumeStroke"
+              [fill]="volumeFill"
+              [xaxis]="volumeXaxis()"
+              [yaxis]="volumeYaxis"
+              [grid]="volumeGrid"
+              [dataLabels]="volumeDataLabels"
+              [legend]="volumeLegend"
+              [tooltip]="volumeTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ t('rptChartNoData') }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Response & resolution -->
+      <div class="ui-chart rpt-tile">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ t('rptResponseTitle') }}</h2>
+            <p class="ui-chart__sub">{{ t('rptResponseSub') }}</p>
+          </div>
+          <div class="rpt-sla" aria-live="polite">
+            <span class="rpt-sla__label">{{ t('rptSlaLabel') }}</span>
+            <span class="rpt-sla__val">{{ slaPct() }}</span>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasResponse()) {
+            <apx-chart
+              [series]="responseSeries()"
+              [chart]="responseChart"
+              [colors]="responseColors"
+              [stroke]="responseStroke"
+              [xaxis]="responseXaxis()"
+              [yaxis]="responseYaxis"
+              [grid]="responseGrid"
+              [dataLabels]="responseDataLabels"
+              [legend]="responseLegend"
+              [tooltip]="responseTooltip"
+            ></apx-chart>
+            @if (response().distribution.length > 0) {
+              <div class="rpt-dist">
+                <span class="ui-sectiontitle">{{ t('rptRespDistribution') }}</span>
+                <apx-chart
+                  [series]="distSeries()"
+                  [chart]="distChart"
+                  [colors]="distColors"
+                  [plotOptions]="distPlot"
+                  [xaxis]="distXaxis()"
+                  [yaxis]="distYaxis"
+                  [grid]="distGrid"
+                  [dataLabels]="distDataLabels"
+                  [legend]="distLegend"
+                ></apx-chart>
+              </div>
+            }
+          } @else {
+            <div class="ui-chart__empty">{{ t('rptChartNoData') }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Assignment split -->
+      <div class="ui-chart rpt-tile">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ t('rptRoutingTitle') }}</h2>
+            <p class="ui-chart__sub">{{ t('rptRoutingSub') }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body rpt-donut-body">
+          @if (hasRouting()) {
+            <apx-chart
+              [series]="routingSeries()"
+              [chart]="routingChart"
+              [labels]="routingLabels()"
+              [colors]="routingColors()"
+              [legend]="routingLegend"
+              [plotOptions]="routingPlot"
+              [dataLabels]="routingDataLabels"
+              [tooltip]="routingTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ t('rptChartNoData') }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Agent leaderboard -->
+      <div class="ui-chart rpt-tile rpt-tile--wide">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ t('rptAgentsTitle') }}</h2>
+            <p class="ui-chart__sub">{{ t('rptAgentsSub') }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasAgents()) {
+            <div class="feature-page__table-container">
+              <table class="feature-page__table rpt-leaderboard">
+                <thead>
+                  <tr>
+                    <th>
+                      <button type="button" class="feature-page__sort" (click)="toggleSort('name')">
+                        {{ t('rptColAgent') }} <span class="feature-page__sort-ind">{{ sortIndicator('name') }}</span>
+                      </button>
+                    </th>
+                    <th class="rpt-num">
+                      <button type="button" class="feature-page__sort" (click)="toggleSort('handled')">
+                        {{ t('rptColHandled') }} <span class="feature-page__sort-ind">{{ sortIndicator('handled') }}</span>
+                      </button>
+                    </th>
+                    <th class="rpt-num">
+                      <button type="button" class="feature-page__sort" (click)="toggleSort('avgResponseSec')">
+                        {{ t('rptColAvgResponse') }} <span class="feature-page__sort-ind">{{ sortIndicator('avgResponseSec') }}</span>
+                      </button>
+                    </th>
+                    <th class="rpt-num">
+                      <button type="button" class="feature-page__sort" (click)="toggleSort('resolutionRate')">
+                        {{ t('rptColResolution') }} <span class="feature-page__sort-ind">{{ sortIndicator('resolutionRate') }}</span>
+                      </button>
+                    </th>
+                    <th class="rpt-num">
+                      <button type="button" class="feature-page__sort" (click)="toggleSort('activeChats')">
+                        {{ t('rptColActive') }} <span class="feature-page__sort-ind">{{ sortIndicator('activeChats') }}</span>
+                      </button>
+                    </th>
+                    <th class="rpt-trend-col">{{ t('rptColTrend') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (a of sortedAgents(); track a.userId) {
+                    <tr>
+                      <td class="rpt-agent-name">{{ a.name }}</td>
+                      <td class="rpt-num">{{ formatCount(a.handled) }}</td>
+                      <td class="rpt-num">{{ formatResponse(a.avgResponseSec) }}</td>
+                      <td class="rpt-num">{{ formatPercent(a.resolutionRate) }}</td>
+                      <td class="rpt-num">{{ formatCount(a.activeChats) }}</td>
+                      <td class="rpt-trend-col">
+                        @if (a.spark.length > 0) {
+                          <span class="ui-sparkline ui-sparkline--row">
+                            <svg viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true">
+                              <path [attr.d]="sparkPath(a.spark)" />
+                            </svg>
+                          </span>
+                        } @else {
+                          <span class="rpt-dash">—</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="ui-chart__empty">{{ t('rptAgentsEmpty') }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</section>

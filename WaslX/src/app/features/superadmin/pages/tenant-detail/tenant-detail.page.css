@@ -1,0 +1,158 @@
+/* ============================================================================
+   SuperAdmin — Tenant detail (lifecycle + subscription + invoices).
+   Built on shared .ui-* / .feature-page primitives; token-driven, RTL-safe.
+   ========================================================================== */
+.tdetail { animation: tdetail-rise var(--mo-quick, 280ms) var(--ease-out, ease) both; }
+@keyframes tdetail-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.tdetail__loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; min-height: 320px; color: var(--text-muted);
+}
+.tdetail__loading .ui-spinner { width: 30px; height: 30px; border-width: 3px; }
+.tdetail__empty-actions { display: inline-flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; justify-content: center; }
+
+/* ── Back link ── */
+.tdetail__back {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.82rem; font-weight: 650; color: var(--text-muted);
+  text-decoration: none; transition: color 140ms ease;
+}
+.tdetail__back:hover { color: var(--primary); }
+.tdetail__back svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+[dir='rtl'] .tdetail__back svg { transform: scaleX(-1); }
+
+/* ── Header ── */
+.tdetail__header { align-items: flex-start; }
+.tdetail__id { display: flex; align-items: flex-start; gap: 16px; min-width: 0; }
+.tdetail__avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 52px; height: 52px; border-radius: 14px; color: #fff;
+  font-size: 1.05rem; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase;
+  background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary-deep) 26%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.28);
+}
+.tdetail__eyebrow { font-variant-numeric: tabular-nums; }
+.tdetail__pills { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.tdetail__actions { flex-wrap: wrap; gap: 8px; }
+
+/* ── Stat band ── */
+.tdetail__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
+.tdetail__stat-plan { font-size: 1.2rem; }
+.tdetail__stat-of { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
+
+/* ── Tabs ── */
+.tdetail__tabs { align-self: flex-start; }
+
+/* ── Panels ── */
+.tdetail__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; }
+.tdetail__panel { display: flex; flex-direction: column; gap: 14px; }
+.tdetail__panel--flush { padding: 0; gap: 0; overflow: hidden; }
+.tdetail__panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tdetail__panel-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 18px; border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary-deep) 4%, var(--surface)), var(--surface));
+}
+.tdetail__count { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+/* Definition list */
+.tdetail__dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; margin: 0; }
+.tdetail__dl > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tdetail__dl dt { font-size: 0.74rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.tdetail__dl dd { margin: 0; font-size: 0.92rem; font-weight: 600; color: var(--text-primary); overflow-wrap: anywhere; }
+.tdetail__num { font-variant-numeric: tabular-nums; }
+
+/* Usage meters */
+.tdetail__usage-title { margin-top: 6px; }
+.tdetail__meter { display: flex; flex-direction: column; gap: 7px; }
+.tdetail__meter-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; color: var(--text-secondary); }
+.tdetail__quota {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 4px;
+}
+.tdetail__quota > div {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 10px 12px; border-radius: 11px; background: var(--surface-soft); border: 1px solid var(--border-subtle);
+}
+.tdetail__quota-k { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
+.tdetail__quota-v { font-size: 1.05rem; font-weight: 750; color: var(--text-primary); }
+
+/* Users table */
+.tdetail__scroll { overflow-x: auto; scrollbar-width: thin; }
+.tdetail__scroll::-webkit-scrollbar { height: 9px; }
+.tdetail__scroll::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text-muted) 30%, transparent); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
+.tdetail__table { min-width: 620px; }
+.tdetail__table-end { text-align: end; }
+.tdetail__muted { color: var(--text-secondary); }
+.tdetail__user { display: inline-flex; align-items: center; gap: 11px; }
+.tdetail__user-name { font-weight: 650; color: var(--text-primary); }
+.tdetail__user-avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 9px; color: #fff; font-size: 0.72rem; font-weight: 750; text-transform: uppercase;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+.tdetail__inline-empty { padding: 34px 18px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+/* Invoices */
+.tdetail__invoices { display: flex; flex-direction: column; }
+.ui-invoice-row__actions .ui-btn .ui-spinner { width: 14px; height: 14px; border-width: 2px; }
+
+/* ── Confirm ── */
+.tdetail-confirm__field { text-align: start; margin: 0 0 20px; }
+.tdetail-confirm--danger .ui-confirm__icon,
+.tdetail-confirm__icon {
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  color: var(--danger);
+}
+.tdetail-confirm:not(.tdetail-confirm--danger) .ui-confirm__icon {
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 74%, var(--text-primary));
+}
+.tdetail-confirm .ui-confirm__actions .ui-btn .ui-spinner {
+  width: 15px; height: 15px; border-width: 2px;
+  border-color: color-mix(in srgb, #fff 45%, transparent); border-top-color: #fff;
+}
+
+/* ── Modals ── */
+.tdetail-modal { width: min(520px, 100%); }
+.tdetail-modal__body { display: flex; flex-direction: column; gap: 16px; }
+.tdetail-modal__row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.tdetail-modal__opt { font-size: 0.72rem; font-weight: 500; color: var(--text-muted); }
+.ui-modal__foot .ui-btn--primary .ui-spinner {
+  width: 16px; height: 16px; border-width: 2px;
+  border-color: color-mix(in srgb, #fff 45%, transparent); border-top-color: #fff;
+}
+
+@media (max-width: 620px) {
+  .tdetail__dl { grid-template-columns: 1fr; }
+  .tdetail-modal__row { grid-template-columns: 1fr; }
+}
+/* Impersonation confirm (FE-6.8) — warning-toned, reason required, logged note. */
+.tdetail__impersonate:hover {
+  color: color-mix(in srgb, var(--warning) 70%, var(--text-primary));
+  border-color: color-mix(in srgb, var(--warning) 34%, var(--border-subtle));
+}
+.tdetail-impersonate__icon {
+  background: color-mix(in srgb, var(--warning) 15%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 72%, var(--text-primary));
+}
+.tdetail-impersonate__reason { resize: vertical; min-height: 56px; line-height: 1.5; text-align: start; }
+.tdetail-impersonate__note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 18px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warning) 26%, transparent);
+  color: color-mix(in srgb, var(--warning) 58%, var(--text-primary));
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: start;
+}
+.tdetail-impersonate__note app-icon { flex: 0 0 auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tdetail { animation: none; }
+}

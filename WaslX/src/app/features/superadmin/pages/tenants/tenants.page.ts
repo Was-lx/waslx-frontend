@@ -3,8 +3,9 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
-import { LanguageService } from '../../../../core/services/language.service';
+import { type TranslationKey, LanguageService } from '../../../../core/services/language.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ImpersonationService } from '../../../../core/services/impersonation.service';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { PlansApiService } from '../../../../core/api/plans-api.service';
 import { SuperAdminApiService } from '../../../../core/api/superadmin-api.service';
@@ -46,6 +47,7 @@ const CONTENT = {
     colActions: 'Actions',
     suspend: 'Suspend',
     activate: 'Activate',
+    view: 'Manage',
     loading: 'Loading tenants…',
     errorTitle: 'Could not load tenants',
     errorBody: 'Something went wrong reaching the platform service.',
@@ -109,6 +111,7 @@ const CONTENT = {
     colActions: 'إجراءات',
     suspend: 'إيقاف',
     activate: 'تفعيل',
+    view: 'إدارة',
     loading: 'جارٍ تحميل المستأجرين…',
     errorTitle: 'تعذّر تحميل المستأجرين',
     errorBody: 'حدث خطأ أثناء الاتصال بخدمة المنصة.',
@@ -159,12 +162,15 @@ export class SuperAdminTenantsPageComponent implements OnInit {
   private readonly plansApiService = inject(PlansApiService);
   private readonly superAdminApiService = inject(SuperAdminApiService);
   private readonly toastService = inject(ToastService);
+  private readonly impersonation = inject(ImpersonationService);
 
   readonly customerTypes = CUSTOMER_TYPES;
 
   // ── i18n ──
   readonly direction = computed(() => this.languageService.getDirection(this.languageService.language()));
   readonly c = computed(() => CONTENT[this.languageService.language() === 'ar' ? 'ar' : 'en']);
+  /** Impersonation copy lives in the shared platform-console i18n. */
+  readonly impT = (key: TranslationKey) => this.languageService.text(key);
 
   // ── state ──
   readonly tenants = signal<TenantSummary[]>([]);
@@ -175,6 +181,12 @@ export class SuperAdminTenantsPageComponent implements OnInit {
   readonly submitting = signal(false);
   readonly submitted = signal(false);
   readonly busyId = signal<number | null>(null);
+
+  // Impersonation confirm (FE-6.8)
+  readonly impTarget = signal<TenantSummary | null>(null);
+  readonly impReason = signal('');
+  readonly impSubmitted = signal(false);
+  readonly impStarting = signal(false);
 
   // ── pagination ──
   readonly page = signal(1);
@@ -322,6 +334,42 @@ export class SuperAdminTenantsPageComponent implements OnInit {
       error: () => {
         this.busyId.set(null);
         this.toastService.error(this.c().errorTitle, this.c().errorBody);
+      }
+    });
+  }
+
+  // ── impersonation (FE-6.8) ──
+  askImpersonate(tenant: TenantSummary): void {
+    this.impSubmitted.set(false);
+    this.impReason.set('');
+    this.impTarget.set(tenant);
+  }
+
+  cancelImpersonate(): void {
+    if (this.impStarting()) return;
+    this.impTarget.set(null);
+  }
+
+  impConfirmTitle(): string {
+    return this.impT('impConfirmTitle').replace('{tenant}', this.impTarget()?.name ?? '');
+  }
+
+  confirmImpersonate(): void {
+    this.impSubmitted.set(true);
+    const tenant = this.impTarget();
+    const reason = this.impReason().trim();
+    if (!tenant || !reason) return;
+
+    this.impStarting.set(true);
+    this.impersonation.start({ tenantId: tenant.id, reason }).subscribe({
+      next: () => {
+        this.impStarting.set(false);
+        this.impTarget.set(null);
+        this.toastService.success(this.impT('impStartedToast'), tenant.name);
+      },
+      error: () => {
+        this.impStarting.set(false);
+        this.toastService.error(this.impT('impErrorTitle'), this.impT('impErrorBody'));
       }
     });
   }

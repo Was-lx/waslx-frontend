@@ -12,33 +12,49 @@ export class FacebookSdkService {
   constructor(@Inject(DOCUMENT) private readonly doc: Document) {}
 
   /**
-   * Starts WhatsApp Embedded Signup via a real full-page redirect to Meta's OAuth dialog
-   * (not the FB.login() JS-SDK popup). The JS SDK's popup always negotiates its own internal
-   * `redirect_uri` (a staticxx.facebook.com relay channel) regardless of what we pass it, which
-   * made the subsequent server-side code exchange fail with OAuthException 100/36008 — Meta
-   * rejects the code because the exchange's redirect_uri can never match that internal,
-   * runtime-generated channel URL. A manual redirect lets us own the entire redirect_uri.
+   * Builds Meta's OAuth dialog URL and stashes a fresh CSRF `state` token. We drive the flow with
+   * a manual navigation (not the FB.login() JS-SDK popup): the JS SDK's popup always negotiates its
+   * own internal `redirect_uri` (a staticxx.facebook.com relay channel) regardless of what we pass
+   * it, which made the subsequent server-side code exchange fail with OAuthException 100/36008 —
+   * Meta rejects the code because the exchange's redirect_uri can never match that internal,
+   * runtime-generated channel URL. Owning the redirect_uri ourselves is what makes the exchange work.
+   *
+   * State lives in localStorage (not sessionStorage) so the value survives into a *separate* tab —
+   * the new-tab connect flow lands the callback in a different tab than the one that started it.
    */
-  beginWhatsAppEmbeddedSignupRedirect(appId: string, configId: string, apiVersion: string): void {
+  private buildOAuthUrl(appId: string, configId: string, apiVersion: string): string {
     const state = crypto.randomUUID();
-    window.sessionStorage.setItem(OAUTH_STATE_KEY, state);
-    
-    const redirectUri = `${window.location.origin}${META_OAUTH_CALLBACK_PATH}`;
+    window.localStorage.setItem(OAUTH_STATE_KEY, state);
+
     const params = new URLSearchParams({
       client_id: appId,
       config_id: configId,
-      redirect_uri: redirectUri,
+      redirect_uri: this.redirectUri,
       response_type: 'code',
       state
     });
 
-    this.doc.defaultView!.location.href = `https://www.facebook.com/${apiVersion}/dialog/oauth?${params.toString()}`;
+    return `https://www.facebook.com/${apiVersion}/dialog/oauth?${params.toString()}`;
   }
 
-  /** Reads back and clears the CSRF state token stashed before the redirect. */
+  /** Full-page redirect to Meta's OAuth dialog (fallback used when a new tab can't be opened). */
+  beginWhatsAppEmbeddedSignupRedirect(appId: string, configId: string, apiVersion: string): void {
+    this.doc.defaultView!.location.href = this.buildOAuthUrl(appId, configId, apiVersion);
+  }
+
+  /**
+   * Opens Meta's OAuth dialog in a NEW TAB so the app itself stays put. Returns the tab handle,
+   * or null when the browser blocked it — the caller should then fall back to the full-page redirect.
+   * The redirect_uri is identical to the redirect flow, so the code exchange works the same way.
+   */
+  openWhatsAppEmbeddedSignupTab(appId: string, configId: string, apiVersion: string): Window | null {
+    return this.doc.defaultView!.open(this.buildOAuthUrl(appId, configId, apiVersion), '_blank');
+  }
+
+  /** Reads back and clears the CSRF state token stashed before leaving for Meta. */
   consumeOAuthState(): string | null {
-    const state = window.sessionStorage.getItem(OAUTH_STATE_KEY);
-    window.sessionStorage.removeItem(OAUTH_STATE_KEY);
+    const state = window.localStorage.getItem(OAUTH_STATE_KEY);
+    window.localStorage.removeItem(OAUTH_STATE_KEY);
     return state;
   }
 

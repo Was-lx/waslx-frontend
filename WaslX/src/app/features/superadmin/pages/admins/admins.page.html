@@ -1,0 +1,180 @@
+<section class="feature-page admins-page" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header admins-page__header">
+    <div>
+      <span class="feature-page__eyebrow admins-page__eyebrow">
+        <span class="admins-page__eyebrow-dot" aria-hidden="true"></span>
+        {{ c().eyebrow }}
+      </span>
+      <h1>{{ c().title }}</h1>
+      <p class="admins-page__subtitle">{{ c().subtitle }}</p>
+    </div>
+    <div class="feature-page__actions">
+      <button type="button" class="ui-btn ui-btn--primary" (click)="openModal()">
+        <app-icon name="plus" [size]="17" />
+        {{ c().newAdmin }}
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Stat band ── -->
+  <div class="admins-stats">
+    <div class="ui-stat">
+      <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().total }}</span>
+      <span class="ui-stat__value">{{ admins().length | number }}</span>
+    </div>
+    <div class="ui-stat ui-stat--read">
+      <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().active }}</span>
+      <span class="ui-stat__value">{{ activeCount() | number }}</span>
+    </div>
+    <div class="ui-stat ui-stat--failed">
+      <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().disabled }}</span>
+      <span class="ui-stat__value">{{ disabledCount() | number }}</span>
+    </div>
+  </div>
+
+  <!-- ── Body states ── -->
+  @if (loading()) {
+    <div class="ui-card admins-skeleton" aria-hidden="true">
+      @for (row of [1,2,3,4,5]; track row) {
+        <div class="admins-skeleton__row">
+          <span class="admins-skeleton__avatar shimmer"></span>
+          <span class="admins-skeleton__bar shimmer" style="width: 30%"></span>
+          <span class="admins-skeleton__bar shimmer" style="width: 22%"></span>
+          <span class="admins-skeleton__bar shimmer admins-skeleton__bar--end" style="width: 16%"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <app-icon name="shield" [size]="30" />
+      <h3>{{ c().errorTitle }}</h3>
+      <p>{{ c().errorBody }}</p>
+      <button type="button" class="ui-btn ui-btn--ghost" (click)="load()">{{ c().retry }}</button>
+    </div>
+  } @else if (admins().length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="shield" [size]="30" />
+      <h3>{{ c().emptyTitle }}</h3>
+      <p>{{ c().emptyBody }}</p>
+      <button type="button" class="ui-btn ui-btn--primary" (click)="openModal()">
+        <app-icon name="plus" [size]="16" />
+        {{ c().newAdmin }}
+      </button>
+    </div>
+  } @else {
+    <div class="ui-card admins-directory">
+      <div class="admins-directory__bar">
+        <span class="ui-sectiontitle">{{ c().directoryLabel }}</span>
+        <span class="admins-directory__count">{{ admins().length | number }} {{ c().directoryUnit }}</span>
+      </div>
+      <div class="admins-directory__scroll">
+        <table class="feature-page__table admins-table">
+          <thead>
+            <tr>
+              <th>{{ c().colName }}</th>
+              <th>{{ c().colEmail }}</th>
+              <th>{{ c().colStatus }}</th>
+              <th>{{ c().colCreated }}</th>
+              <th>{{ c().colLastLogin }}</th>
+              <th class="admins-table__end">{{ c().colActions }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (admin of admins(); track admin.id) {
+              <tr>
+                <td>
+                  <div class="admins-cell">
+                    <span class="admins-avatar" [class.is-off]="!isActive(admin)">{{ initials(admin.fullName) }}</span>
+                    <span class="admins-cell__name">{{ admin.fullName }}</span>
+                  </div>
+                </td>
+                <td class="admins-table__muted">{{ admin.email }}</td>
+                <td>
+                  <span class="ui-pill ui-pill--dot" [class.ui-pill--success]="isActive(admin)" [class.ui-pill--danger]="!isActive(admin)">
+                    {{ isActive(admin) ? c().active : c().disabled }}
+                  </span>
+                </td>
+                <td class="admins-table__muted">{{ admin.createdAt | date: 'mediumDate' }}</td>
+                <td class="admins-table__muted">{{ admin.lastLoginAt ? (admin.lastLoginAt | date: 'medium') : c().never }}</td>
+                <td class="admins-table__end">
+                  <button
+                    type="button"
+                    class="ui-btn ui-btn--sm"
+                    [class.ui-btn--danger]="isActive(admin)"
+                    [class.ui-btn--ghost]="!isActive(admin)"
+                    [disabled]="busyId() === admin.id"
+                    (click)="toggleStatus(admin)"
+                  >
+                    @if (busyId() === admin.id) {
+                      <span class="ui-spinner" aria-hidden="true"></span>
+                    } @else {
+                      <app-icon [name]="isActive(admin) ? 'eye-off' : 'check-circle'" [size]="14" />
+                    }
+                    {{ isActive(admin) ? c().disable : c().enable }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ── Create-admin modal ── -->
+  @if (modalOpen()) {
+    <div class="ui-overlay" (click)="closeModal()">
+      <div class="ui-modal admins-modal" role="dialog" aria-modal="true" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+        <header class="ui-modal__head">
+          <div class="admins-modal__headline">
+            <span class="admins-modal__glyph" aria-hidden="true"><app-icon name="shield" [size]="20" /></span>
+            <div>
+              <h2 class="ui-modal__title">{{ c().modalTitle }}</h2>
+              <p class="ui-modal__sub">{{ c().modalSubtitle }}</p>
+            </div>
+          </div>
+          <button type="button" class="ui-modal__close" (click)="closeModal()" aria-label="Close">
+            <app-icon name="x" [size]="18" />
+          </button>
+        </header>
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="ui-modal__body">
+            <div class="ui-field">
+              <label class="ui-label" for="fullName">{{ c().fullName }}</label>
+              <input id="fullName" class="ui-input" type="text" formControlName="fullName" autocomplete="off" />
+              @if (invalid('fullName')) { <span class="ui-error">{{ c().required }}</span> }
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="email">{{ c().email }}</label>
+              <input id="email" class="ui-input" type="email" formControlName="email" autocomplete="off" />
+              @if (invalid('email')) { <span class="ui-error">{{ c().invalidEmail }}</span> }
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="password">{{ c().password }}</label>
+              <input id="password" class="ui-input" type="password" formControlName="password" autocomplete="new-password" />
+              @if (invalid('password')) {
+                <span class="ui-error">{{ c().minPassword }}</span>
+              } @else {
+                <span class="admins-modal__hint">{{ c().passwordHint }}</span>
+              }
+            </div>
+          </div>
+
+          <footer class="ui-modal__foot">
+            <button type="button" class="ui-btn ui-btn--ghost" (click)="closeModal()">{{ c().cancel }}</button>
+            <button type="submit" class="ui-btn ui-btn--primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <span class="ui-spinner" aria-hidden="true"></span>
+                {{ c().creating }}
+              } @else {
+                {{ c().create }}
+              }
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+</section>

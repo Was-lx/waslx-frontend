@@ -1,0 +1,69 @@
+/* ============================================================================
+   WaslX — Campaigns list. Component-specific only; scaffolding + .ui-* live in
+   styles/app-ui.css. Token-driven (light/dark), bilingual, RTL-safe.
+   ========================================================================== */
+
+:host { display: block; }
+
+.cmp-hd { display: flex; flex-direction: column; gap: 4px; }
+.cmp-hd__lead { margin: 6px 0 0; color: var(--text-secondary); font-size: 0.94rem; max-width: 64ch; line-height: 1.6; }
+.cmp-hd__count { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; font-size: 0.82rem; color: var(--text-muted); }
+.cmp-hd__count strong { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.cmp-hd__count-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 18%, transparent); }
+
+.cmp-seg { align-self: flex-start; flex-wrap: wrap; }
+
+/* ── Table cells ── */
+.cmp-num { text-align: end; font-variant-numeric: tabular-nums; }
+.cmp-table thead th.cmp-num { text-align: end; }
+.cmp-delivery-col { width: 180px; }
+.cmp-actions-col { text-align: end; }
+
+.cmp-name { display: flex; flex-direction: column; gap: 2px; text-decoration: none; }
+.cmp-name__title { font-size: 0.92rem; font-weight: 650; color: var(--text-primary); transition: color 140ms ease; }
+.cmp-name:hover .cmp-name__title { color: var(--primary); }
+.cmp-name__tmpl { font-size: 0.76rem; color: var(--text-muted); }
+
+.cmp-row-meter { max-width: 150px; }
+.cmp-dash { color: var(--text-muted); }
+.cmp-sched { color: var(--text-secondary); font-size: 0.85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.cmp-row-actions { display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.cmp-icon-btn {
+  display: grid; place-items: center; width: 32px; height: 32px; flex: 0 0 auto;
+  border: 1px solid var(--border-subtle); border-radius: 9px;
+  background: var(--surface); color: var(--text-muted); cursor: pointer; text-decoration: none;
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease, transform 140ms var(--ease-out);
+}
+.cmp-icon-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cmp-icon-btn:hover { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 34%, var(--border-subtle)); background: var(--surface-soft); }
+.cmp-icon-btn:active { transform: scale(0.94); }
+.cmp-icon-btn--danger:hover { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 34%, var(--border-subtle)); background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
+
+/* ── Empty state ── */
+.cmp-empty__ico {
+  display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto; border-radius: 16px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.cmp-empty__ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cmp-empty__cta { margin-top: 8px; text-decoration: none; }
+.cmp-empty__cta svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Skeleton ── */
+.cmp-skel { display: inline-block; height: 14px; border-radius: 7px; }
+.sk-shimmer {
+  background: linear-gradient(100deg, var(--surface-soft) 30%, color-mix(in srgb, var(--text-primary) 6%, var(--surface-soft)) 50%, var(--surface-soft) 70%);
+  background-size: 200% 100%;
+  animation: cmp-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes cmp-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (max-width: 720px) {
+  .cmp-delivery-col { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk-shimmer { animation: none; }
+  .cmp-icon-btn:active { transform: none; }
+}

@@ -120,10 +120,28 @@ export const routes: Routes = [
         loadChildren: () => import('./features/working-hours/working-hours.routes').then((m) => m.workingHoursRoutes)
       },
       {
-        path: 'analytics',
+        path: 'campaigns',
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager'] },
-        loadChildren: () => import('./features/analytics/analytics.routes').then((m) => m.analyticsRoutes)
+        loadChildren: () => import('./features/campaigns/campaigns.routes').then((m) => m.campaignsRoutes)
+      },
+      {
+        path: 'reports',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager', 'Agent'] },
+        loadChildren: () => import('./features/reporting/reporting.routes').then((m) => m.reportingRoutes)
+      },
+      {
+        path: 'notifications',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager', 'Agent'] },
+        loadChildren: () => import('./features/notifications/notifications.routes').then((m) => m.notificationsRoutes)
+      },
+      {
+        path: 'audit',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/audit/audit.routes').then((m) => m.auditRoutes)
       },
       {
         path: 'settings',

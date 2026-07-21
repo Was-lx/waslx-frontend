@@ -49,6 +49,24 @@ export interface RealtimePresence {
 }
 
 /**
+ * A per-user notification push (FR-NOTIF). Broadcast to the tenant group with the recipient's
+ * domain user id, so every client must filter on `userId` before acting on it.
+ */
+export interface RealtimeNotification {
+  userId: number;
+  notification: {
+    id: number;
+    type: string;
+    title: string;
+    body: string;
+    entityType: string | null;
+    entityId: number | null;
+    isRead: boolean;
+    createdAt: string;
+  };
+}
+
+/**
  * SignalR client for the shared inbox. Connects to /hubs/inbox with the JWT, auto-reconnects,
  * and fans hub events out as RxJS subjects the inbox page subscribes to. One shared connection
  * per app (providedIn: root).
@@ -64,6 +82,7 @@ export class InboxRealtimeService {
   readonly conversationChanged = new Subject<RealtimeConversation>();
   readonly noteAdded = new Subject<RealtimeNote>();
   readonly presenceChanged = new Subject<RealtimePresence>();
+  readonly notificationCreated = new Subject<RealtimeNotification>();
 
   private hubUrl(): string {
     // environment.apiUrl ends with "/api"; the hub is served at the host root under /hubs/inbox.
@@ -84,6 +103,7 @@ export class InboxRealtimeService {
     this.hub.on('ConversationChanged', (c: RealtimeConversation) => this.conversationChanged.next(c));
     this.hub.on('NoteAdded', (n: RealtimeNote) => this.noteAdded.next(n));
     this.hub.on('PresenceChanged', (p: RealtimePresence) => this.presenceChanged.next(p));
+    this.hub.on('NotificationCreated', (n: RealtimeNotification) => this.notificationCreated.next(n));
 
     this.hub.onreconnected(() => this.connected.set(true));
     this.hub.onclose(() => this.connected.set(false));

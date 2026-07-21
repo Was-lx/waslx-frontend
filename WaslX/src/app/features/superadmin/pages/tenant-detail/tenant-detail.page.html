@@ -1,0 +1,416 @@
+<section class="feature-page tdetail" [attr.dir]="direction()">
+  @if (loading()) {
+    <div class="tdetail__loading">
+      <span class="ui-spinner ui-spinner--lg" aria-hidden="true"></span>
+      <p>{{ c().loading }}</p>
+    </div>
+  } @else if (error() || !tenant()) {
+    <div class="feature-page__empty">
+      <app-icon name="building" [size]="30" />
+      <h3>{{ error() ? c().errorTitle : c().notFound }}</h3>
+      @if (error()) { <p>{{ c().errorBody }}</p> }
+      <div class="tdetail__empty-actions">
+        <a routerLink="/app/superadmin/tenants" class="ui-btn ui-btn--ghost">{{ c().back }}</a>
+        @if (error()) { <button type="button" class="ui-btn ui-btn--primary" (click)="load()">{{ c().retry }}</button> }
+      </div>
+    </div>
+  } @else {
+    @let t = tenant()!;
+
+    <!-- ── Header ── -->
+    <a routerLink="/app/superadmin/tenants" class="tdetail__back">
+      <app-icon name="chevron-left" [size]="16" />
+      {{ c().back }}
+    </a>
+
+    <header class="feature-page__header tdetail__header">
+      <div class="tdetail__id">
+        <span class="tdetail__avatar" aria-hidden="true">{{ initials(t.name) }}</span>
+        <div>
+          <span class="feature-page__eyebrow tdetail__eyebrow">{{ c().eyebrow }} · #{{ t.id }}</span>
+          <h1>{{ t.name }}</h1>
+          <div class="tdetail__pills">
+            <span
+              class="ui-pill ui-pill--dot"
+              [class.ui-pill--success]="statusTone(t.status) === 'success'"
+              [class.ui-pill--warning]="statusTone(t.status) === 'warning'"
+              [class.ui-pill--danger]="statusTone(t.status) === 'danger'"
+            >{{ t.status }}</span>
+            <span class="ui-pill ui-pill--info">{{ t.planName }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-page__actions tdetail__actions">
+        <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="openChangePlan()">
+          <app-icon name="layers" [size]="15" />
+          {{ c().changePlan }}
+        </button>
+        <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm tdetail__impersonate" (click)="openImpersonate()">
+          <app-icon name="eye" [size]="15" />
+          {{ impT('impStart') }}
+        </button>
+        @if (isActive(t.status)) {
+          <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="askAction('suspend')">
+            <app-icon name="pause" [size]="15" />
+            {{ c().suspend }}
+          </button>
+        } @else {
+          <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="askAction('reactivate')">
+            <app-icon name="play" [size]="15" />
+            {{ c().reactivate }}
+          </button>
+        }
+        <button type="button" class="ui-btn ui-btn--danger ui-btn--sm" (click)="askAction('delete')">
+          <app-icon name="trash" [size]="15" />
+          {{ c().delete }}
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Overview stat band ── -->
+    <div class="tdetail__stats">
+      <div class="ui-stat">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().plan }}</span>
+        <span class="ui-stat__value tdetail__stat-plan">{{ t.planName }}</span>
+      </div>
+      <div class="ui-stat ui-stat--read">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().mrr }}</span>
+        <span class="ui-stat__value">${{ t.mrr | number: '1.0-0' }}</span>
+      </div>
+      <div class="ui-stat ui-stat--delivered">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().agents }}</span>
+        <span class="ui-stat__value">{{ t.usage.agentsUsed | number }}<span class="tdetail__stat-of"> {{ c().ofLimit }} {{ t.usage.maxAgents | number }}</span></span>
+      </div>
+      <div class="ui-stat ui-stat--sent">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().numbers }}</span>
+        <span class="ui-stat__value">{{ t.usage.numbersUsed | number }}<span class="tdetail__stat-of"> {{ c().ofLimit }} {{ t.usage.maxNumbers | number }}</span></span>
+      </div>
+    </div>
+
+    <!-- ── Tabs ── -->
+    <div class="ui-seg tdetail__tabs" role="tablist">
+      <button type="button" class="ui-seg__btn" [class.is-active]="tab() === 'overview'" (click)="setTab('overview')" role="tab" [attr.aria-selected]="tab() === 'overview'">{{ c().overview }}</button>
+      <button type="button" class="ui-seg__btn" [class.is-active]="tab() === 'users'" (click)="setTab('users')" role="tab" [attr.aria-selected]="tab() === 'users'">{{ c().users }} · {{ t.users.length | number }}</button>
+      <button type="button" class="ui-seg__btn" [class.is-active]="tab() === 'invoices'" (click)="setTab('invoices')" role="tab" [attr.aria-selected]="tab() === 'invoices'">{{ c().invoices }} · {{ t.invoices.length | number }}</button>
+    </div>
+
+    <!-- ── OVERVIEW ── -->
+    @if (tab() === 'overview') {
+      <div class="tdetail__grid">
+        <div class="ui-card tdetail__panel">
+          <span class="ui-sectiontitle">{{ c().profile }}</span>
+          <dl class="tdetail__dl">
+            <div><dt>{{ c().website }}</dt><dd>{{ t.website || c().none }}</dd></div>
+            <div><dt>{{ c().industry }}</dt><dd>{{ t.industry || c().none }}</dd></div>
+            <div><dt>{{ c().phone }}</dt><dd class="tdetail__num">{{ t.phoneNumber || c().none }}</dd></div>
+            <div><dt>{{ c().customerType }}</dt><dd>{{ t.customerType }}</dd></div>
+            <div><dt>{{ c().created }}</dt><dd>{{ t.createdAt | date: 'mediumDate' }}</dd></div>
+            <div><dt>{{ t.trialEndsAt ? c().trialEnds : c().periodEnds }}</dt><dd>{{ (t.trialEndsAt || t.currentPeriodEnd) ? ((t.trialEndsAt || t.currentPeriodEnd) | date: 'mediumDate') : c().none }}</dd></div>
+          </dl>
+        </div>
+
+        <div class="ui-card tdetail__panel">
+          <div class="tdetail__panel-head">
+            <span class="ui-sectiontitle">{{ c().subscription }}</span>
+            <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="openChangePlan()">{{ c().changePlan }}</button>
+          </div>
+          <dl class="tdetail__dl">
+            <div><dt>{{ c().plan }}</dt><dd>{{ t.planName }}</dd></div>
+            <div><dt>{{ c().price }}</dt><dd class="tdetail__num">${{ t.price | number: '1.0-2' }}</dd></div>
+            <div><dt>{{ c().billingCycle }}</dt><dd>{{ t.billingCycle }}</dd></div>
+            <div><dt>{{ c().mrr }}</dt><dd class="tdetail__num">${{ t.mrr | number: '1.0-0' }}</dd></div>
+          </dl>
+
+          <span class="ui-sectiontitle tdetail__usage-title">{{ c().usage }}</span>
+          <div class="tdetail__meter">
+            <div class="tdetail__meter-row">
+              <span>{{ c().agents }}</span>
+              <span class="tdetail__num">{{ t.usage.agentsUsed | number }} / {{ t.usage.maxAgents | number }}</span>
+            </div>
+            <div class="ui-meter ui-meter--sm">
+              <div class="ui-meter__seg ui-meter__seg--delivered" [style.width.%]="pct(t.usage.agentsUsed, t.usage.maxAgents)"></div>
+            </div>
+          </div>
+          <div class="tdetail__meter">
+            <div class="tdetail__meter-row">
+              <span>{{ c().numbers }}</span>
+              <span class="tdetail__num">{{ t.usage.numbersUsed | number }} / {{ t.usage.maxNumbers | number }}</span>
+            </div>
+            <div class="ui-meter ui-meter--sm">
+              <div class="ui-meter__seg ui-meter__seg--sent" [style.width.%]="pct(t.usage.numbersUsed, t.usage.maxNumbers)"></div>
+            </div>
+          </div>
+          <div class="tdetail__quota">
+            <div><span class="tdetail__quota-k">{{ c().messages }}</span><span class="tdetail__quota-v tdetail__num">{{ t.usage.msgQuota | number }}</span></div>
+            <div><span class="tdetail__quota-k">{{ c().aiQuota }}</span><span class="tdetail__quota-v tdetail__num">{{ t.usage.aiQuota | number }}</span></div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── USERS ── -->
+    @if (tab() === 'users') {
+      <div class="ui-card tdetail__panel tdetail__panel--flush">
+        <div class="tdetail__panel-bar">
+          <span class="ui-sectiontitle">{{ c().usersLabel }}</span>
+          <span class="tdetail__count">{{ t.users.length | number }}</span>
+        </div>
+        @if (t.users.length === 0) {
+          <div class="tdetail__inline-empty">{{ c().usersEmpty }}</div>
+        } @else {
+          <div class="tdetail__scroll">
+            <table class="feature-page__table tdetail__table">
+              <thead>
+                <tr>
+                  <th>{{ c().colUser }}</th>
+                  <th>{{ c().colEmail }}</th>
+                  <th>{{ c().colRole }}</th>
+                  <th class="tdetail__table-end">{{ c().colStatus }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (u of t.users; track u.id) {
+                  <tr>
+                    <td>
+                      <div class="tdetail__user">
+                        <span class="tdetail__user-avatar">{{ initials(u.name) }}</span>
+                        <span class="tdetail__user-name">{{ u.name }}</span>
+                      </div>
+                    </td>
+                    <td class="tdetail__muted">{{ u.email }}</td>
+                    <td><span class="ui-pill ui-pill--info">{{ u.role }}</span></td>
+                    <td class="tdetail__table-end">
+                      <span class="ui-pill ui-pill--dot" [class.ui-pill--success]="u.isActive" [class.ui-pill--danger]="!u.isActive">
+                        {{ u.isActive ? c().userActive : c().userInactive }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── INVOICES ── -->
+    @if (tab() === 'invoices') {
+      <div class="ui-card tdetail__panel tdetail__panel--flush">
+        <div class="tdetail__panel-bar">
+          <span class="ui-sectiontitle">{{ c().invoicesLabel }}</span>
+          <button type="button" class="ui-btn ui-btn--primary ui-btn--sm" (click)="openGenerate()">
+            <app-icon name="receipt" [size]="15" />
+            {{ c().generate }}
+          </button>
+        </div>
+        @if (t.invoices.length === 0) {
+          <div class="tdetail__inline-empty">{{ c().invoicesEmpty }}</div>
+        } @else {
+          <div class="tdetail__invoices">
+            @for (inv of t.invoices; track inv.id) {
+              <div class="ui-invoice-row" [attr.data-status]="invoiceStatusKey(inv.status)">
+                <div class="ui-invoice-row__period">
+                  <span class="ui-invoice-row__num">{{ c().invoiceNo }} #{{ inv.id }}</span>
+                  <span class="ui-invoice-row__range">
+                    @if (inv.periodStart && inv.periodEnd) {
+                      {{ inv.periodStart | date: 'MMM d' }} – {{ inv.periodEnd | date: 'MMM d, y' }}
+                    } @else {
+                      {{ c().issued }} {{ inv.issuedAt | date: 'mediumDate' }}
+                    }
+                  </span>
+                </div>
+                <span class="ui-invoice-row__meta">
+                  {{ c().due }} {{ inv.dueDate ? (inv.dueDate | date: 'mediumDate') : c().none }}
+                </span>
+                <span class="ui-invoice-row__amount">${{ inv.amount | number: '1.2-2' }}</span>
+                <div class="ui-invoice-row__actions">
+                  <span class="ui-pill ui-invoice-row__status">{{ inv.status }}</span>
+                  @if (!isPaid(inv.status)) {
+                    <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" [disabled]="paidBusyId() === inv.id" (click)="markPaid(inv)">
+                      @if (paidBusyId() === inv.id) {
+                        <span class="ui-spinner" aria-hidden="true"></span>
+                      } @else {
+                        <app-icon name="check-circle" [size]="14" />
+                      }
+                      {{ c().markPaid }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ── Lifecycle confirm ── -->
+  @if (confirmAction(); as action) {
+    <div class="ui-overlay" (click)="cancelAction()">
+      <div class="ui-modal ui-confirm tdetail-confirm" [class.tdetail-confirm--danger]="action === 'delete'" role="dialog" aria-modal="true" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+        <div class="ui-confirm__icon tdetail-confirm__icon">
+          <app-icon [name]="action === 'delete' ? 'trash' : (action === 'suspend' ? 'pause' : 'play')" [size]="22" />
+        </div>
+        <h3>{{ action === 'delete' ? c().deleteTitle : (action === 'suspend' ? c().suspendTitle : c().reactivateTitle) }}</h3>
+        <p>{{ action === 'delete' ? c().deleteBody : (action === 'suspend' ? c().suspendBody : c().reactivateBody) }}</p>
+
+        @if (action === 'delete') {
+          <div class="ui-field tdetail-confirm__field">
+            <label class="ui-label" for="deleteName">{{ c().deleteConfirmLabel }}</label>
+            <input
+              id="deleteName"
+              class="ui-input"
+              type="text"
+              autocomplete="off"
+              [value]="deleteTyped()"
+              (input)="deleteTyped.set($any($event.target).value)"
+              [placeholder]="tenant()?.name || ''"
+            />
+          </div>
+        }
+
+        <div class="ui-confirm__actions">
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelAction()">{{ c().cancel }}</button>
+          <button
+            type="button"
+            class="ui-btn"
+            [class.ui-btn--danger]="action === 'delete' || action === 'suspend'"
+            [class.ui-btn--primary]="action === 'reactivate'"
+            [disabled]="savingStatus() || (action === 'delete' && !deleteReady)"
+            (click)="confirmLifecycle()"
+          >
+            @if (savingStatus()) { <span class="ui-spinner" aria-hidden="true"></span> }
+            {{ action === 'delete' ? c().confirmDelete : c().confirm }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Change plan modal ── -->
+  @if (changePlanOpen()) {
+    <div class="ui-overlay" (click)="closeChangePlan()">
+      <div class="ui-modal tdetail-modal" role="dialog" aria-modal="true" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+        <header class="ui-modal__head">
+          <div>
+            <h2 class="ui-modal__title">{{ c().changePlanTitle }}</h2>
+            <p class="ui-modal__sub">{{ c().changePlanSub }}</p>
+          </div>
+          <button type="button" class="ui-modal__close" (click)="closeChangePlan()" aria-label="Close"><app-icon name="x" [size]="18" /></button>
+        </header>
+        <form [formGroup]="planForm" (ngSubmit)="saveChangePlan()">
+          <div class="ui-modal__body tdetail-modal__body">
+            <div class="ui-field">
+              <label class="ui-label" for="planId">{{ c().selectPlan }}</label>
+              <select id="planId" class="ui-select" formControlName="planId">
+                @for (plan of plans(); track plan.id) {
+                  <option [ngValue]="plan.id">{{ plan.name }} · ${{ plan.price | number: '1.0-0' }}</option>
+                }
+              </select>
+              @if (invalid('plan', 'planId')) { <span class="ui-error">{{ c().required }}</span> }
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="billingCycle">{{ c().billingCycle }}</label>
+              <select id="billingCycle" class="ui-select" formControlName="billingCycle">
+                <option value="Monthly">{{ c().monthly }}</option>
+                <option value="Yearly">{{ c().yearly }}</option>
+              </select>
+            </div>
+          </div>
+          <footer class="ui-modal__foot">
+            <button type="button" class="ui-btn ui-btn--ghost" (click)="closeChangePlan()">{{ c().cancel }}</button>
+            <button type="submit" class="ui-btn ui-btn--primary" [disabled]="savingPlan()">
+              @if (savingPlan()) { <span class="ui-spinner" aria-hidden="true"></span> {{ c().saving }} } @else { {{ c().save }} }
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ── Generate invoice modal ── -->
+  @if (generateOpen()) {
+    <div class="ui-overlay" (click)="closeGenerate()">
+      <div class="ui-modal tdetail-modal" role="dialog" aria-modal="true" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+        <header class="ui-modal__head">
+          <div>
+            <h2 class="ui-modal__title">{{ c().genTitle }}</h2>
+            <p class="ui-modal__sub">{{ c().genSub }}</p>
+          </div>
+          <button type="button" class="ui-modal__close" (click)="closeGenerate()" aria-label="Close"><app-icon name="x" [size]="18" /></button>
+        </header>
+        <form [formGroup]="invoiceForm" (ngSubmit)="saveGenerate()">
+          <div class="ui-modal__body tdetail-modal__body">
+            <div class="ui-field">
+              <label class="ui-label" for="amount">{{ c().amount }}</label>
+              <input id="amount" class="ui-input" type="number" min="0" step="0.01" formControlName="amount" />
+              @if (invalid('invoice', 'amount')) { <span class="ui-error">{{ c().required }}</span> }
+            </div>
+            <div class="tdetail-modal__row">
+              <div class="ui-field">
+                <label class="ui-label" for="periodStart">{{ c().periodStart }} <span class="tdetail-modal__opt">{{ c().optional }}</span></label>
+                <input id="periodStart" class="ui-input" type="date" formControlName="periodStart" />
+              </div>
+              <div class="ui-field">
+                <label class="ui-label" for="periodEnd">{{ c().periodEnd }} <span class="tdetail-modal__opt">{{ c().optional }}</span></label>
+                <input id="periodEnd" class="ui-input" type="date" formControlName="periodEnd" />
+              </div>
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="dueDate">{{ c().dueDate }} <span class="tdetail-modal__opt">{{ c().optional }}</span></label>
+              <input id="dueDate" class="ui-input" type="date" formControlName="dueDate" />
+            </div>
+          </div>
+          <footer class="ui-modal__foot">
+            <button type="button" class="ui-btn ui-btn--ghost" (click)="closeGenerate()">{{ c().cancel }}</button>
+            <button type="submit" class="ui-btn ui-btn--primary" [disabled]="savingInvoice()">
+              @if (savingInvoice()) { <span class="ui-spinner" aria-hidden="true"></span> {{ c().saving }} } @else { {{ c().generate }} }
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ── Impersonation confirm (FE-6.8) — reason required, session is logged ── -->
+  @if (impersonateOpen()) {
+    <div class="ui-overlay" (click)="cancelImpersonate()">
+      <div class="ui-modal ui-confirm tdetail-confirm tdetail-confirm--imp" role="dialog" aria-modal="true" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+        <div class="ui-confirm__icon tdetail-impersonate__icon">
+          <app-icon name="eye" [size]="22" />
+        </div>
+        <h3>{{ impConfirmTitle() }}</h3>
+        <p>{{ impT('impConfirmBody') }}</p>
+
+        <div class="ui-field tdetail-confirm__field">
+          <label class="ui-label" for="impReason">{{ impT('impReasonLabel') }}</label>
+          <textarea
+            id="impReason"
+            class="ui-input tdetail-impersonate__reason"
+            rows="2"
+            autocomplete="off"
+            [value]="impReason()"
+            (input)="impReason.set($any($event.target).value)"
+            [placeholder]="impT('impReasonPlaceholder')"
+          ></textarea>
+          @if (impSubmitted() && !impReason().trim()) {
+            <span class="ui-error">{{ impT('impReasonRequired') }}</span>
+          }
+        </div>
+
+        <p class="tdetail-impersonate__note">
+          <app-icon name="lock" [size]="13" /> {{ impT('impLoggedNote') }}
+        </p>
+
+        <div class="ui-confirm__actions">
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelImpersonate()">{{ impT('impCancel') }}</button>
+          <button type="button" class="ui-btn ui-btn--primary" [disabled]="impStarting() || !impReason().trim()" (click)="confirmImpersonate()">
+            @if (impStarting()) { <span class="ui-spinner" aria-hidden="true"></span> {{ impT('impStarting') }} }
+            @else { {{ impT('impConfirmCta') }} }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

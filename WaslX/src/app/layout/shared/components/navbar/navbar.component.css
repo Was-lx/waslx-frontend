@@ -121,6 +121,27 @@
   border: 2px solid var(--surface);
 }
 
+/* ── Notification unread badge ── */
+.topbar__badge {
+  position: absolute;
+  top: 3px;
+  inset-inline-end: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
 /* ── Presence / break chip ── */
 .topbar__presence {
   display: inline-flex;
@@ -451,6 +472,143 @@
   color: var(--text-muted);
 }
 
+/* ── Notification panel ── */
+.notif-panel {
+  padding: 6px 6px 4px;
+  transform-origin: top right;
+  animation: notif-panel-in 180ms var(--ease-out);
+}
+[dir='rtl'] .notif-panel {
+  transform-origin: top left;
+}
+
+@keyframes notif-panel-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.notif-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notif-panel__mark {
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.notif-panel__mark:hover {
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+
+.notif-panel__scroll {
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.notif-panel__group {
+  padding: 8px 10px 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.notif-panel__browser {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 550;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.notif-panel__browser svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+button.notif-panel__browser:hover {
+  background: var(--surface-soft);
+  color: var(--text-primary);
+}
+
+.notif-panel__browser.is-on {
+  color: color-mix(in srgb, var(--success) 72%, var(--text-primary));
+  cursor: default;
+}
+
+.notif-panel__browser.is-off {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.notif-panel__all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 2px;
+  padding: 9px 10px;
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  border-radius: 0 0 10px 10px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.notif-panel__all svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+[dir='rtl'] .notif-panel__all svg {
+  transform: scaleX(-1);
+}
+
+.notif-panel__all:hover {
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notif-panel {
+    animation-name: menu-in;
+  }
+}
+
 .topbar__scrim {
   position: fixed;
   inset: 0;
@@ -462,6 +620,17 @@
   .topbar__burger {
     display: inline-grid;
   }
+}
+
+/* ── PLATFORM MODE — top rail accent (design plan §05) ──
+   Restraint over costume: a --primary-deep hairline + faint wash signals the
+   higher-privilege console without a dark navbar (keeps controls high-contrast). */
+:host-context(.is-platform-console) .topbar {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--primary-deep) 8%, transparent), transparent 70%),
+    color-mix(in srgb, var(--surface) 82%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--primary-deep) 24%, var(--border-subtle));
+  box-shadow: inset 0 2px 0 0 var(--primary-deep);
 }
 
 @media (max-width: 720px) {

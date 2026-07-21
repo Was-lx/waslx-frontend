@@ -1,0 +1,248 @@
+<section class="feature-page cmpd" [attr.dir]="direction()">
+  @if (loading()) {
+    <div class="cmpd-skel-hd">
+      <span class="cmp-skel sk-shimmer" style="width: 220px; height: 26px"></span>
+    </div>
+    <div class="cmpd-kpis">
+      @for (row of skeletonRows; track $index) {
+        <div class="ui-stat"><span class="cmp-skel sk-shimmer" style="width: 60%; height: 12px"></span><span class="cmp-skel sk-shimmer" style="width: 40%; height: 26px; margin-top: 8px"></span></div>
+      }
+    </div>
+  } @else if (notFound()) {
+    <div class="feature-page__empty">
+      <app-icon name="megaphone" [size]="26" />
+      <h3>{{ t('cmpNotFound') }}</h3>
+      <a routerLink="/app/campaigns" class="ui-btn ui-btn--ghost ui-btn--sm">{{ t('cmpNotFoundBack') }}</a>
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('cmpErrorTitle') }}</h3>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="load()">{{ t('cmpRetry') }}</button>
+    </div>
+  } @else if (campaign(); as c) {
+    <header class="feature-page__header">
+      <div class="cmpd-hd">
+        <a routerLink="/app/campaigns" class="cmpd-hd__back">
+          <app-icon name="chevron-left" [size]="16" /> {{ t('cmpBackToList') }}
+        </a>
+        <span class="feature-page__eyebrow">{{ t('cmpDetailEyebrow') }}</span>
+        <div class="cmpd-hd__titlerow">
+          <h1>{{ c.name }}</h1>
+          <span [class]="statusPillClass(c.status)">{{ statusLabel(c.status) }}</span>
+        </div>
+        <span class="cmpd-hd__meta">
+          @if (c.templateName) { {{ c.templateName }} · }
+          {{ c.createdByName || '' }}
+        </span>
+      </div>
+      <div class="feature-page__actions cmpd-controls">
+        @if (canEdit) {
+          <a class="ui-btn ui-btn--ghost" [routerLink]="[c.id, 'edit']">
+            <app-icon name="settings" [size]="16" /> {{ t('cmpEditDraft') }}
+          </a>
+        }
+        @if (canResume) {
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="resume()" [disabled]="resuming()">
+            @if (resuming()) { <span class="ui-spinner"></span> {{ t('cmpResuming') }} }
+            @else { <app-icon name="play" [size]="16" /> {{ t('cmpResume') }} }
+          </button>
+        }
+        @if (canPause) {
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="requestConfirm('pause')">
+            <app-icon name="pause" [size]="16" /> {{ t('cmpPause') }}
+          </button>
+        }
+        @if (canCancel) {
+          <button type="button" class="ui-btn ui-btn--danger" (click)="requestConfirm('cancel')">
+            <app-icon name="slash-circle" [size]="16" /> {{ t('cmpCancelRun') }}
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- KPI row -->
+    <div class="cmpd-kpis">
+      <div class="ui-stat ui-stat--queued">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span> {{ t('cmpKpiQueued') }}</span>
+        <span class="ui-stat__value">{{ queuedCount() }}</span>
+      </div>
+      <div class="ui-stat ui-stat--sent">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span> {{ t('cmpKpiSent') }}</span>
+        <span class="ui-stat__value">{{ c.sentCount }}</span>
+      </div>
+      <div class="ui-stat ui-stat--delivered">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span> {{ t('cmpKpiDelivered') }}</span>
+        <span class="ui-stat__value">{{ c.deliveredCount }}</span>
+      </div>
+      <div class="ui-stat ui-stat--read">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span> {{ t('cmpKpiRead') }}</span>
+        <span class="ui-stat__value">{{ c.readCount }}</span>
+      </div>
+      <div class="ui-stat ui-stat--failed">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span> {{ t('cmpKpiFailed') }}</span>
+        <span class="ui-stat__value">{{ c.failedCount }}</span>
+      </div>
+    </div>
+
+    <!-- Large delivery meter -->
+    <div class="ui-card cmpd-meter-card">
+      <div class="cmpd-meter-head">
+        <span class="ui-sectiontitle">{{ t('cmpDeliveryProgress') }}</span>
+        <span class="cmpd-meter-pct" aria-live="polite">
+          <strong>{{ deliveryPct() }}%</strong> {{ t('cmpOfAudience') }}
+        </span>
+      </div>
+      <div class="ui-meter cmpd-big-meter">
+        <span class="ui-meter__seg ui-meter__seg--read" [style.width.%]="meterSegments().read"></span>
+        <span class="ui-meter__seg ui-meter__seg--delivered" [style.width.%]="meterSegments().delivered"></span>
+        <span class="ui-meter__seg ui-meter__seg--sent" [style.width.%]="meterSegments().sent"></span>
+        <span class="ui-meter__seg ui-meter__seg--failed" [style.width.%]="meterSegments().failed"></span>
+      </div>
+      <div class="ui-meter-legend">
+        <span class="ui-meter-legend__item"><span class="ui-meter-legend__swatch" style="background: var(--success)"></span> {{ t('cmpKpiRead') }} <strong>{{ c.readCount }}</strong></span>
+        <span class="ui-meter-legend__item"><span class="ui-meter-legend__swatch" style="background: var(--primary)"></span> {{ t('cmpKpiDelivered') }} <strong>{{ c.deliveredCount }}</strong></span>
+        <span class="ui-meter-legend__item"><span class="ui-meter-legend__swatch" style="background: var(--cyan)"></span> {{ t('cmpKpiSent') }} <strong>{{ c.sentCount }}</strong></span>
+        <span class="ui-meter-legend__item"><span class="ui-meter-legend__swatch" style="background: var(--danger)"></span> {{ t('cmpKpiFailed') }} <strong>{{ c.failedCount }}</strong></span>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="cmpd-charts">
+      <div class="ui-chart">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ t('cmpChartFunnelTitle') }}</h2>
+            <p class="ui-chart__sub">{{ t('cmpChartFunnelSub') }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasChartData()) {
+            <apx-chart
+              [series]="funnelSeries()"
+              [chart]="funnelChart"
+              [plotOptions]="funnelPlot"
+              [colors]="funnelColors"
+              [xaxis]="funnelXaxis()"
+              [dataLabels]="funnelDataLabels"
+              [grid]="funnelGrid"
+              [legend]="funnelLegend"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ t('cmpChartNoData') }}</div>
+          }
+        </div>
+      </div>
+
+      <div class="ui-chart">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ t('cmpChartBreakdownTitle') }}</h2>
+            <p class="ui-chart__sub">{{ t('cmpChartBreakdownSub') }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasChartData() || queuedCount() > 0) {
+            <apx-chart
+              [series]="breakdownSeries()"
+              [chart]="breakdownChart"
+              [labels]="breakdownLabels()"
+              [colors]="breakdownColors"
+              [legend]="breakdownLegend"
+              [tooltip]="breakdownTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ t('cmpChartNoData') }}</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Recipients -->
+    <div class="cmpd-recipients">
+      <div class="cmpd-recipients__bar">
+        <span class="ui-sectiontitle">{{ t('cmpRecipientsTitle') }}</span>
+        <div class="ui-seg cmpd-recip-seg">
+          @for (f of recipientFilters; track f.value) {
+            <button
+              type="button"
+              class="ui-seg__btn"
+              [class.is-active]="recipientFilter() === f.value"
+              (click)="setRecipientFilter(f.value)"
+            >
+              {{ t(f.key) }}
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (recipientsLoading()) {
+        <div class="ui-loading"><div class="ui-spinner"></div><p>{{ t('cmpRecipientsLoading') }}</p></div>
+      } @else if (filteredRecipients().length === 0) {
+        <div class="feature-page__empty cmpd-recip-empty">
+          <app-icon name="users" [size]="24" />
+          <h3>{{ t('cmpRecipientsEmpty') }}</h3>
+        </div>
+      } @else {
+        <div class="feature-page__table-container">
+          <table class="feature-page__table">
+            <thead>
+              <tr>
+                <th>{{ t('cmpColRecipient') }}</th>
+                <th>{{ t('cmpColPhone') }}</th>
+                <th>{{ t('cmpColRecipStatus') }}</th>
+                <th>{{ t('cmpColSentAt') }}</th>
+                <th>{{ t('cmpColError') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of filteredRecipients(); track r.id) {
+                <tr>
+                  <td>{{ r.customerName || '—' }}</td>
+                  <td class="cmpd-phone">{{ r.customerPhone }}</td>
+                  <td><span [class]="recipientPillClass(r.status)">{{ recipientLabel(r.status) }}</span></td>
+                  <td class="cmpd-time">{{ formatTime(r.sentAt) }}</td>
+                  <td class="cmpd-detail">{{ r.error || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</section>
+
+<!-- ── Pause / cancel confirm ── -->
+@if (confirmKind(); as kind) {
+  <div class="ui-overlay" (click)="cancelConfirm()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-confirm__icon">
+        @if (kind === 'pause') {
+          <svg viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1" /><rect x="6" y="4" width="4" height="16" rx="1" /></svg>
+        } @else {
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="m4.9 4.9 14.2 14.2" /></svg>
+        }
+      </div>
+      <h3>{{ kind === 'pause' ? t('cmpPauseConfirmTitle') : t('cmpCancelConfirmTitle') }}</h3>
+      <p>{{ kind === 'pause' ? t('cmpPauseConfirmBody') : t('cmpCancelConfirmBody') }}</p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelConfirm()" [disabled]="acting()">
+          {{ t('cmpCancel') }}
+        </button>
+        <button
+          type="button"
+          [class]="kind === 'pause' ? 'ui-btn ui-btn--primary' : 'ui-btn ui-btn--danger'"
+          (click)="confirmAction()"
+          [disabled]="acting()"
+        >
+          @if (acting()) {
+            <span class="ui-spinner"></span> {{ kind === 'pause' ? t('cmpPausing') : t('cmpCancelling') }}
+          } @else {
+            {{ kind === 'pause' ? t('cmpConfirmPause') : t('cmpConfirmCancelRun') }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

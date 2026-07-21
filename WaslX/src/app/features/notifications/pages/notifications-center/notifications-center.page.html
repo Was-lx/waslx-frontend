@@ -1,0 +1,106 @@
+<section class="feature-page notif-center" [attr.dir]="direction()">
+  <header class="feature-page__header notif-center__hd">
+    <div class="notif-center__intro">
+      <span class="feature-page__eyebrow">{{ t('notifEyebrow') }}</span>
+      <h1>{{ t('notifTitle') }}</h1>
+      <p class="notif-center__lead">{{ t('notifLead') }}</p>
+    </div>
+
+    <div class="feature-page__actions notif-center__controls">
+      <div class="ui-seg" role="tablist" [attr.aria-label]="t('notifFilterAll')">
+        <button
+          type="button"
+          class="ui-seg__btn"
+          [class.is-active]="filter() === 'all'"
+          (click)="setFilter('all')"
+        >
+          {{ t('notifFilterAll') }}
+        </button>
+        <button
+          type="button"
+          class="ui-seg__btn"
+          [class.is-active]="filter() === 'unread'"
+          (click)="setFilter('unread')"
+        >
+          {{ t('notifFilterUnread') }}
+          @if (unreadCount() > 0) {
+            <span class="ui-pill ui-pill--info notif-center__count">{{ unreadCount() }}</span>
+          }
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="ui-btn ui-btn--ghost ui-btn--sm"
+        [disabled]="unreadCount() === 0"
+        (click)="markAllRead()"
+      >
+        <app-icon name="check-check" [size]="16" />
+        {{ t('notifMarkAllRead') }}
+      </button>
+    </div>
+  </header>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="ui-card notif-center__list" aria-hidden="true">
+      @for (row of skeletonRows; track $index) {
+        <div class="notif-center__skel">
+          <span class="notif-center__skel-chip"></span>
+          <span class="notif-center__skel-body">
+            <span class="notif-center__skel-line"></span>
+            <span class="notif-center__skel-line notif-center__skel-line--short"></span>
+          </span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <!-- Error -->
+    <div class="ui-card notif-center__state">
+      <span class="notif-center__state-ico notif-center__state-ico--warn">
+        <app-icon name="slash-circle" [size]="24" />
+      </span>
+      <strong>{{ t('notifErrorTitle') }}</strong>
+      <span>{{ t('notifErrorBody') }}</span>
+      <button type="button" class="ui-btn ui-btn--primary ui-btn--sm" (click)="load()">
+        {{ t('notifRetry') }}
+      </button>
+    </div>
+  } @else if (isEmpty()) {
+    <!-- Empty -->
+    <div class="ui-card notif-center__state">
+      <span class="notif-center__state-ico">
+        <app-icon name="check-circle" [size]="24" />
+      </span>
+      @if (filter() === 'unread') {
+        <strong>{{ t('notifUnreadEmptyTitle') }}</strong>
+        <span>{{ t('notifUnreadEmptyBody') }}</span>
+      } @else {
+        <strong>{{ t('notifEmptyTitle') }}</strong>
+        <span>{{ t('notifEmptyBody') }}</span>
+      }
+    </div>
+  } @else {
+    <!-- List -->
+    <div class="ui-card notif-center__list">
+      @for (row of rows(); track row.n.id) {
+        <button
+          class="ui-notif notif-center__row"
+          [class.ui-notif--unread]="!row.n.isRead"
+          type="button"
+          (click)="open(row)"
+        >
+          <span class="ui-notif__chip ui-notif__chip--{{ row.tint }}">
+            <app-icon [name]="row.icon" [size]="18" />
+          </span>
+          <span class="ui-notif__body">
+            <span class="ui-notif__title">{{ row.n.title }}</span>
+            @if (row.n.body) { <span class="ui-notif__text">{{ row.n.body }}</span> }
+            <span class="ui-notif__meta">{{ row.timeLabel }}</span>
+          </span>
+          @if (!row.n.isRead) { <span class="ui-notif__dot" aria-hidden="true"></span> }
+        </button>
+      }
+    </div>
+  }
+</section>

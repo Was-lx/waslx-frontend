@@ -36,8 +36,12 @@ export type LayoutKey =
   | 'teamsDesc'
   | 'pipeline'
   | 'pipelineDesc'
-  | 'analytics'
-  | 'analyticsDesc'
+  | 'reports'
+  | 'reportsDesc'
+  | 'campaignsNav'
+  | 'campaignsNavDesc'
+  | 'auditNav'
+  | 'auditNavDesc'
   | 'settings'
   | 'settingsDesc'
   | 'permissions'
@@ -45,10 +49,21 @@ export type LayoutKey =
   | 'subscription'
   | 'subscriptionDesc'
   | 'platform'
+  | 'platformConsole'
+  | 'admins'
+  | 'adminsDesc'
   | 'tenants'
   | 'tenantsDesc'
   | 'plans'
   | 'plansDesc'
+  | 'billing'
+  | 'billingDesc'
+  | 'usage'
+  | 'usageDesc'
+  | 'aiCost'
+  | 'aiCostDesc'
+  | 'platformSettings'
+  | 'platformSettingsDesc'
   // Role labels
   | 'roleSuperAdmin'
   | 'roleAdmin'
@@ -91,8 +106,12 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     teamsDesc: 'Team structure',
     pipeline: 'Pipeline',
     pipelineDesc: 'Stage board',
-    analytics: 'Analytics',
-    analyticsDesc: 'Reports & insights',
+    reports: 'Reporting & Analytics',
+    reportsDesc: 'Dashboards & exports',
+    campaignsNav: 'Campaigns',
+    campaignsNavDesc: 'WhatsApp broadcasts',
+    auditNav: 'Audit log',
+    auditNavDesc: 'Append-only activity trail',
     settings: 'Settings',
     settingsDesc: 'Workspace config',
     permissions: 'Roles & permissions',
@@ -100,10 +119,21 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     subscription: 'Subscription',
     subscriptionDesc: 'Plan, billing & usage',
     platform: 'Platform',
+    platformConsole: 'Platform console',
+    admins: 'Admins',
+    adminsDesc: 'Platform operators',
     tenants: 'Tenants',
     tenantsDesc: 'Workspaces & accounts',
     plans: 'Plans',
     plansDesc: 'Subscription plans',
+    billing: 'Billing',
+    billingDesc: 'Revenue & invoices',
+    usage: 'Usage',
+    usageDesc: 'Cross-tenant volume',
+    aiCost: 'AI cost',
+    aiCostDesc: 'Spend & budgets',
+    platformSettings: 'Settings',
+    platformSettingsDesc: 'Credentials, flags & policy',
     // Roles
     roleSuperAdmin: 'Super Admin',
     roleAdmin: 'Admin',
@@ -145,8 +175,12 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     teamsDesc: 'هيكل الفريق',
     pipeline: 'المسار',
     pipelineDesc: 'لوحة المراحل',
-    analytics: 'التحليلات',
-    analyticsDesc: 'التقارير والرؤى',
+    reports: 'التقارير والتحليلات',
+    reportsDesc: 'اللوحات والتصدير',
+    campaignsNav: 'الحملات',
+    campaignsNavDesc: 'حملات واتساب',
+    auditNav: 'سجل التدقيق',
+    auditNavDesc: 'سجل نشاط للإضافة فقط',
     settings: 'الإعدادات',
     settingsDesc: 'إعدادات المساحة',
     permissions: 'الأدوار والصلاحيات',
@@ -154,10 +188,21 @@ export const layoutTranslations: Record<AppLanguage, Record<LayoutKey, string>> 
     subscription: 'الاشتراك',
     subscriptionDesc: 'الخطة والفوترة والاستخدام',
     platform: 'المنصة',
+    platformConsole: 'لوحة المنصة',
+    admins: 'المشرفون',
+    adminsDesc: 'مشغّلو المنصة',
     tenants: 'المستأجرون',
     tenantsDesc: 'المساحات والحسابات',
     plans: 'الخطط',
     plansDesc: 'خطط الاشتراك',
+    billing: 'الفوترة',
+    billingDesc: 'الإيرادات والفواتير',
+    usage: 'الاستخدام',
+    usageDesc: 'الحجم عبر المستأجرين',
+    aiCost: 'تكلفة الذكاء',
+    aiCostDesc: 'الإنفاق والميزانيات',
+    platformSettings: 'الإعدادات',
+    platformSettingsDesc: 'المفاتيح والأعلام والسياسة',
     // Roles
     roleSuperAdmin: 'سوبر أدمن',
     roleAdmin: 'مدير النظام',

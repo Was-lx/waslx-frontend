@@ -1,198 +1,148 @@
-/* ============================================================================
-   WaslX — Contacts page (premium empty / preview state)
-   Component-specific only. Shared scaffolding (.feature-page, .ui-*) lives in
-   styles/app-ui.css. Token-driven (light/dark), bilingual, RTL-safe.
-   The ".showcase" block is a rich, intentional empty state — a branded orb,
-   an illustration-ish inline SVG, strong title/copy, CTAs and capability chips.
-   ========================================================================== */
+.contacts__count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.contacts__export svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-:host { display: block; }
-
-/* ── Showcase shell (decorative editorial empty state) ──────────────────── */
-.showcase {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  min-height: 460px;
-  padding: clamp(40px, 6vw, 68px) 24px;
-  text-align: center;
-  border: 1px solid var(--border-subtle);
-  border-radius: 22px;
-  background:
-    radial-gradient(130% 100% at 50% -10%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 60%),
-    var(--surface);
-  box-shadow: var(--shadow-card);
-}
-
-/* faint routing grid (echoes the landing substrate) */
-.showcase__grid {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background-image:
-    linear-gradient(var(--border-subtle) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-  background-size: 46px 46px;
-  -webkit-mask-image: radial-gradient(ellipse 70% 62% at 50% 34%, #000 0%, transparent 74%);
-  mask-image: radial-gradient(ellipse 70% 62% at 50% 34%, #000 0%, transparent 74%);
-  opacity: 0.5;
-}
-[data-theme='dark'] .showcase__grid {
-  background-image:
-    linear-gradient(rgb(226 232 240 / 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(226 232 240 / 0.05) 1px, transparent 1px);
-}
-
-.showcase__orb {
-  position: absolute;
-  z-index: -1;
-  border-radius: 50%;
-  filter: blur(58px);
-  opacity: 0.5;
-  pointer-events: none;
-}
-.showcase__orb--a {
-  top: -60px;
-  inset-inline-start: 8%;
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--primary) 42%, transparent), transparent 70%);
-  animation: showcaseFloat 16s var(--ease-out, ease) infinite;
-}
-.showcase__orb--b {
-  bottom: -70px;
-  inset-inline-end: 6%;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 42%, transparent), transparent 70%);
-  animation: showcaseFloat 20s var(--ease-out, ease) infinite reverse;
-}
-
-.showcase__inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 560px;
-}
-
-/* ── Illustration ───────────────────────────────────────────────────────── */
-.showcase__art {
-  position: relative;
-  display: grid;
-  place-items: center;
-  margin-bottom: 26px;
-}
-.showcase__halo {
-  position: absolute;
-  width: 168px;
-  height: 168px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--primary) 20%, transparent), transparent 66%);
-  filter: blur(10px);
-}
-.showcase__illus {
-  position: relative;
-  width: clamp(200px, 42vw, 248px);
-  height: auto;
-  filter: drop-shadow(0 18px 30px color-mix(in srgb, var(--primary) 22%, transparent));
-}
-
-/* Orbiting mini-avatars gently drift */
-.showcase__orbit { transform-origin: center; }
-.showcase__orbit--1 { animation: showcaseDrift 7s ease-in-out infinite; }
-.showcase__orbit--2 { animation: showcaseDrift 9s ease-in-out infinite reverse; }
-.showcase__orbit--3 { animation: showcaseDrift 8s ease-in-out infinite; }
-.showcase__orbit--4 { animation: showcaseDrift 10s ease-in-out infinite reverse; }
-
-/* ── Copy ───────────────────────────────────────────────────────────────── */
-.showcase__title {
-  margin: 0;
-  font-size: clamp(1.35rem, 2.6vw, 1.75rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--text-primary);
-  text-wrap: balance;
-}
-[dir='rtl'] .showcase__title { letter-spacing: 0; }
-.showcase__desc {
-  margin: 14px 0 0;
-  max-width: 52ch;
-  font-size: 0.96rem;
-  line-height: 1.65;
-  color: var(--text-secondary);
-}
-
-.showcase__actions {
+/* ── Filter bar ── */
+.contacts__filters {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 26px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
 }
-.showcase__actions svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-/* ── Capability chips ───────────────────────────────────────────────────── */
-.showcase__feats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  width: 100%;
-  margin-top: 34px;
-  text-align: start;
-}
-.showcase__feat {
+.contacts__search {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
-  border: 1px solid var(--border-soft);
-  transition: transform 160ms var(--ease-out, ease), border-color 160ms ease, box-shadow 160ms ease;
+  gap: 8px;
+  flex: 1 1 240px;
+  min-width: 200px;
+  padding: 0 12px;
+  height: 38px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
 }
-.showcase__feat:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--primary) 22%, var(--border-subtle));
-  box-shadow: var(--shadow-md);
+.contacts__search:focus-within { border-color: color-mix(in srgb, var(--primary) 45%, var(--border-subtle)); }
+.contacts__search svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+.contacts__search-input {
+  flex: 1 1 auto;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 0.88rem;
+  color: var(--text-primary);
 }
-.showcase__feat-ico {
+.contacts__filter { max-width: 160px; height: 38px; }
+.contacts__date { max-width: 150px; height: 38px; }
+
+/* ── Table ── */
+.contacts__table-card { padding: 0; overflow: hidden; }
+.contacts__state { padding: 60px 20px; }
+.contacts__scroll { overflow-x: auto; }
+.contacts__table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.contacts__table thead th {
+  text-align: start;
+  padding: 12px 16px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+  background: var(--surface-soft);
+}
+.contacts__table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.contacts__table tbody tr:last-child td { border-bottom: none; }
+.contacts__table tbody tr:hover td { background: color-mix(in srgb, var(--primary) 3%, var(--surface)); }
+.contacts__num { text-align: end; font-variant-numeric: tabular-nums; }
+
+.contacts__name { display: flex; align-items: center; gap: 10px; }
+.contacts__avatar {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   flex: 0 0 auto;
-  border-radius: 11px;
+  border-radius: 50%;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
 }
-.showcase__feat-ico svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.showcase__feat-ico--primary { background: color-mix(in srgb, var(--primary) 12%, var(--surface)); color: var(--primary); }
-.showcase__feat-ico--accent  { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); }
-.showcase__feat-ico--warning { background: color-mix(in srgb, var(--warning) 16%, var(--surface)); color: var(--warning); }
-.showcase__feat-ico--success { background: color-mix(in srgb, var(--success) 14%, var(--surface)); color: var(--success); }
-.showcase__feat > div { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.showcase__feat-title { font-size: 0.86rem; font-weight: 700; color: var(--text-primary); }
-.showcase__feat-desc { font-size: 0.76rem; color: var(--text-muted); line-height: 1.4; }
+.contacts__name-text { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.contacts__name-text strong { color: var(--text-primary); font-weight: 650; }
+.contacts__phone { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.contacts__muted { color: var(--text-muted); }
 
-/* ── Motion ─────────────────────────────────────────────────────────────── */
-@keyframes showcaseFloat {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(0, -22px, 0) scale(1.05); }
-}
-@keyframes showcaseDrift {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -6px, 0); }
-}
-
-/* ── Responsive ─────────────────────────────────────────────────────────── */
-@media (max-width: 680px) {
-  .showcase__feats { grid-template-columns: 1fr; }
+.contacts__tags { display: flex; flex-wrap: wrap; gap: 4px; max-width: 220px; white-space: normal; }
+.contacts__tag {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface-soft));
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .showcase__orb, .showcase__orbit { animation: none; }
+/* ── Pagination ── */
+.contacts__pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.82rem;
+}
+.contacts__pager-btns { display: flex; align-items: center; gap: 10px; }
+.contacts__pager-btns svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.contacts__page { font-variant-numeric: tabular-nums; color: var(--text-secondary); font-weight: 600; }
+[dir='rtl'] .contacts__pager-btns svg { transform: scaleX(-1); }
+
+/* Export CSV / Excel dropdown */
+/* Lift the header (and this control) above the page body below it, so the absolutely
+   positioned menu is never painted behind the following cards. */
+.contacts .feature-page__header { position: relative; z-index: 5; }
+.contacts__export-wrap { position: relative; z-index: 5; }
+.contacts__export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 40;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg, 0 12px 32px -8px rgba(15, 23, 42, 0.28));
+  overflow: hidden;
+  animation: contactsMenuIn 120ms ease;
+}
+.contacts__export-menu button {
+  text-align: start;
+  padding: 9px 13px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+.contacts__export-menu button:hover { background: var(--surface-soft); }
+@keyframes contactsMenuIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 640px) {
+  .contacts__filter, .contacts__date { max-width: none; flex: 1 1 120px; }
 }

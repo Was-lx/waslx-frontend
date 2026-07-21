@@ -1,0 +1,195 @@
+<section class="feature-page ann" [attr.dir]="direction()">
+  <header class="feature-page__header ann-hd">
+    <span class="feature-page__eyebrow">{{ t('annEyebrow') }}</span>
+    <h1>{{ t('annTitle') }}</h1>
+    <p class="ann-hd__lead">{{ t('annLead') }}</p>
+  </header>
+
+  <div class="ann-grid">
+    <!-- ── Composer form ── -->
+    <form class="ui-card ann-form" [formGroup]="form" (ngSubmit)="submit()">
+      <span class="ui-sectiontitle">{{ t('annFormTitle') }}</span>
+
+      <div class="ui-field">
+        <label class="ui-label" for="annTitle">{{ t('annFieldTitle') }}</label>
+        <input id="annTitle" class="ui-input" type="text" formControlName="title" [placeholder]="t('annTitlePh')" maxlength="120" />
+        @if (invalid('title')) { <span class="ui-error">{{ t('annRequired') }}</span> }
+      </div>
+
+      <div class="ui-field">
+        <label class="ui-label" for="annBody">{{ t('annFieldBody') }}</label>
+        <textarea id="annBody" class="ui-input ann-textarea" rows="4" formControlName="body" [placeholder]="t('annBodyPh')" maxlength="2000"></textarea>
+        @if (invalid('body')) { <span class="ui-error">{{ t('annRequired') }}</span> }
+      </div>
+
+      <!-- Severity segmented control -->
+      <div class="ui-field">
+        <span class="ui-label">{{ t('annFieldSeverity') }}</span>
+        <div class="ui-seg ann-seg" role="tablist" [attr.aria-label]="t('annFieldSeverity')">
+          @for (sev of severities; track sev) {
+            <button
+              type="button"
+              class="ui-seg__btn ann-seg__btn"
+              [attr.data-sev]="sev"
+              [class.is-active]="previewSeverity() === sev"
+              (click)="onSeverityChange(sev)"
+            >
+              {{ severityLabel(sev) }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Audience -->
+      <div class="ui-field">
+        <label class="ui-label" for="annAudience">{{ t('annFieldAudience') }}</label>
+        <select id="annAudience" class="ui-select" formControlName="audience" (change)="onAudienceChange($any($event.target).value)">
+          @for (a of audiences; track a) {
+            <option [value]="a">{{ audienceLabel(a) }}</option>
+          }
+        </select>
+      </div>
+
+      @if (previewAudience() === 'Plan') {
+        <div class="ui-field">
+          <label class="ui-label" for="annPlan">{{ t('annFieldPlan') }}</label>
+          <select id="annPlan" class="ui-select" formControlName="planId">
+            <option [value]="null" disabled>{{ t('annSelectPlan') }}</option>
+            @for (plan of plans(); track plan.id) {
+              <option [value]="plan.id">{{ plan.name }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      @if (previewAudience() === 'SpecificTenants') {
+        <div class="ui-field">
+          <label class="ui-label" for="annTenants">{{ t('annFieldTenants') }}</label>
+          <input id="annTenants" class="ui-input" type="text" formControlName="tenantIds" [placeholder]="t('annTenantsPh')" />
+          <span class="ann-hint">{{ t('annTenantsHint') }}</span>
+        </div>
+      }
+
+      <div class="ui-field">
+        <label class="ui-label" for="annSchedule">
+          {{ t('annFieldSchedule') }} <span class="ann-opt">{{ t('annScheduleOptional') }}</span>
+        </label>
+        <input id="annSchedule" class="ui-input" type="datetime-local" formControlName="scheduledAt" />
+        <span class="ann-hint">{{ t('annScheduleHint') }}</span>
+      </div>
+
+      <div class="ann-form__foot">
+        <button type="submit" class="ui-btn ui-btn--primary" [disabled]="saving()">
+          @if (saving()) { <span class="ui-spinner" aria-hidden="true"></span> {{ t('annSaving') }} }
+          @else { <app-icon name="send" [size]="16" /> {{ t('annSave') }} }
+        </button>
+      </div>
+    </form>
+
+    <!-- ── Live preview rail (campaign preview aesthetic) ── -->
+    <aside class="ann-side">
+      <div class="ann-preview">
+        <div class="ann-preview__head">
+          <span class="ann-preview__title">{{ t('annPreviewTitle') }}</span>
+          <span class="ann-preview__cap">{{ t('annPreviewCap') }}</span>
+        </div>
+        <div class="ann-preview__screen">
+          @if (hasPreview()) {
+            <div class="ui-banner ann-preview__banner" [class]="severityVariant(previewSeverity())">
+              <span class="ui-banner__icon" aria-hidden="true">
+                <app-icon [name]="severityIcon(previewSeverity())" [size]="17" />
+              </span>
+              <div class="ui-banner__body ann-preview__body">
+                @if (previewTitle()) {
+                  <span class="ui-banner__title">{{ previewTitle() }}</span>
+                }
+                @if (previewBody()) {
+                  <span class="ann-preview__text">{{ previewBody() }}</span>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="ann-preview__empty">
+              <app-icon name="megaphone" [size]="24" />
+              <p>{{ t('annPreviewEmpty') }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ── Past announcements ── -->
+  <div class="ann-list-wrap">
+    <span class="ui-sectiontitle ann-list-title">{{ t('annListTitle') }}</span>
+
+    @if (loading()) {
+      <div class="ann-list" aria-hidden="true">
+        @for (s of [1,2,3]; track s) { <div class="ann-item ann-item--skel"></div> }
+      </div>
+    } @else if (error()) {
+      <div class="feature-page__empty">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+        <h3>{{ t('annErrorTitle') }}</h3>
+        <p>{{ t('annErrorBody') }}</p>
+        <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="loadAnnouncements()">{{ t('hlRetry') }}</button>
+      </div>
+    } @else if (announcements().length === 0) {
+      <div class="feature-page__empty ann-empty">
+        <span class="ann-empty__ico" aria-hidden="true"><app-icon name="megaphone" [size]="24" /></span>
+        <p>{{ t('annListEmpty') }}</p>
+      </div>
+    } @else {
+      <div class="ann-list">
+        @for (a of announcements(); track a.id) {
+          <article class="ann-item" [attr.data-sev]="a.severity">
+            <span class="ann-item__rail" aria-hidden="true"></span>
+            <div class="ann-item__main">
+              <div class="ann-item__head">
+                <span class="ann-item__title">{{ a.title }}</span>
+                <span [class]="statusPillClass(a.status)">{{ statusLabel(a.status) }}</span>
+              </div>
+              <p class="ann-item__body">{{ a.body }}</p>
+              <div class="ann-item__meta">
+                <span class="ann-item__aud"><app-icon name="users" [size]="13" /> {{ audienceSummary(a) }}</span>
+                @if (reachLabel(a); as r) { <span class="ann-item__reach">{{ r }}</span> }
+                <span class="ann-item__date">{{ a.createdAt | date: 'MMM d, y' }}</span>
+              </div>
+            </div>
+            <div class="ann-item__actions">
+              @if (canPublish(a)) {
+                <button type="button" class="ui-btn ui-btn--primary ui-btn--sm" [disabled]="publishingId() === a.id" (click)="publish(a)">
+                  @if (publishingId() === a.id) { <span class="ui-spinner" aria-hidden="true"></span> {{ t('annPublishing') }} }
+                  @else { <app-icon name="send" [size]="14" /> {{ t('annPublish') }} }
+                </button>
+              }
+              <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm ann-item__del" [attr.aria-label]="t('annDelete')" (click)="askDelete(a)">
+                <app-icon name="trash" [size]="15" />
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Delete confirm -->
+@if (confirmDelete(); as a) {
+  <div class="ui-overlay" (click)="cancelDelete()">
+    <div class="ui-modal ui-confirm ann-confirm" role="dialog" aria-modal="true" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-confirm__icon ann-confirm__icon">
+        <app-icon name="trash" [size]="22" />
+      </div>
+      <h3>{{ t('annDeleteTitle') }}</h3>
+      <p>{{ t('annDeleteBody') }}</p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDelete()">{{ t('annCancel') }}</button>
+        <button type="button" class="ui-btn ui-btn--danger" [disabled]="deleting()" (click)="doDelete()">
+          @if (deleting()) { <span class="ui-spinner" aria-hidden="true"></span> }
+          {{ t('annConfirm') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

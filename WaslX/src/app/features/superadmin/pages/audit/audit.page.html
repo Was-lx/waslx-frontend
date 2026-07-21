@@ -1,0 +1,304 @@
+<section class="feature-page gaudit" [attr.dir]="direction()">
+  <header class="feature-page__header gaudit-hd">
+    <div class="gaudit-hd__intro">
+      <span class="feature-page__eyebrow">{{ t('gaEyebrow') }}</span>
+      <h1>{{ t('gaTitle') }}</h1>
+      <p class="gaudit-hd__lead">{{ t('gaLead') }}</p>
+      <!-- Immutability cue: append-only / read-only lock note -->
+      <span class="gaudit-lock" [attr.title]="t('gaDrawerLockNote')">
+        <app-icon name="lock" [size]="13" />
+        {{ t('gaImmutableNote') }}
+      </span>
+    </div>
+
+    @if (!loading() && !error() && page().total > 0) {
+      <span class="gaudit-hd__count">
+        <span class="gaudit-hd__count-dot" aria-hidden="true"></span>
+        <strong>{{ page().total }}</strong> {{ t('gaCount') }}
+      </span>
+    }
+  </header>
+
+  <!-- Filter bar -->
+  <div class="gaudit-filters" [class.is-busy]="refreshing()">
+    <div class="ui-daterange" (click)="stop($event)">
+      <div class="ui-seg" role="tablist" [attr.aria-label]="t('gaColTime')">
+        @for (p of presets; track p.value) {
+          <button
+            type="button"
+            class="ui-seg__btn"
+            [class.is-active]="preset() === p.value"
+            (click)="selectPreset(p.value)"
+          >
+            {{ t(p.key) }}
+          </button>
+        }
+      </div>
+      @if (rangePopoverOpen()) {
+        <div class="ui-daterange__pop" [attr.dir]="direction()">
+          <label class="ui-daterange__field">
+            <span class="ui-label">{{ t('gaRangeFrom') }}</span>
+            <input
+              class="ui-input ui-field--sm"
+              type="date"
+              [value]="customFrom()"
+              [max]="customTo()"
+              (change)="setCustomFrom($any($event.target).value)"
+            />
+          </label>
+          <label class="ui-daterange__field">
+            <span class="ui-label">{{ t('gaRangeTo') }}</span>
+            <input
+              class="ui-input ui-field--sm"
+              type="date"
+              [value]="customTo()"
+              [min]="customFrom()"
+              (change)="setCustomTo($any($event.target).value)"
+            />
+          </label>
+          <button type="button" class="ui-btn ui-btn--primary ui-btn--sm ui-btn--block" (click)="applyCustomRange()">
+            {{ t('gaRangeApply') }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Actor (free text: name or id) -->
+    <label class="gaudit-filter">
+      <span class="gaudit-filter__label">{{ t('gaFilterActor') }}</span>
+      <input
+        class="ui-input ui-field--sm"
+        type="text"
+        [value]="actor()"
+        (input)="onActorChange($any($event.target).value)"
+        [placeholder]="t('gaFilterActorPh')"
+      />
+    </label>
+
+    <!-- Tenant -->
+    <label class="gaudit-filter">
+      <span class="gaudit-filter__label">{{ t('gaFilterTenant') }}</span>
+      <select class="ui-select ui-field--sm" (change)="onTenantChange($any($event.target).value)">
+        <option value="">{{ t('gaFilterTenantAll') }}</option>
+        @for (tn of tenants(); track tn.id) {
+          <option [value]="tn.id" [selected]="tenantId() === (tn.id + '')">{{ tn.name }}</option>
+        }
+      </select>
+    </label>
+
+    <!-- Action -->
+    <label class="gaudit-filter">
+      <span class="gaudit-filter__label">{{ t('gaFilterAction') }}</span>
+      <select class="ui-select ui-field--sm" (change)="onActionChange($any($event.target).value)">
+        <option value="">{{ t('gaFilterActionAll') }}</option>
+        <option value="Created" [selected]="action() === 'Created'">{{ t('auditActionCreated') }}</option>
+        <option value="Updated" [selected]="action() === 'Updated'">{{ t('auditActionUpdated') }}</option>
+        <option value="StatusChanged" [selected]="action() === 'StatusChanged'">{{ t('auditActionStatusChanged') }}</option>
+        <option value="Deleted" [selected]="action() === 'Deleted'">{{ t('auditActionDeleted') }}</option>
+        <option value="Login" [selected]="action() === 'Login'">{{ t('auditActionLogin') }}</option>
+        <option value="Logout" [selected]="action() === 'Logout'">{{ t('auditActionLogout') }}</option>
+        <option value="Impersonated" [selected]="action() === 'Impersonated'">{{ t('auditActionImpersonated') }}</option>
+      </select>
+    </label>
+
+    <!-- Entity type -->
+    <label class="gaudit-filter">
+      <span class="gaudit-filter__label">{{ t('gaFilterEntity') }}</span>
+      <select class="ui-select ui-field--sm" (change)="onEntityChange($any($event.target).value)">
+        <option value="">{{ t('gaFilterEntityAll') }}</option>
+        @for (e of entityTypes; track e) {
+          <option [value]="e" [selected]="entityType() === e">{{ e }}</option>
+        }
+      </select>
+    </label>
+
+    <!-- Search -->
+    <label class="feature-page__search gaudit-search">
+      <app-icon name="search" [size]="16" />
+      <input
+        type="text"
+        [value]="search()"
+        (input)="onSearchChange($any($event.target).value)"
+        [placeholder]="t('gaSearch')"
+      />
+    </label>
+
+    @if (hasActiveFilters()) {
+      <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm gaudit-clear" (click)="clearFilters()">
+        <app-icon name="slash-circle" [size]="15" /> {{ t('gaClear') }}
+      </button>
+    }
+  </div>
+
+  <!-- States -->
+  @if (loading()) {
+    <div class="gaudit-list" aria-hidden="true">
+      @for (row of skeletonRows; track $index) {
+        <div class="ui-log-row gaudit-row gaudit-row--skel">
+          <span class="gaudit-sk" style="width: 132px; height: 12px"></span>
+          <span class="gaudit-row__actor">
+            <span class="gaudit-sk gaudit-sk--avatar"></span>
+            <span class="gaudit-sk" style="width: 86px; height: 12px"></span>
+          </span>
+          <span class="gaudit-sk" style="width: 90px; height: 12px"></span>
+          <span class="gaudit-sk" style="width: 78px; height: 20px; border-radius: 999px"></span>
+          <span class="gaudit-sk" style="width: 104px; height: 12px"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('gaErrorTitle') }}</h3>
+      <p>{{ t('gaErrorBody') }}</p>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="load(true)">{{ t('gaRetry') }}</button>
+    </div>
+  } @else if (page().total === 0 && !hasActiveFilters()) {
+    <div class="feature-page__empty gaudit-empty">
+      <span class="gaudit-empty__ico" aria-hidden="true"><app-icon name="history" [size]="26" /></span>
+      <h3>{{ t('gaEmptyTitle') }}</h3>
+      <p>{{ t('gaEmptyBody') }}</p>
+    </div>
+  } @else if (page().items.length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="search" [size]="26" />
+      <h3>{{ t('gaNoResultsTitle') }}</h3>
+      <p>{{ t('gaNoResultsBody') }}</p>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="clearFilters()">{{ t('gaClear') }}</button>
+    </div>
+  } @else {
+    <!-- Column header (dense, non-sortable — the log is fixed order) -->
+    <div class="ui-log-row gaudit-row gaudit-row--head" aria-hidden="true">
+      <span>{{ t('gaColTime') }}</span>
+      <span>{{ t('gaColActor') }}</span>
+      <span>{{ t('gaColTenant') }}</span>
+      <span>{{ t('gaColAction') }}</span>
+      <span>{{ t('gaColEntity') }}</span>
+    </div>
+
+    <div class="gaudit-list" [class.is-busy]="refreshing()" role="list">
+      @for (log of page().items; track log.id) {
+        <button
+          type="button"
+          class="ui-log-row gaudit-row"
+          [attr.data-verb]="verb(log.action)"
+          role="listitem"
+          (click)="openDetail(log)"
+        >
+          <time class="gaudit-row__time">{{ formatTimestamp(log.timestamp) }}</time>
+          <span class="gaudit-row__actor">
+            <span class="gaudit-avatar" aria-hidden="true">{{ actorInitials(log) }}</span>
+            <span class="gaudit-row__actor-name">{{ actorName(log) }}</span>
+          </span>
+          <span class="gaudit-row__tenant">
+            <span class="gaudit-tenant" [class.gaudit-tenant--platform]="isPlatformRow(log)">
+              {{ tenantName(log) }}
+            </span>
+          </span>
+          <span class="gaudit-row__action">
+            <span [class]="pillClass(log.action)">{{ actionLabel(log.action) }}</span>
+          </span>
+          <span class="gaudit-row__entity">
+            @if (log.entityType) {
+              <span class="gaudit-entity">
+                <span class="gaudit-entity__type">{{ log.entityType }}</span>
+                @if (log.entityId != null) {
+                  <span class="gaudit-entity__id">#{{ log.entityId }}</span>
+                }
+              </span>
+            } @else {
+              <span class="gaudit-dash">—</span>
+            }
+          </span>
+        </button>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="feature-page__pagination gaudit-pager">
+        <span class="feature-page__page-info">{{ pageInfo() }}</span>
+        <div class="feature-page__page-nav">
+          <button type="button" class="feature-page__page-btn" [disabled]="page().page <= 1" (click)="prevPage()">
+            {{ t('gaPrev') }}
+          </button>
+          <button
+            type="button"
+            class="feature-page__page-btn"
+            [disabled]="page().page >= totalPages()"
+            (click)="nextPage()"
+          >
+            {{ t('gaNext') }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+</section>
+
+<!-- Read-only detail drawer -->
+@if (selected(); as log) {
+  <div class="ui-overlay gaudit-overlay" (click)="closeDetail()"></div>
+  <aside class="ui-drawer is-open gaudit-drawer" [attr.dir]="direction()" role="dialog" aria-modal="true">
+    <header class="gaudit-drawer__head">
+      <div class="gaudit-drawer__head-main">
+        <span class="gaudit-drawer__eyebrow">
+          <app-icon name="lock" [size]="12" /> {{ t('gaDrawerReadOnly') }}
+        </span>
+        <h2>{{ t('gaDrawerTitle') }}</h2>
+      </div>
+      <button type="button" class="gaudit-drawer__close" [attr.aria-label]="t('gaDrawerClose')" (click)="closeDetail()">
+        <app-icon name="x" [size]="18" />
+      </button>
+    </header>
+
+    <div class="gaudit-drawer__hero">
+      <span class="gaudit-avatar gaudit-avatar--lg" aria-hidden="true">{{ actorInitials(log) }}</span>
+      <div class="gaudit-drawer__hero-text">
+        <span class="gaudit-drawer__actor">{{ actorName(log) }}</span>
+        <span [class]="pillClass(log.action)">{{ actionLabel(log.action) }}</span>
+      </div>
+    </div>
+
+    <dl class="gaudit-drawer__grid">
+      <div class="gaudit-drawer__field">
+        <dt>{{ t('gaDrawerTenant') }}</dt>
+        <dd>{{ tenantName(log) }}</dd>
+      </div>
+      <div class="gaudit-drawer__field">
+        <dt>{{ t('gaDrawerTimestamp') }}</dt>
+        <dd class="gaudit-mono">{{ formatTimestamp(log.timestamp) }}</dd>
+      </div>
+      <div class="gaudit-drawer__field">
+        <dt>{{ t('gaDrawerAction') }}</dt>
+        <dd>{{ actionLabel(log.action) }}</dd>
+      </div>
+      <div class="gaudit-drawer__field">
+        <dt>{{ t('gaDrawerEntityType') }}</dt>
+        <dd>{{ log.entityType || '—' }}</dd>
+      </div>
+      <div class="gaudit-drawer__field">
+        <dt>{{ t('gaDrawerEntityId') }}</dt>
+        <dd class="gaudit-mono">{{ log.entityId != null ? '#' + log.entityId : '—' }}</dd>
+      </div>
+      <div class="gaudit-drawer__field">
+        <dt>{{ t('gaDrawerRecordId') }}</dt>
+        <dd class="gaudit-mono">#{{ log.id }}</dd>
+      </div>
+    </dl>
+
+    <div class="gaudit-drawer__details">
+      <span class="ui-sectiontitle">{{ t('gaDrawerDetails') }}</span>
+      @if (log.details && log.details.trim()) {
+        <pre class="gaudit-details">{{ log.details }}</pre>
+      } @else {
+        <p class="gaudit-drawer__empty">{{ t('gaDrawerNoDetails') }}</p>
+      }
+    </div>
+
+    <!-- Immutability cue: explicit append-only lock note; no edit/delete controls anywhere -->
+    <footer class="gaudit-drawer__lock">
+      <app-icon name="lock" [size]="14" />
+      <span>{{ t('gaDrawerLockNote') }}</span>
+    </footer>
+  </aside>
+}

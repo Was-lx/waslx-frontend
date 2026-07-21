@@ -1,0 +1,288 @@
+<section class="feature-page audit" [attr.dir]="direction()">
+  <header class="feature-page__header audit-hd">
+    <div class="audit-hd__intro">
+      <span class="feature-page__eyebrow">{{ t('auditEyebrow') }}</span>
+      <h1>{{ t('auditTitle') }}</h1>
+      <p class="audit-hd__lead">{{ t('auditLead') }}</p>
+      <!-- Immutability cue: append-only / read-only lock note -->
+      <span class="audit-lock" [attr.title]="t('auditDrawerLockNote')">
+        <app-icon name="lock" [size]="13" />
+        {{ t('auditImmutableNote') }}
+      </span>
+    </div>
+
+    @if (!loading() && !error() && page().total > 0) {
+      <span class="audit-hd__count">
+        <span class="audit-hd__count-dot" aria-hidden="true"></span>
+        <strong>{{ page().total }}</strong> {{ t('auditCount') }}
+      </span>
+    }
+  </header>
+
+  <!-- Filter bar -->
+  <div class="audit-filters" [class.is-busy]="refreshing()">
+    <!-- Date range: presets + custom popover (reuses .ui-daterange) -->
+    <div class="ui-daterange" (click)="stop($event)">
+      <div class="ui-seg" role="tablist" [attr.aria-label]="t('auditColTime')">
+        @for (p of presets; track p.value) {
+          <button
+            type="button"
+            class="ui-seg__btn"
+            [class.is-active]="preset() === p.value"
+            (click)="selectPreset(p.value)"
+          >
+            {{ t(p.key) }}
+          </button>
+        }
+      </div>
+      @if (rangePopoverOpen()) {
+        <div class="ui-daterange__pop" [attr.dir]="direction()">
+          <label class="ui-daterange__field">
+            <span class="ui-label">{{ t('auditRangeFrom') }}</span>
+            <input
+              class="ui-input ui-field--sm"
+              type="date"
+              [value]="customFrom()"
+              [max]="customTo()"
+              (change)="setCustomFrom($any($event.target).value)"
+            />
+          </label>
+          <label class="ui-daterange__field">
+            <span class="ui-label">{{ t('auditRangeTo') }}</span>
+            <input
+              class="ui-input ui-field--sm"
+              type="date"
+              [value]="customTo()"
+              [min]="customFrom()"
+              (change)="setCustomTo($any($event.target).value)"
+            />
+          </label>
+          <button type="button" class="ui-btn ui-btn--primary ui-btn--sm ui-btn--block" (click)="applyCustomRange()">
+            {{ t('rptRangeApply') }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Actor -->
+    <label class="audit-filter">
+      <span class="audit-filter__label">{{ t('auditFilterActor') }}</span>
+      <select class="ui-select ui-field--sm" (change)="onActorChange($any($event.target).value)">
+        <option value="">{{ t('auditFilterActorAll') }}</option>
+        @for (u of users(); track u.id) {
+          <option [value]="u.id" [selected]="actorId() === u.id">{{ u.name }}</option>
+        }
+      </select>
+    </label>
+
+    <!-- Action -->
+    <label class="audit-filter">
+      <span class="audit-filter__label">{{ t('auditFilterAction') }}</span>
+      <select class="ui-select ui-field--sm" (change)="onActionChange($any($event.target).value)">
+        <option value="">{{ t('auditFilterActionAll') }}</option>
+        <option value="Created" [selected]="action() === 'Created'">{{ t('auditActionCreated') }}</option>
+        <option value="Updated" [selected]="action() === 'Updated'">{{ t('auditActionUpdated') }}</option>
+        <option value="StatusChanged" [selected]="action() === 'StatusChanged'">{{ t('auditActionStatusChanged') }}</option>
+        <option value="Deleted" [selected]="action() === 'Deleted'">{{ t('auditActionDeleted') }}</option>
+        <option value="Login" [selected]="action() === 'Login'">{{ t('auditActionLogin') }}</option>
+        <option value="Logout" [selected]="action() === 'Logout'">{{ t('auditActionLogout') }}</option>
+        <option value="Impersonated" [selected]="action() === 'Impersonated'">{{ t('auditActionImpersonated') }}</option>
+      </select>
+    </label>
+
+    <!-- Entity type -->
+    <label class="audit-filter">
+      <span class="audit-filter__label">{{ t('auditFilterEntity') }}</span>
+      <select class="ui-select ui-field--sm" (change)="onEntityChange($any($event.target).value)">
+        <option value="">{{ t('auditFilterEntityAll') }}</option>
+        @for (e of entityTypes; track e) {
+          <option [value]="e" [selected]="entityType() === e">{{ e }}</option>
+        }
+      </select>
+    </label>
+
+    <!-- Search -->
+    <label class="feature-page__search audit-search">
+      <app-icon name="search" [size]="16" />
+      <input
+        type="text"
+        [value]="search()"
+        (input)="onSearchChange($any($event.target).value)"
+        [placeholder]="t('auditSearch')"
+      />
+    </label>
+
+    @if (hasActiveFilters()) {
+      <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm audit-clear" (click)="clearFilters()">
+        <app-icon name="slash-circle" [size]="15" /> {{ t('auditClearFilters') }}
+      </button>
+    }
+  </div>
+
+  <!-- States -->
+  @if (loading()) {
+    <div class="audit-list" aria-hidden="true">
+      @for (row of skeletonRows; track $index) {
+        <div class="ui-log-row audit-row audit-row--skel">
+          <span class="audit-sk" style="width: 132px; height: 12px"></span>
+          <span class="audit-row__actor">
+            <span class="audit-sk audit-sk--avatar"></span>
+            <span class="audit-sk" style="width: 96px; height: 12px"></span>
+          </span>
+          <span class="audit-sk" style="width: 78px; height: 20px; border-radius: 999px"></span>
+          <span class="audit-sk" style="width: 110px; height: 12px"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('auditErrorTitle') }}</h3>
+      <p>{{ t('auditErrorBody') }}</p>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="load(true)">{{ t('auditRetry') }}</button>
+    </div>
+  } @else if (page().total === 0 && !hasActiveFilters()) {
+    <div class="feature-page__empty audit-empty">
+      <span class="audit-empty__ico" aria-hidden="true"><app-icon name="history" [size]="26" /></span>
+      <h3>{{ t('auditEmptyTitle') }}</h3>
+      <p>{{ t('auditEmptyBody') }}</p>
+    </div>
+  } @else if (page().items.length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="search" [size]="26" />
+      <h3>{{ t('auditNoResultsTitle') }}</h3>
+      <p>{{ t('auditNoResultsBody') }}</p>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="clearFilters()">{{ t('auditClearFilters') }}</button>
+    </div>
+  } @else {
+    <!-- Column header (dense, non-sortable — the log is fixed order) -->
+    <div class="ui-log-row audit-row audit-row--head" aria-hidden="true">
+      <span>{{ t('auditColTime') }}</span>
+      <span>{{ t('auditColActor') }}</span>
+      <span>{{ t('auditColAction') }}</span>
+      <span>{{ t('auditColEntity') }}</span>
+    </div>
+
+    <div class="audit-list" [class.is-busy]="refreshing()" role="list">
+      @for (log of page().items; track log.id) {
+        <button
+          type="button"
+          class="ui-log-row audit-row"
+          [attr.data-verb]="verb(log.action)"
+          role="listitem"
+          (click)="openDetail(log)"
+        >
+          <time class="audit-row__time">{{ formatTimestamp(log.timestamp) }}</time>
+          <span class="audit-row__actor">
+            <span class="audit-avatar" aria-hidden="true">{{ actorInitials(log) }}</span>
+            <span class="audit-row__actor-name">{{ actorName(log) }}</span>
+          </span>
+          <span class="audit-row__action">
+            <span [class]="pillClass(log.action)">{{ actionLabel(log.action) }}</span>
+          </span>
+          <span class="audit-row__entity">
+            @if (log.entityType) {
+              <span class="audit-entity">
+                <span class="audit-entity__type">{{ log.entityType }}</span>
+                @if (log.entityId != null) {
+                  <span class="audit-entity__id">#{{ log.entityId }}</span>
+                }
+              </span>
+            } @else {
+              <span class="audit-dash">—</span>
+            }
+          </span>
+        </button>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="feature-page__pagination audit-pager">
+        <span class="feature-page__page-info">{{ pageInfo() }}</span>
+        <div class="feature-page__page-nav">
+          <button
+            type="button"
+            class="feature-page__page-btn"
+            [disabled]="page().page <= 1"
+            (click)="prevPage()"
+          >
+            {{ t('auditPrev') }}
+          </button>
+          <button
+            type="button"
+            class="feature-page__page-btn"
+            [disabled]="page().page >= totalPages()"
+            (click)="nextPage()"
+          >
+            {{ t('auditNext') }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+</section>
+
+<!-- Read-only detail drawer -->
+@if (selected(); as log) {
+  <div class="ui-overlay audit-overlay" (click)="closeDetail()"></div>
+  <aside class="ui-drawer is-open audit-drawer" [attr.dir]="direction()" role="dialog" aria-modal="true">
+    <header class="audit-drawer__head">
+      <div class="audit-drawer__head-main">
+        <span class="audit-drawer__eyebrow">
+          <app-icon name="lock" [size]="12" /> {{ t('auditDrawerReadOnly') }}
+        </span>
+        <h2>{{ t('auditDrawerTitle') }}</h2>
+      </div>
+      <button type="button" class="audit-drawer__close" [attr.aria-label]="t('auditDrawerClose')" (click)="closeDetail()">
+        <app-icon name="x" [size]="18" />
+      </button>
+    </header>
+
+    <div class="audit-drawer__hero">
+      <span class="audit-avatar audit-avatar--lg" aria-hidden="true">{{ actorInitials(log) }}</span>
+      <div class="audit-drawer__hero-text">
+        <span class="audit-drawer__actor">{{ actorName(log) }}</span>
+        <span [class]="pillClass(log.action)">{{ actionLabel(log.action) }}</span>
+      </div>
+    </div>
+
+    <dl class="audit-drawer__grid">
+      <div class="audit-drawer__field">
+        <dt>{{ t('auditDrawerTimestamp') }}</dt>
+        <dd class="audit-mono">{{ formatTimestamp(log.timestamp) }}</dd>
+      </div>
+      <div class="audit-drawer__field">
+        <dt>{{ t('auditDrawerAction') }}</dt>
+        <dd>{{ actionLabel(log.action) }}</dd>
+      </div>
+      <div class="audit-drawer__field">
+        <dt>{{ t('auditDrawerEntityType') }}</dt>
+        <dd>{{ log.entityType || '—' }}</dd>
+      </div>
+      <div class="audit-drawer__field">
+        <dt>{{ t('auditDrawerEntityId') }}</dt>
+        <dd class="audit-mono">{{ log.entityId != null ? '#' + log.entityId : '—' }}</dd>
+      </div>
+      <div class="audit-drawer__field">
+        <dt>{{ t('auditDrawerRecordId') }}</dt>
+        <dd class="audit-mono">#{{ log.id }}</dd>
+      </div>
+    </dl>
+
+    <div class="audit-drawer__details">
+      <span class="ui-sectiontitle">{{ t('auditDrawerDetails') }}</span>
+      @if (log.details && log.details.trim()) {
+        <pre class="audit-details">{{ log.details }}</pre>
+      } @else {
+        <p class="audit-drawer__empty">{{ t('auditDrawerNoDetails') }}</p>
+      }
+    </div>
+
+    <!-- Immutability cue: explicit append-only lock note; no edit/delete controls anywhere -->
+    <footer class="audit-drawer__lock">
+      <app-icon name="lock" [size]="14" />
+      <span>{{ t('auditDrawerLockNote') }}</span>
+    </footer>
+  </aside>
+}

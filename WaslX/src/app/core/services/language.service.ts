@@ -4,10 +4,10 @@ import { Inject, Injectable, effect, signal } from '@angular/core';
 import { type AppLanguage, type AppDirection } from '../i18n/language.types';
 
 import {
-  type AnalyticsKey,
-  analyticsTranslations,
   type AuthKey,
   authTranslations,
+  type CampaignsKey,
+  campaignsTranslations,
   type ChannelsKey,
   channelsTranslations,
   type ContactsKey,
@@ -38,6 +38,14 @@ import {
   usersTranslations,
   type WorkingHoursKey,
   workingHoursTranslations,
+  type ReportingKey,
+  reportingTranslations,
+  type NotificationsKey,
+  notificationsTranslations,
+  type AuditKey,
+  auditTranslations,
+  type PlatformConsoleKey,
+  platformConsoleTranslations,
 } from '../i18n';
 
 export type { AppLanguage, AppDirection };
@@ -54,15 +62,19 @@ export type TranslationKey =
   | InboxKey
   | UsersKey
   | TeamsKey
+  | CampaignsKey
   | PipelineKey
-  | AnalyticsKey
   | ContactsKey
   | SettingsKey
   | OnboardingKey
   | TemplatesKey
   | ChannelsKey
   | TagsKey
-  | WorkingHoursKey;
+  | WorkingHoursKey
+  | ReportingKey
+  | NotificationsKey
+  | AuditKey
+  | PlatformConsoleKey;
 
 // ─── Merged translations map ──────────────────────────────────────────────────
 
@@ -76,8 +88,8 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...inboxTranslations.en,
     ...usersTranslations.en,
     ...teamsTranslations.en,
+    ...campaignsTranslations.en,
     ...pipelineTranslations.en,
-    ...analyticsTranslations.en,
     ...contactsTranslations.en,
     ...settingsTranslations.en,
     ...onboardingTranslations.en,
@@ -85,6 +97,10 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...channelsTranslations.en,
     ...tagsTranslations.en,
     ...workingHoursTranslations.en,
+    ...reportingTranslations.en,
+    ...notificationsTranslations.en,
+    ...auditTranslations.en,
+    ...platformConsoleTranslations.en,
   } as Record<TranslationKey, string>,
   ar: {
     ...sharedTranslations.ar,
@@ -95,8 +111,8 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...inboxTranslations.ar,
     ...usersTranslations.ar,
     ...teamsTranslations.ar,
+    ...campaignsTranslations.ar,
     ...pipelineTranslations.ar,
-    ...analyticsTranslations.ar,
     ...contactsTranslations.ar,
     ...settingsTranslations.ar,
     ...onboardingTranslations.ar,
@@ -104,6 +120,10 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...channelsTranslations.ar,
     ...tagsTranslations.ar,
     ...workingHoursTranslations.ar,
+    ...reportingTranslations.ar,
+    ...notificationsTranslations.ar,
+    ...auditTranslations.ar,
+    ...platformConsoleTranslations.ar,
   } as Record<TranslationKey, string>,
 };
 

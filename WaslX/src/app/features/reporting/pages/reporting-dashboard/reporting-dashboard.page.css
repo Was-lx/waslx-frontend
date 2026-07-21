@@ -1,0 +1,170 @@
+/* ============================================================================
+   WaslX — Reporting & Analytics dashboard. Component-specific only.
+   Layout + local chrome (KPI band, tile grid, leaderboard, export menu).
+   System primitives (.ui-chart / .ui-stat / .ui-sparkline / .ui-daterange)
+   live in app-ui.css.
+   ========================================================================== */
+
+:host { display: block; }
+
+/* ── Header ── */
+.rpt-hd__intro { max-width: 640px; }
+.rpt-hd__lead { margin: 8px 0 0; font-size: 0.92rem; color: var(--text-muted); line-height: 1.55; }
+
+.rpt-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border-subtle));
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.rpt-scope__dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.rpt-scope--personal {
+  border-color: color-mix(in srgb, var(--cyan) 26%, var(--border-subtle));
+  background: color-mix(in srgb, var(--cyan) 10%, var(--surface));
+  color: color-mix(in srgb, var(--cyan) 80%, var(--text-primary));
+}
+
+.rpt-controls { align-items: flex-end; }
+
+/* ── Team filter ── */
+.rpt-team { display: inline-flex; flex-direction: column; gap: 5px; }
+.rpt-team__label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.rpt-team .ui-select { min-width: 150px; }
+
+/* ── Export menu ── */
+/* Lift the header (and this control) above the page body below it, so the absolutely
+   positioned menu is never painted behind the following KPI/chart cards. */
+.rpt-hd { position: relative; z-index: 5; }
+.rpt-export { position: relative; z-index: 5; }
+.rpt-export .ui-btn.is-open { border-color: color-mix(in srgb, var(--primary) 40%, var(--border-subtle)); }
+.rpt-menu {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 40;
+  min-width: 190px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  transform-origin: top right;
+  animation: rpt-pop 140ms var(--ease-out);
+}
+[dir='rtl'] .rpt-menu { transform-origin: top left; }
+.rpt-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 130ms ease, color 130ms ease;
+}
+.rpt-menu__item:hover { background: var(--surface-soft); color: var(--text-primary); }
+.rpt-menu__item:active { transform: scale(0.98); }
+.rpt-menu__item svg { color: var(--text-muted); }
+
+@keyframes rpt-pop {
+  from { opacity: 0; transform: scale(0.96) translateY(-3px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── KPI band ── */
+.rpt-kpiband {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.rpt-kpi { gap: 4px; }
+.rpt-kpi__row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rpt-kpi__vs { font-size: 0.72rem; color: var(--text-muted); }
+
+/* ── Tile grid ── */
+.rpt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  transition: opacity 260ms var(--ease-out), filter 260ms var(--ease-out);
+}
+/* Crossfade-blur on range change (Emil's swap trick) — masks the dataset swap. */
+.rpt-grid.is-swapping { opacity: 0.55; filter: blur(2px); }
+.rpt-tile--wide { grid-column: 1 / -1; }
+
+/* ── Response tile: SLA badge + distribution ── */
+.rpt-sla { text-align: end; flex: 0 0 auto; }
+.rpt-sla__label { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
+.rpt-sla__val {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--success) 72%, var(--text-primary));
+  font-variant-numeric: tabular-nums;
+}
+.rpt-dist { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-subtle); }
+.rpt-dist .ui-sectiontitle { margin-bottom: 2px; }
+
+.rpt-donut-body { display: grid; place-items: center; }
+
+/* ── Leaderboard ── */
+.rpt-leaderboard tbody td { font-variant-numeric: tabular-nums; }
+.rpt-num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rpt-num .feature-page__sort { margin-inline-start: auto; }
+.rpt-agent-name { font-weight: 650; color: var(--text-primary); }
+.rpt-trend-col { width: 120px; }
+.rpt-dash { color: var(--text-muted); }
+
+/* ── Empty ── */
+.rpt-empty__ico {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 4px;
+  border-radius: 16px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+}
+
+/* ── Skeleton ── */
+.rpt-sk { display: block; border-radius: 7px; background: var(--surface-soft); }
+.rpt-sk--sh {
+  background: linear-gradient(100deg, var(--surface-soft) 30%, color-mix(in srgb, var(--text-primary) 6%, var(--surface-soft)) 50%, var(--surface-soft) 70%);
+  background-size: 200% 100%;
+  animation: rpt-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes rpt-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ── Responsive ── */
+@media (max-width: 1000px) {
+  .rpt-kpiband { grid-template-columns: repeat(2, 1fr); }
+  .rpt-grid { grid-template-columns: 1fr; }
+  .rpt-tile--wide { grid-column: auto; }
+}
+@media (max-width: 560px) {
+  .rpt-kpiband { grid-template-columns: 1fr; }
+  .rpt-controls { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rpt-sk--sh { animation: none; }
+  .rpt-menu { animation: none; }
+  .rpt-grid.is-swapping { filter: none; }
+  .rpt-menu__item:active { transform: none; }
+}

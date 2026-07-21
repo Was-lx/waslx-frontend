@@ -20,6 +20,15 @@
             @if (queueFiltered().length > 0) { <span class="inbox__view-count">{{ queueFiltered().length }}</span> }
           </button>
         </div>
+        <button
+          type="button"
+          class="inbox__newconv"
+          (click)="openNewConversation()"
+          [attr.title]="t('newConvButton')"
+          [attr.aria-label]="t('newConvButton')"
+        >
+          <app-icon name="plus" [size]="18" />
+        </button>
       </div>
 
       @if (view() === 'inbox') {
@@ -129,4 +138,12 @@
       }
     </div>
   </div>
+
+  <app-new-conversation-dialog
+    [open]="newConvOpen()"
+    [templates]="templates()"
+    [sending]="newConvSending()"
+    (send)="onSendNewConversation($event)"
+    (close)="closeNewConversation()"
+  />
 </section>

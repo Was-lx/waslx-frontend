@@ -1,0 +1,145 @@
+/* System health board — .ui-health-dot per component + a worst-of roll-up hero.
+   Semantic tones only; ok pulses, degraded/down stay steady (see app-ui.css). */
+
+.health-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.health-hd__lead { margin: 6px 0 0; max-width: 58ch; color: var(--text-muted); font-size: 0.92rem; }
+.health-refresh { align-self: center; }
+
+/* ── Overall roll-up hero ── */
+.health-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 22px 0 8px;
+  padding: 18px 22px;
+  border-radius: 18px;
+  border: 1px solid var(--border-subtle);
+  background:
+    radial-gradient(600px 200px at 100% 0, color-mix(in srgb, var(--tone) 8%, transparent), transparent 60%),
+    var(--surface);
+  box-shadow: var(--shadow-xs);
+  --tone: var(--success);
+}
+.health-hero[data-status='ok'] { --tone: var(--success); }
+.health-hero[data-status='degraded'] { --tone: var(--warning); }
+.health-hero[data-status='down'] { --tone: var(--danger); }
+.health-hero .ui-health-dot { width: 14px; height: 14px; }
+.health-hero__text { display: flex; flex-direction: column; gap: 3px; margin-inline-end: auto; }
+.health-hero__status {
+  font-size: 1.12rem;
+  font-weight: 780;
+  letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--tone) 42%, var(--text-primary));
+}
+.health-hero__meta { font-size: 0.8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.health-hero__counts { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+.health-count { min-width: 84px; padding: 10px 14px; }
+.health-count .ui-stat__value { font-size: 1.35rem; }
+.health-count--degraded .ui-stat__dot { background: var(--warning); }
+.health-count--degraded .ui-stat__value { color: color-mix(in srgb, var(--warning) 72%, var(--text-primary)); }
+.health-count--down .ui-stat__dot { background: var(--danger); }
+.health-count--down .ui-stat__value { color: color-mix(in srgb, var(--danger) 74%, var(--text-primary)); }
+
+.health-section { display: block; margin: 20px 0 12px; }
+
+/* ── Component cards ── */
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  transition: opacity 140ms ease;
+}
+.health-grid.is-busy { opacity: 0.72; }
+.health-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  --tone: var(--success);
+}
+.health-card[data-status='ok'] { --tone: var(--success); }
+.health-card[data-status='degraded'] {
+  --tone: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 34%, var(--border-subtle));
+  background: color-mix(in srgb, var(--warning) 5%, var(--surface));
+}
+.health-card[data-status='down'] {
+  --tone: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 36%, var(--border-subtle));
+  background: color-mix(in srgb, var(--danger) 6%, var(--surface));
+}
+.health-card__head { display: flex; align-items: center; gap: 10px; }
+.health-card__icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tone) 12%, var(--surface));
+  color: color-mix(in srgb, var(--tone) 52%, var(--text-primary));
+}
+.health-card__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.health-card__head .ui-health-dot { flex: 0 0 auto; }
+.health-card__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.health-card__status {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--tone) 46%, var(--text-primary));
+}
+.health-card__latency { font-size: 0.82rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.health-card__latency strong { color: var(--text-primary); font-weight: 750; }
+.health-card__msg {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* ── Skeletons ── */
+.health-hero--skel { height: 96px; --tone: var(--text-muted); }
+.health-card--skel { height: 118px; }
+.health-hero--skel,
+.health-card--skel {
+  background: linear-gradient(90deg, var(--surface-soft), color-mix(in srgb, var(--text-muted) 10%, var(--surface-soft)), var(--surface-soft));
+  background-size: 200% 100%;
+  animation: health-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes health-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (max-width: 620px) {
+  .health-hero__counts { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .health-hero--skel, .health-card--skel { animation: none; }
+}

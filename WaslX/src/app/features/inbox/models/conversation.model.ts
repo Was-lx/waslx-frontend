@@ -17,7 +17,6 @@ export interface ConversationDetail {
   id: number;
   customerName: string;
   customerPhone: string;
-  customerVip: boolean;
   status: string;
   allowedTransitions: string[];
   assignedUserId: number | null;

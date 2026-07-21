@@ -1,0 +1,375 @@
+<section class="feature-page settings-page" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow settings-page__eyebrow">
+        <span class="settings-page__eyebrow-dot" aria-hidden="true"></span>
+        {{ c().eyebrow }}
+      </span>
+      <h1>{{ c().title }}</h1>
+      <p class="settings-page__subtitle">{{ c().subtitle }}</p>
+    </div>
+  </header>
+
+  <!-- ── Tabs ── -->
+  <div class="feature-page__tabs" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      class="feature-page__tab"
+      [class.feature-page__tab--active]="tab() === 'credentials'"
+      [attr.aria-selected]="tab() === 'credentials'"
+      (click)="setTab('credentials')"
+    >{{ c().tabCredentials }}</button>
+    <button
+      type="button"
+      role="tab"
+      class="feature-page__tab"
+      [class.feature-page__tab--active]="tab() === 'flags'"
+      [attr.aria-selected]="tab() === 'flags'"
+      (click)="setTab('flags')"
+    >{{ c().tabFlags }}</button>
+    <button
+      type="button"
+      role="tab"
+      class="feature-page__tab"
+      [class.feature-page__tab--active]="tab() === 'policy'"
+      [attr.aria-selected]="tab() === 'policy'"
+      (click)="setTab('policy')"
+    >{{ c().tabPolicy }}</button>
+  </div>
+
+  <!-- ═══ CREDENTIALS ═══ -->
+  @if (tab() === 'credentials') {
+    <div class="ui-card settings-card">
+      <div class="settings-card__head">
+        <div>
+          <h2 class="ui-chart__title">{{ c().credTitle }}</h2>
+          <p class="ui-chart__sub">{{ c().credSub }}</p>
+        </div>
+        <button type="button" class="ui-btn ui-btn--primary ui-btn--sm" (click)="openCredForm()">
+          <app-icon name="plus" [size]="16" /> {{ c().addCredential }}
+        </button>
+      </div>
+
+      @if (credLoading()) {
+        <div class="ui-loading"><span class="ui-spinner"></span> {{ c().loading }}</div>
+      } @else if (credError()) {
+        <div class="feature-page__empty">
+          <app-icon name="key" [size]="28" />
+          <h3>{{ c().errorTitle }}</h3>
+          <p>{{ c().errorBody }}</p>
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="loadCredentials()">{{ c().retry }}</button>
+        </div>
+      } @else if (credentials().length === 0) {
+        <div class="feature-page__empty">
+          <app-icon name="key" [size]="28" />
+          <p>{{ c().credEmpty }}</p>
+        </div>
+      } @else {
+        <ul class="settings-cred-list">
+          @for (cred of credentials(); track cred.id) {
+            <li class="settings-cred-row">
+              <div class="settings-cred-row__meta">
+                <span class="settings-cred-row__name">{{ cred.name }}</span>
+                <span class="ui-pill">{{ typeLabel(cred.type) }}</span>
+                <code class="settings-cred-row__key">{{ cred.key }}</code>
+              </div>
+              <div class="ui-secret">
+                <span class="ui-secret__value" [class.is-revealed]="isRevealed(cred)">{{ displayValue(cred) }}</span>
+                <div class="ui-secret__actions">
+                  <button
+                    type="button"
+                    class="ui-btn ui-btn--ghost ui-btn--sm ui-secret__hold"
+                    [class.is-holding]="isRevealed(cred)"
+                    [attr.aria-label]="c().holdToReveal"
+                    [attr.aria-pressed]="isRevealed(cred)"
+                    (pointerdown)="startReveal(cred.id)"
+                    (pointerup)="endReveal()"
+                    (pointerleave)="endReveal()"
+                    (pointercancel)="endReveal()"
+                    (contextmenu)="$event.preventDefault()"
+                  >
+                    <app-icon [name]="isRevealed(cred) ? 'eye' : 'eye-off'" [size]="15" />
+                  </button>
+                  <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="copyCredential(cred)">
+                    {{ copiedId() === cred.id ? c().copied : c().copy }}
+                  </button>
+                  <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" [disabled]="credBusyId() === cred.id" (click)="askRotate(cred)">
+                    <app-icon name="history" [size]="15" /> {{ c().rotate }}
+                  </button>
+                  <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm settings-cred-row__del" [disabled]="credBusyId() === cred.id" (click)="askDeleteCred(cred)">
+                    <app-icon name="trash" [size]="15" />
+                  </button>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <!-- ═══ FEATURE FLAGS ═══ -->
+  @if (tab() === 'flags') {
+    <div class="ui-card settings-card">
+      <div class="settings-card__head">
+        <div>
+          <h2 class="ui-chart__title">{{ c().flagsTitle }}</h2>
+          <p class="ui-chart__sub">{{ c().flagsSub }}</p>
+        </div>
+      </div>
+
+      @if (flagsLoading()) {
+        <div class="ui-loading"><span class="ui-spinner"></span> {{ c().loading }}</div>
+      } @else if (flagsError()) {
+        <div class="feature-page__empty">
+          <app-icon name="sliders" [size]="28" />
+          <h3>{{ c().errorTitle }}</h3>
+          <p>{{ c().errorBody }}</p>
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="loadFlags()">{{ c().retry }}</button>
+        </div>
+      } @else if (flags().length === 0) {
+        <div class="feature-page__empty">
+          <app-icon name="sliders" [size]="28" />
+          <p>{{ c().flagsEmpty }}</p>
+        </div>
+      } @else {
+        <div class="settings-flag-list">
+          @for (flag of flags(); track flag.id) {
+            <div class="ui-flag">
+              <div class="ui-flag__main">
+                <div class="ui-flag__head">
+                  <span class="ui-flag__name">{{ flag.name }}</span>
+                  <span class="ui-pill" [class.ui-pill--info]="flag.scope === 'Global'">{{ scopeLabel(flag.scope) }}</span>
+                  <code class="ui-flag__key">{{ flag.key }}</code>
+                </div>
+                @if (flag.description) { <p class="ui-flag__desc">{{ flag.description }}</p> }
+              </div>
+              <div class="ui-flag__control">
+                <button
+                  type="button"
+                  class="ui-toggle"
+                  role="switch"
+                  [class.is-on]="flag.enabled"
+                  [attr.aria-checked]="flag.enabled"
+                  [attr.aria-label]="flag.name"
+                  [disabled]="flagBusyId() === flag.id"
+                  (click)="onFlagToggle(flag)"
+                ></button>
+              </div>
+              @if (flag.enabled && flag.rolloutPct !== null && flag.rolloutPct < 100) {
+                <div class="ui-flag__rollout">
+                  <div class="ui-flag__rollout-head">
+                    <span>{{ c().rollout }}</span>
+                    <strong>{{ flag.rolloutPct }}%</strong>
+                  </div>
+                  <div class="ui-meter ui-meter--sm">
+                    <div class="ui-meter__seg ui-meter__seg--rollout" [style.width.%]="flag.rolloutPct"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ POLICY ═══ -->
+  @if (tab() === 'policy') {
+    <div class="ui-card settings-card">
+      <div class="settings-card__head">
+        <div>
+          <h2 class="ui-chart__title">{{ c().policyTitle }}</h2>
+          <p class="ui-chart__sub">{{ c().policySub }}</p>
+        </div>
+      </div>
+
+      @if (policyLoading()) {
+        <div class="ui-loading"><span class="ui-spinner"></span> {{ c().loading }}</div>
+      } @else if (policyError()) {
+        <div class="feature-page__empty">
+          <app-icon name="sliders" [size]="28" />
+          <h3>{{ c().errorTitle }}</h3>
+          <p>{{ c().errorBody }}</p>
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="loadPolicy()">{{ c().retry }}</button>
+        </div>
+      } @else {
+        <form class="settings-policy-form" [formGroup]="policyForm" (ngSubmit)="savePolicy()" novalidate>
+          <div class="settings-policy-grid">
+            <div class="ui-field">
+              <label class="ui-label" for="pol-retention">{{ c().retentionDays }}</label>
+              <input id="pol-retention" class="ui-input" type="number" min="1" formControlName="retentionDays" inputmode="numeric" />
+              @if (policyInvalid('retentionDays')) { <span class="ui-error">{{ c().required }}</span> }
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="pol-rate">{{ c().rateLimit }}</label>
+              <input id="pol-rate" class="ui-input" type="number" min="1" formControlName="rateLimitPerMinute" inputmode="numeric" />
+              @if (policyInvalid('rateLimitPerMinute')) { <span class="ui-error">{{ c().required }}</span> }
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="pol-routing">{{ c().defaultRouting }}</label>
+              <select id="pol-routing" class="ui-input ui-select" formControlName="defaultRouting">
+                <option value="Manual">{{ c().routingManual }}</option>
+                <option value="RoundRobin">{{ c().routingRoundRobin }}</option>
+                <option value="Ai">{{ c().routingAi }}</option>
+              </select>
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="pol-session">{{ c().sessionMinutes }}</label>
+              <input id="pol-session" class="ui-input" type="number" min="5" formControlName="sessionMinutes" inputmode="numeric" />
+              @if (policyInvalid('sessionMinutes')) { <span class="ui-error">{{ c().required }}</span> }
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="pol-lockout">{{ c().lockoutThreshold }}</label>
+              <input id="pol-lockout" class="ui-input" type="number" min="1" formControlName="lockoutThreshold" inputmode="numeric" />
+              @if (policyInvalid('lockoutThreshold')) { <span class="ui-error">{{ c().required }}</span> }
+            </div>
+          </div>
+
+          <div class="settings-policy-switch">
+            <button
+              type="button"
+              class="ui-toggle"
+              role="switch"
+              [class.is-on]="policyForm.get('aiEnabledByDefault')?.value"
+              [attr.aria-checked]="policyForm.get('aiEnabledByDefault')?.value"
+              [attr.aria-label]="c().aiDefault"
+              (click)="toggleAiDefault()"
+            ></button>
+            <div>
+              <span class="settings-policy-switch__label">{{ c().aiDefault }}</span>
+              <span class="settings-policy-switch__hint">{{ c().aiDefaultHint }}</span>
+            </div>
+          </div>
+
+          <div class="settings-policy-actions">
+            <button type="submit" class="ui-btn ui-btn--primary" [disabled]="policySaving()">
+              @if (policySaving()) { <span class="ui-spinner"></span> {{ c().saving }} }
+              @else { {{ c().save }} }
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+</section>
+
+<!-- ── Add-credential modal ── -->
+@if (credFormOpen()) {
+  <div class="ui-overlay" (click)="closeCredForm()">
+    <div class="ui-modal settings-modal" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <h3 class="settings-modal__title">{{ c().addCredential }}</h3>
+      <form [formGroup]="credForm" (ngSubmit)="submitCredential()" novalidate>
+        <div class="ui-field">
+          <label class="ui-label" for="cred-name">{{ c().credName }}</label>
+          <input id="cred-name" class="ui-input" type="text" formControlName="name" autocomplete="off" />
+          @if (credInvalid('name')) { <span class="ui-error">{{ c().required }}</span> }
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="cred-key">{{ c().credKey }}</label>
+          <input id="cred-key" class="ui-input" type="text" formControlName="key" autocomplete="off" />
+          @if (credInvalid('key')) { <span class="ui-error">{{ c().required }}</span> }
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="cred-type">{{ c().credType }}</label>
+          <select id="cred-type" class="ui-input ui-select" formControlName="type">
+            @for (t of credentialTypes; track t) { <option [value]="t">{{ typeLabel(t) }}</option> }
+          </select>
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="cred-value">{{ c().credValue }}</label>
+          <input id="cred-value" class="ui-input settings-mono" type="text" formControlName="value" autocomplete="off" spellcheck="false" />
+          @if (credInvalid('value')) { <span class="ui-error">{{ c().required }}</span> }
+        </div>
+        <div class="settings-modal__actions">
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="closeCredForm()" [disabled]="credSubmitting()">{{ c().cancel }}</button>
+          <button type="submit" class="ui-btn ui-btn--primary" [disabled]="credSubmitting()">
+            @if (credSubmitting()) { <span class="ui-spinner"></span> {{ c().saving }} }
+            @else { {{ c().save }} }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ── New-secret "copy once" modal ── -->
+@if (newSecret(); as ns) {
+  <div class="ui-overlay" (click)="dismissNewSecret()">
+    <div class="ui-modal settings-modal" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <h3 class="settings-modal__title">{{ c().newSecretTitle }}</h3>
+      <p class="settings-modal__body">{{ c().newSecretBody }}</p>
+      <div class="ui-secret settings-newsecret">
+        <span class="ui-secret__value is-revealed">{{ ns.value }}</span>
+      </div>
+      <div class="settings-modal__actions">
+        <button type="button" class="ui-btn ui-btn--primary" (click)="dismissNewSecret()">{{ c().dismiss }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Rotate confirm ── -->
+@if (rotateTarget(); as cred) {
+  <div class="ui-overlay" (click)="cancelRotate()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-confirm__icon">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+      </div>
+      <h3>{{ c().rotateTitle }}</h3>
+      <p>{{ c().rotateBody }} <strong>{{ cred.name }}</strong></p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelRotate()" [disabled]="credBusyId() === cred.id">{{ c().cancel }}</button>
+        <button type="button" class="ui-btn ui-btn--primary" (click)="confirmRotate()" [disabled]="credBusyId() === cred.id">
+          @if (credBusyId() === cred.id) { <span class="ui-spinner"></span> {{ c().saving }} }
+          @else { {{ c().rotateConfirm }} }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Delete-credential confirm ── -->
+@if (deleteTarget(); as cred) {
+  <div class="ui-overlay" (click)="cancelDeleteCred()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-confirm__icon">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /></svg>
+      </div>
+      <h3>{{ c().deleteCredTitle }}</h3>
+      <p>{{ c().deleteCredBody }} <strong>{{ cred.name }}</strong></p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDeleteCred()" [disabled]="credBusyId() === cred.id">{{ c().cancel }}</button>
+        <button type="button" class="ui-btn ui-btn--danger" (click)="confirmDeleteCred()" [disabled]="credBusyId() === cred.id">
+          @if (credBusyId() === cred.id) { <span class="ui-spinner"></span> {{ c().saving }} }
+          @else { {{ c().deleteConfirm }} }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Feature-flag blast-radius confirm ── -->
+@if (flagConfirm(); as flag) {
+  <div class="ui-overlay" (click)="cancelFlagConfirm()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-confirm__icon">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" x2="12" y1="9" y2="13" /><line x1="12" x2="12.01" y1="17" y2="17" /></svg>
+      </div>
+      <h3>{{ c().flagConfirmTitle }}</h3>
+      <p>
+        {{ flag.enabled ? c().flagConfirmOff : c().flagConfirmOn }} <strong>{{ flag.name }}</strong>
+        {{ c().flagConfirmAffects }} <strong>{{ flag.affectedTenants }}</strong> {{ c().flagConfirmTenants }}.
+      </p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelFlagConfirm()" [disabled]="flagBusyId() === flag.id">{{ c().cancel }}</button>
+        <button type="button" class="ui-btn ui-btn--primary" (click)="confirmFlagToggle()" [disabled]="flagBusyId() === flag.id">
+          @if (flagBusyId() === flag.id) { <span class="ui-spinner"></span> {{ c().saving }} }
+          @else { {{ c().flagConfirmApply }} }
+        </button>
+      </div>
+    </div>
+  </div>
+}

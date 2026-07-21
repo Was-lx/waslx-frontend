@@ -56,7 +56,8 @@ export class ManagerLayoutComponent {
           { id: 'teams', label: t('teams'), description: t('teamsDesc'), icon: 'shield', routerLink: '/app/teams' },
           { id: 'pipeline', label: t('pipeline'), description: t('pipelineDesc'), icon: 'layers', routerLink: '/app/pipeline' },
           { id: 'tags', label: t('tagsNav'), description: t('tagsNavDesc'), icon: 'tag', routerLink: '/app/tags' },
-          { id: 'analytics', label: t('analytics'), description: t('analyticsDesc'), icon: 'chart', routerLink: '/app/analytics' }
+          { id: 'campaigns', label: t('campaignsNav'), description: t('campaignsNavDesc'), icon: 'megaphone', routerLink: '/app/campaigns' },
+          { id: 'reports', label: t('reports'), description: t('reportsDesc'), icon: 'trending-up', routerLink: '/app/reports' }
         ]
       },
       {
@@ -71,6 +72,7 @@ export class ManagerLayoutComponent {
         id: 'system',
         label: t('system'),
         items: [
+          { id: 'audit', label: t('auditNav'), description: t('auditNavDesc'), icon: 'history', routerLink: '/app/audit' },
           { id: 'settings', label: t('settings'), description: t('settingsDesc'), icon: 'sliders', routerLink: '/app/settings' }
         ]
       }

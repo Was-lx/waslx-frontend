@@ -1,0 +1,92 @@
+/* ============================================================================
+   SuperAdmin — Billing overview (revenue + subscriptions + dunning).
+   Built on shared .ui-* / .feature-page primitives; token-driven, RTL-safe.
+   ========================================================================== */
+.billing-page { animation: billing-rise var(--mo-quick, 280ms) var(--ease-out, ease) both; }
+@keyframes billing-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.billing-page__eyebrow { display: inline-flex; align-items: center; gap: 8px; }
+.billing-page__eyebrow-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--primary-deep);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-deep) 18%, transparent);
+}
+.billing-page__subtitle { margin: 8px 0 0; font-size: 0.92rem; color: var(--text-secondary); max-width: 54ch; }
+
+.billing-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
+
+/* ── Dunning banner ── */
+.billing-dunning {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; border-radius: 14px;
+  background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--danger) 26%, var(--border-subtle));
+}
+.billing-dunning__icon {
+  display: grid; place-items: center; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 11px;
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface));
+  color: var(--danger);
+}
+.billing-dunning__icon svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.billing-dunning__copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.billing-dunning__copy strong { font-size: 0.9rem; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.billing-dunning__copy span { font-size: 0.82rem; color: var(--text-secondary); }
+.billing-dunning .ui-btn { flex-shrink: 0; }
+
+/* ── Filter ── */
+.billing-filter { align-self: flex-start; }
+
+/* ── Ledger ── */
+.billing-ledger { padding: 0; overflow: hidden; }
+.billing-ledger__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 18px; border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary-deep) 4%, var(--surface)), var(--surface));
+}
+.billing-ledger__count { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.billing-ledger__empty { padding: 34px 18px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+.billing-ledger__scroll { overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--border-subtle) transparent; }
+.billing-ledger__scroll::-webkit-scrollbar { height: 10px; }
+.billing-ledger__scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-muted) 34%, transparent);
+  border-radius: 999px; border: 3px solid transparent; background-clip: padding-box;
+}
+
+.billing-table { min-width: 820px; }
+.billing-table__num { text-align: end; font-variant-numeric: tabular-nums; font-weight: 700; }
+.billing-table__end { text-align: end; }
+.billing-table__muted { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+
+.billing-cell { display: inline-flex; align-items: center; gap: 12px; }
+.billing-cell__meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.billing-cell__name { font-weight: 650; color: var(--text-primary); }
+.billing-cell__sub { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.billing-avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 10px; color: #fff; font-size: 0.78rem; font-weight: 750; text-transform: uppercase;
+  background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary-deep) 22%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+.billing-table__end .ui-btn { gap: 6px; }
+
+/* ── Skeleton ── */
+.billing-skeleton { padding: 8px 0; }
+.billing-skeleton__row { display: flex; align-items: center; gap: 14px; padding: 15px 18px; border-bottom: 1px solid var(--border-soft); }
+.billing-skeleton__row:last-child { border-bottom: 0; }
+.billing-skeleton__avatar { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; }
+.billing-skeleton__bar { height: 11px; border-radius: 999px; }
+.billing-skeleton__bar--end { margin-inline-start: auto; }
+.shimmer {
+  background: linear-gradient(100deg, var(--surface-soft) 30%, color-mix(in srgb, var(--primary) 7%, var(--surface-soft)) 50%, var(--surface-soft) 70%);
+  background-size: 200% 100%; animation: billing-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes billing-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (max-width: 620px) {
+  .billing-dunning { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .billing-page { animation: none; }
+  .shimmer { animation: none; }
+}
