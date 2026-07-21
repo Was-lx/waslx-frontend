@@ -114,6 +114,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/tags/tags.routes').then((m) => m.tagsRoutes)
       },
       {
+        path: 'knowledge-base',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/knowledge-base/knowledge-base.routes').then((m) => m.knowledgeBaseRoutes)
+      },
+      {
         path: 'working-hours',
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager'] },
@@ -142,6 +148,12 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Manager'] },
         loadChildren: () => import('./features/audit/audit.routes').then((m) => m.auditRoutes)
+      },
+      {
+        path: 'ai-agent',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin', 'Manager'] },
+        loadChildren: () => import('./features/ai-agent/ai-agent.routes').then((m) => m.aiAgentRoutes)
       },
       {
         path: 'settings',

@@ -16,6 +16,8 @@ import {
   dashboardTranslations,
   type InboxKey,
   inboxTranslations,
+  type KnowledgeBaseKey,
+  knowledgeBaseTranslations,
   type LayoutKey,
   layoutTranslations,
   type LandingKey,
@@ -54,6 +56,8 @@ export type { AppLanguage, AppDirection };
 // All keys from all i18n files merged into one union type.
 
 export type TranslationKey =
+  | AiKey
+  | KnowledgeBaseKey
   | SharedKey
   | LayoutKey
   | AuthKey

@@ -4,12 +4,19 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LanguageService, type TranslationKey } from '../../../../core/services/language.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { AuthSessionService } from '../../../../core/services/auth-session.service';
-import { InboxRealtimeService, type RealtimeConversation, type RealtimeMessage, type RealtimeNote, type RealtimeStatus } from '../../../../core/services/inbox-realtime.service';
+import { InboxRealtimeService, type RealtimeAiModeChanged, type RealtimeConversation, type RealtimeMessage, type RealtimeNote, type RealtimeStatus } from '../../../../core/services/inbox-realtime.service';
 import { WhatsAppApiService, type WhatsAppAccountSummary } from '../../../../core/api/whatsapp-api.service';
 import { AssignmentApiService, type Assignment, type UnassignedConversation } from '../../../../core/api/assignment-api.service';
 import { TagsApiService, type Tag } from '../../../../core/api/tags-api.service';
 import { GroupsApiService, type Group } from '../../../../core/api/groups-api.service';
 import { UsersApiService, type User } from '../../../../core/api/users-api.service';
+import { AiAgentApiService } from '../../../../core/api/ai-agent-api.service';
+import { EscalationStore } from '../../store/escalation.store';
+import { ConversationBadgesStore } from '../../store/conversation-badges.store';
+import { EscalationRealtimeService } from '../../services/escalation-realtime.service';
+import { EscalationApiService } from '../../services/escalation-api.service';
+import type { OwnershipTransferredPayload } from '../../models/escalation-recommendation.model';
+import type { AgentOption } from '../../components/escalation-override-dialog/escalation-override-dialog.component';
 import { apiError, apiErrorMessage } from '../../../../core/utils/api-error';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ConversationCardComponent } from '../../components/conversation-card/conversation-card.component';
@@ -18,7 +25,8 @@ import { NumberRailComponent } from '../../components/number-rail/number-rail.co
 import { InboxFiltersComponent, EMPTY_INBOX_FILTER, type InboxFilterValue } from '../../components/inbox-filters/inbox-filters.component';
 import type { AssignEvent } from '../../components/assignment-bar/assignment-bar.component';
 import { ConversationsApiService, type ConversationListFilters } from '../../services/conversations-api.service';
-import type { ConversationDetail, ConversationListItem, ConversationNote } from '../../models/conversation.model';
+import type { ConversationClassificationBadgeData } from '../../models/conversation-classification.model';
+import type { ConversationDetail, ConversationListItem, ConversationNote, ConversationSummary } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
 import type { TemplateSendPayload } from '../../components/template-picker/template-picker.component';
 import { NewConversationDialogComponent, type NewConversationSend } from '../../components/new-conversation-dialog/new-conversation-dialog.component';
@@ -74,6 +82,51 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   protected readonly hasMore = signal(false);
   protected readonly scrollUnreadCount = signal(0);
 
+  // ── AI conversation summary (FE-4.3 / US-4.7) ───────────────────────────────
+  protected readonly summary = signal<ConversationSummary | null>(null);
+  protected readonly summaryLoading = signal(false);
+  protected readonly summaryFullLoading = signal(false);
+  protected readonly summaryError = signal(false);
+  protected readonly summarySlow = signal(false);
+  private summarySlowTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // ── AI Agent presence (FE-4.1) ──────────────────────────────────────────────
+  // `aiTyping` is driven by a future realtime "AI Agent typing" event (US-4.6); kept wired for later.
+  protected readonly aiTyping = signal(false);
+  protected readonly aiModeChanging = signal(false);
+
+  // ── Escalation screening (FE-4.2) ────────────────────────────────────────────
+  private readonly escalationStore = inject(EscalationStore);
+  private readonly badgesStore = inject(ConversationBadgesStore);
+  private readonly escalationRealtime = inject(EscalationRealtimeService);
+  private readonly escalationApi = inject(EscalationApiService);
+  protected readonly escalationRecommendation = computed(() => {
+    const id = this.selectedId();
+    return id != null ? this.escalationStore.getRecommendation(id) ?? null : null;
+  });
+  protected readonly escalationOwnershipTransfer = computed<OwnershipTransferredPayload | null>(() => {
+    const id = this.selectedId();
+    return id != null ? this.escalationStore.getOwnershipTransfer(id) ?? null : null;
+  });
+  protected readonly isManagerOrAdmin = computed(() => {
+    const role = this.auth.userProfile()?.role;
+    return role === 'Admin' || role === 'Manager';
+  });
+  protected readonly escalationAgents = computed<AgentOption[]>(() =>
+    this.users().map((u) => ({ id: Number(u.id), name: u.name }))
+  );
+  protected readonly escalationConfirming = signal(false);
+  protected readonly showOverrideDialog = signal(false);
+
+  // Badges (FE-4.4)
+  protected readonly badgeData = computed(() => {
+    const id = this.selectedId();
+    return id != null ? this.badgesStore.getBadgeData(id) ?? null : null;
+  });
+  protected badgeFor(id: number): ConversationClassificationBadgeData | null {
+    return this.badgesStore.getBadgeData(id);
+  }
+
   // ── Number rail + filters + views ───────────────────────────────────────────
   protected readonly accounts = signal<WhatsAppAccountSummary[]>([]);
   protected readonly selectedAccountId = signal<number | null>(null);
@@ -124,7 +177,15 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.realtime.messageReceived.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((m) => this.onRealtimeMessage(m));
     this.realtime.messageStatusChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((s) => this.onRealtimeStatus(s));
     this.realtime.conversationChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((c) => this.onRealtimeConversation(c));
+    this.realtime.conversationAiModeChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => this.onConversationAiModeChanged(p));
     this.realtime.noteAdded.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((n) => this.onRealtimeNote(n));
+
+    this.escalationStore.init();
+    this.badgesStore.init();
+    void this.escalationStore.loadSettings();
+    this.escalationRealtime.escalationRecommendationUpdated.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((r) => this.onEscalationRecommendation(r));
+    this.escalationRealtime.escalationAutoAssigned.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((r) => this.onEscalationAutoAssigned(r));
+    this.escalationRealtime.conversationOwnershipTransferred.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => this.onOwnershipTransferred(p));
 
     this.fallback = setInterval(() => this.refresh(), FALLBACK_REFRESH_MS);
   }
@@ -132,6 +193,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.fallback) clearInterval(this.fallback);
     if (this.filterTimer) clearTimeout(this.filterTimer);
+    this.disarmSummarySlow();
     void this.realtime.stop();
   }
 
@@ -194,11 +256,14 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.notes.set([]);
     this.assignments.set([]);
     this.routedGroupId.set(null);
+    this.resetSummary();
     this.loadMessages(id);
     this.loadDetail(id);
     this.loadNotes(id);
+    this.loadSummary(id);
     this.markRead(id);
     this.realtime.joinConversation(id);
+    void this.escalationStore.loadRecommendation(id);
   }
 
   protected selectCard(id: number): void {
@@ -493,6 +558,74 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     if (c.conversationId === this.selectedId()) this.loadDetail(c.conversationId);
   }
 
+  private onConversationAiModeChanged(p: RealtimeAiModeChanged): void {
+    this.conversations.update((list) => list.map(c => c.id === p.conversationId ? { ...c, aiMode: p.aiMode } : c));
+    if (p.conversationId === this.selectedId()) {
+      this.detail.update(d => d ? { ...d, aiMode: p.aiMode } : d);
+    }
+  }
+
+  // ── Escalation realtime handlers (FE-4.2) ────────────────────────────────────
+  private onEscalationRecommendation(r: import('../../models/escalation-recommendation.model').EscalationRecommendation): void {
+    this.loadList(false);
+  }
+
+  private onEscalationAutoAssigned(r: import('../../models/escalation-recommendation.model').EscalationRecommendation): void {
+    this.loadList(false);
+    if (this.auth.userProfile() && Number(this.auth.userProfile()!.id) === r.assignedToId) {
+      this.toast.info('', this.t('escalationAssignedToast'));
+    }
+  }
+
+  private onOwnershipTransferred(p: OwnershipTransferredPayload): void {
+    this.loadList(false);
+    const id = this.selectedId();
+    if (id != null) {
+      this.loadDetail(id);
+      this.loadAssignments();
+    }
+    if (this.view() === 'queue') this.loadQueue();
+  }
+
+  // ── Escalation actions (FE-4.2) ──────────────────────────────────────────────
+  protected onEscalationConfirm(event: { escalationId: number; assigneeId: number }): void {
+    this.escalationConfirming.set(true);
+    this.escalationApi.confirm(event.escalationId, event.assigneeId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (rec) => {
+        this.escalationConfirming.set(false);
+        this.escalationStore.setRecommendation(this.selectedId()!, rec);
+        this.loadDetail(this.selectedId()!);
+        this.loadList(false);
+      },
+      error: (err) => {
+        this.escalationConfirming.set(false);
+        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
+      }
+    });
+  }
+
+  protected onEscalationOverrideOpen(): void {
+    this.showOverrideDialog.set(true);
+  }
+
+  protected onEscalationOverrideSubmit(event: { escalationId: number; assigneeId: number; reason: string }): void {
+    this.showOverrideDialog.set(false);
+    this.escalationApi.override(event.escalationId, event.assigneeId, event.reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (rec) => {
+        this.escalationStore.setRecommendation(this.selectedId()!, rec);
+        this.loadDetail(this.selectedId()!);
+        this.loadList(false);
+      },
+      error: (err) => {
+        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
+      }
+    });
+  }
+
+  protected onEscalationOverrideCancel(): void {
+    this.showOverrideDialog.set(false);
+  }
+
   private onRealtimeNote(n: RealtimeNote): void {
     if (n.conversationId !== this.selectedId()) return;
     this.appendNote({ id: n.id, conversationId: n.conversationId, content: n.content, authorName: n.authorName, createdAt: n.createdAt });
@@ -605,6 +738,92 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ── AI conversation summary (FE-4.3 / US-4.7) ───────────────────────────────
+  private loadSummary(id: number): void {
+    this.summaryLoading.set(true);
+    this.summaryError.set(false);
+    this.armSummarySlow();
+    this.api.summary(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (s) => {
+        if (this.selectedId() !== id) return;
+        this.summary.set(s);
+        this.summaryLoading.set(false);
+        this.disarmSummarySlow();
+      },
+      error: () => {
+        if (this.selectedId() !== id) return;
+        this.summaryLoading.set(false);
+        this.summaryError.set(true);
+        this.disarmSummarySlow();
+      }
+    });
+  }
+
+  /** Regenerates the short summary (used by both the refresh and error-retry affordances). */
+  protected onRefreshSummary(): void {
+    const id = this.selectedId();
+    if (id != null) this.loadSummary(id);
+  }
+
+  /** Generates the full structured summary on demand. */
+  protected onGenerateFullSummary(): void {
+    const id = this.selectedId();
+    if (id == null || this.summaryFullLoading()) return;
+    this.summaryFullLoading.set(true);
+    this.api.generateFullSummary(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (s) => {
+        if (this.selectedId() === id) this.summary.set(s);
+        this.summaryFullLoading.set(false);
+      },
+      error: (err) => {
+        this.summaryFullLoading.set(false);
+        this.toast.error(this.t('aiSummaryTitle'), apiErrorMessage(err, this.t('aiSummaryError')));
+      }
+    });
+  }
+
+  /** Human explicitly controls the AI Mode for a conversation. */
+  protected onChangeAiMode(mode: 'Active' | 'Human' | 'Paused'): void {
+    const id = this.selectedId();
+    if (id == null || this.aiModeChanging()) return;
+    this.aiModeChanging.set(true);
+    this.api.changeAiMode(id, mode).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.aiModeChanging.set(false);
+        this.detail.update(d => d ? { ...d, aiMode: mode } : d);
+        // Toast is optional here; realtime event will also sync state
+        this.toast.success('AI Mode Updated', `Conversation AI mode changed to ${mode}.`);
+      },
+      error: (err) => {
+        this.aiModeChanging.set(false);
+        if (err.status === 403 && apiError(err).code === 'AI.NumberDisabled') {
+          this.toast.error('AI Disabled', 'AI is disabled for this WhatsApp number by the administrator.');
+        } else {
+          this.toast.error('Update Failed', apiErrorMessage(err, 'Failed to update AI mode.'));
+        }
+      }
+    });
+  }
+
+  private resetSummary(): void {
+    this.summary.set(null);
+    this.summaryLoading.set(false);
+    this.summaryFullLoading.set(false);
+    this.summaryError.set(false);
+    this.disarmSummarySlow();
+  }
+
+  private armSummarySlow(): void {
+    this.disarmSummarySlow();
+    this.summarySlow.set(false);
+    this.summarySlowTimer = setTimeout(() => this.summarySlow.set(true), 4000);
+  }
+
+  private disarmSummarySlow(): void {
+    this.summarySlow.set(false);
+    if (this.summarySlowTimer) { clearTimeout(this.summarySlowTimer); this.summarySlowTimer = null; }
+  }
+
   private refresh(): void {
     this.loadList(false);
     if (this.view() === 'queue') this.loadQueue();
@@ -624,6 +843,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.detail.set(null);
     this.notes.set([]);
     this.assignments.set([]);
+    this.resetSummary();
   }
 
   private handledWindowClosed(err: unknown, conversationId: number): boolean {
@@ -662,5 +882,6 @@ function mapMediaKind(mimeType: string): string {
   if (mimeType === 'image/webp') return 'Sticker';
   if (mimeType.startsWith('image/')) return 'Image';
   if (mimeType.startsWith('video/')) return 'Video';
+  if (mimeType.startsWith('audio/')) return 'Audio';
   return 'Document';
 }

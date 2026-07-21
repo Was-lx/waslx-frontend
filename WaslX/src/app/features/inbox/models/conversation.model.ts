@@ -10,6 +10,8 @@ export interface ConversationListItem {
   lastMessageAt: string | null;
   assignedUserId: number | null;
   unreadCount: number;
+  handledByAi: boolean;
+  aiMode: 'Active' | 'Human' | 'Paused';
 }
 
 /** Rich detail for the customer-context panel + status controls (mirrors ConversationDetailResponse). */
@@ -34,6 +36,8 @@ export interface ConversationDetail {
   groupName: string | null;
   currentStageId: number | null;
   currentStageName: string | null;
+  handledByAi: boolean;
+  aiMode: 'Active' | 'Human' | 'Paused';
 }
 
 /** Result of a status change (mirrors ConversationStatusResponse). */
@@ -56,4 +60,14 @@ export interface ConversationNote {
 export interface PagedResult<T> {
   items: T[];
   hasMore: boolean;
+}
+
+/** AI conversation summary (FE-4.3 / US-4.7) — mirrors ConversationSummaryResponse. */
+export interface ConversationSummary {
+  conversationId: number;
+  shortSummary: string;
+  fullSummary: string | null;
+  messageCount: number;
+  isStale: boolean;
+  generatedAt: string;
 }

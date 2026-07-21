@@ -9,6 +9,7 @@ import type {
   ConversationListItem,
   ConversationNote,
   ConversationStatusResult,
+  ConversationSummary,
   PagedResult
 } from '../models/conversation.model';
 import type { ConversationMessage, SendMessageResult } from '../models/message.model';
@@ -75,7 +76,7 @@ export class ConversationsApiService {
 
   /** Sends a text reply within a conversation. */
   sendText(conversationId: number, text: string): Observable<SendMessageResult> {
-    return this.api.post<SendMessageResult>(`/conversations/${conversationId}/messages`, { text });
+    return this.api.post<SendMessageResult>(`/conversations/${conversationId}/messages/text`, { text });
   }
 
   /** Marks a conversation read (clears its unread count). Internal only — no WhatsApp read receipt. */
@@ -91,6 +92,11 @@ export class ConversationsApiService {
   /** Applies a manual lifecycle transition (server-side state machine rejects invalid moves). */
   changeStatus(conversationId: number, status: string): Observable<ConversationStatusResult> {
     return this.api.post<ConversationStatusResult>(`/conversations/${conversationId}/status`, { status });
+  }
+
+  /** Updates the AI mode for this conversation (Active, Human, Paused). */
+  changeAiMode(conversationId: number, mode: 'Active' | 'Human' | 'Paused'): Observable<void> {
+    return this.api.put<void>(`/conversations/${conversationId}/ai-mode`, { mode });
   }
 
   /**
@@ -112,6 +118,19 @@ export class ConversationsApiService {
    */
   handoff(conversationId: number, targetGroupId: number): Observable<void> {
     return this.api.post<void>(`/conversations/${conversationId}/handoff`, { targetGroupId });
+  }
+
+  /**
+   * AI one-line conversation summary (FE-4.3 / US-4.7). Cached server-side and refreshed as new
+   * messages arrive; available on any conversation at any time.
+   */
+  summary(conversationId: number): Observable<ConversationSummary> {
+    return this.api.get<ConversationSummary>(`/conversations/${conversationId}/summary`);
+  }
+
+  /** Generates the full structured summary (key points · decisions · what's needed) on demand. */
+  generateFullSummary(conversationId: number): Observable<ConversationSummary> {
+    return this.api.post<ConversationSummary>(`/conversations/${conversationId}/summary/full`, {});
   }
 
   /** Lists a conversation's internal team notes. */

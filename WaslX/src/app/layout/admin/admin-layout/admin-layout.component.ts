@@ -56,6 +56,8 @@ export class AdminLayoutComponent {
           { id: 'users', label: t('users'), description: t('usersDesc'), icon: 'users', routerLink: '/app/users', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'teams', label: t('teams'), description: t('teamsDesc'), icon: 'shield', routerLink: '/app/teams', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'pipeline', label: t('pipeline'), description: t('pipelineDesc'), icon: 'layers', routerLink: '/app/pipeline', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
+          { id: 'knowledge-base', label: t('kbNav'), description: t('kbNavDesc'), icon: 'bot', routerLink: '/app/knowledge-base', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
+          { id: 'ai-agent', label: t('aiAgentNav'), description: t('aiAgentNavDesc'), icon: 'sparkles', routerLink: '/app/ai-agent', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'tags', label: t('tagsNav'), description: t('tagsNavDesc'), icon: 'tag', routerLink: '/app/tags', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'campaigns', label: t('campaignsNav'), description: t('campaignsNavDesc'), icon: 'megaphone', routerLink: '/app/campaigns', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'reports', label: t('reports'), description: t('reportsDesc'), icon: 'trending-up', routerLink: '/app/reports', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] }
