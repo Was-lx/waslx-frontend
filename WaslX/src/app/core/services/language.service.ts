@@ -4,6 +4,8 @@ import { Inject, Injectable, effect, signal } from '@angular/core';
 import { type AppLanguage, type AppDirection } from '../i18n/language.types';
 
 import {
+  type AiKey,
+  aiTranslations,
   type AuthKey,
   authTranslations,
   type CampaignsKey,
@@ -105,6 +107,8 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...notificationsTranslations.en,
     ...auditTranslations.en,
     ...platformConsoleTranslations.en,
+    ...aiTranslations.en,
+    ...knowledgeBaseTranslations.en,
   } as Record<TranslationKey, string>,
   ar: {
     ...sharedTranslations.ar,
@@ -128,6 +132,8 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     ...notificationsTranslations.ar,
     ...auditTranslations.ar,
     ...platformConsoleTranslations.ar,
+    ...aiTranslations.ar,
+    ...knowledgeBaseTranslations.ar,
   } as Record<TranslationKey, string>,
 };
 

@@ -23,3 +23,5 @@ export { type ReportingKey, reportingTranslations } from './reporting.i18n';
 export { type NotificationsKey, notificationsTranslations } from './notifications.i18n';
 export { type AuditKey, auditTranslations } from './audit.i18n';
 export { type PlatformConsoleKey, platformConsoleTranslations } from './platform-console.i18n';
+export { type AiKey, aiTranslations } from './ai.i18n';
+export { type KnowledgeBaseKey, knowledgeBaseTranslations } from './knowledge-base.i18n';
