@@ -135,6 +135,12 @@ export type InboxKey =
   | 'escalationEnterDetails'
   | 'escalationCancel'
   | 'escalationAutoAssigned'
+  | 'escalationReject'
+  | 'escalationRejected'
+  | 'escalationScore'
+  | 'escalationCandidates'
+  | 'escalationRankedCandidates'
+  | 'escalationActiveChats'
   // Badges (FE-4.4)
   | 'sentimentPositive'
   | 'sentimentNeutral'
@@ -275,6 +281,12 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     escalationEnterDetails: 'Enter details...',
     escalationCancel: 'Cancel',
     escalationAutoAssigned: 'Auto-assigned',
+    escalationReject: 'Reject',
+    escalationRejected: 'Recommendation rejected',
+    escalationScore: 'Score',
+    escalationCandidates: 'Candidates',
+    escalationRankedCandidates: 'Ranked candidates',
+    escalationActiveChats: 'active chats',
     sentimentPositive: 'Positive',
     sentimentNeutral: 'Neutral',
     sentimentNegative: 'Negative',
@@ -413,6 +425,12 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     escalationEnterDetails: 'أدخل التفاصيل...',
     escalationCancel: 'إلغاء',
     escalationAutoAssigned: 'تعيين تلقائي',
+    escalationReject: 'رفض',
+    escalationRejected: 'تم رفض الاقتراح',
+    escalationScore: 'النتيجة',
+    escalationCandidates: 'المرشحون',
+    escalationRankedCandidates: 'المرشحون حسب الترتيب',
+    escalationActiveChats: 'محادثات نشطة',
     sentimentPositive: 'إيجابي',
     sentimentNeutral: 'حيادي',
     sentimentNegative: 'سلبي',

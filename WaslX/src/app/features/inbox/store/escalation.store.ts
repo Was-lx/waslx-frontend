@@ -103,6 +103,10 @@ export class EscalationStore {
       this.setRecommendation(r.conversationId, r);
     });
 
+    this.realtime.escalationRejected.subscribe(r => {
+      this.setRecommendation(r.conversationId, r);
+    });
+
     this.realtime.conversationOwnershipTransferred.subscribe(p => {
       this.setOwnershipTransfer(p);
     });

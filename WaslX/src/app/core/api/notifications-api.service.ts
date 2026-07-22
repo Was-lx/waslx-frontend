@@ -21,6 +21,7 @@ interface ApiNotification {
 
 /** Known notification types the backend emits; kept open for forward-compat. */
 export type NotificationType =
+  | 'escalation'
   | 'assignment'
   | 'conversation'
   | 'message'
@@ -91,6 +92,8 @@ export type NotificationTint = 'primary' | 'success' | 'warning' | 'accent' | 'd
 /** Icon name + tinted-chip variant for a notification type. Icons ∈ IconComponent set. */
 export function notificationVisual(type: string): { icon: string; tint: NotificationTint } {
   switch ((type ?? '').toLowerCase()) {
+    case 'escalation':
+      return { icon: 'alert-triangle', tint: 'danger' };
     case 'assignment':
       return { icon: 'route', tint: 'primary' };
     case 'conversation':
@@ -117,6 +120,8 @@ export function notificationTarget(
   }
   switch (entity) {
     case 'conversation':
+      return { commands: ['/app/inbox'], query: { conversation: String(n.entityId) } };
+    case 'escalation':
       return { commands: ['/app/inbox'], query: { conversation: String(n.entityId) } };
     case 'campaign':
       return { commands: ['/app/campaigns', n.entityId] };
