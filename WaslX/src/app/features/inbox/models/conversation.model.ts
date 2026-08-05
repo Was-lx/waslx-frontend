@@ -38,6 +38,13 @@ export interface ConversationDetail {
   currentStageName: string | null;
   handledByAi: boolean;
   aiMode: 'Active' | 'Human' | 'Paused';
+  isEscalated: boolean;
+  escalationReason: string | null;
+  escalationPriority: string | null;
+  escalationTopic: string | null;
+  escalationSentiment: string | null;
+  escalationScore: number | null;
+  escalationId: number | null;
 }
 
 /** Result of a status change (mirrors ConversationStatusResponse). */

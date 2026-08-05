@@ -626,6 +626,21 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.showOverrideDialog.set(false);
   }
 
+  protected onEscalationReject(event: { escalationId: number; reason: string | null }): void {
+    this.escalationConfirming.set(true);
+    this.escalationApi.reject(event.escalationId, event.reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (rec) => {
+        this.escalationConfirming.set(false);
+        this.escalationStore.setRecommendation(this.selectedId()!, rec);
+        this.loadList(false);
+      },
+      error: (err) => {
+        this.escalationConfirming.set(false);
+        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
+      }
+    });
+  }
+
   private onRealtimeNote(n: RealtimeNote): void {
     if (n.conversationId !== this.selectedId()) return;
     this.appendNote({ id: n.id, conversationId: n.conversationId, content: n.content, authorName: n.authorName, createdAt: n.createdAt });

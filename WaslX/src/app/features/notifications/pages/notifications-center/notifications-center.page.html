@@ -87,6 +87,7 @@
         <button
           class="ui-notif notif-center__row"
           [class.ui-notif--unread]="!row.n.isRead"
+          [class.notif-center__row--escalation]="row.n.type === 'escalation'"
           type="button"
           (click)="open(row)"
         >
