@@ -307,6 +307,7 @@ export class AiAgentPageComponent implements OnInit {
 
   protected setEnabled(enabled: boolean): void {
     this.patch({ enabled });
+    this.save();
   }
 
   protected setThreshold(pct: string): void {
@@ -333,6 +334,7 @@ export class AiAgentPageComponent implements OnInit {
       perNumber.push({ whatsAppAccountId: accountId, enabled });
       return { ...s, perNumber };
     });
+    this.save();
   }
 
   protected onFilesPicked(event: Event): void {

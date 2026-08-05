@@ -316,9 +316,9 @@
               <article
                 class="ui-card plan-card"
                 [class.is-current]="isCurrentPlan(plan)"
-                [class.is-featured]="plan.code === 'pro' || plan.sortOrder === 2"
+                [class.is-featured]="plan.code === 'growth'"
               >
-                @if (plan.code === 'pro' || plan.sortOrder === 2) {
+                @if (plan.code === 'growth') {
                   <span class="plan-card__glow" aria-hidden="true"></span>
                   <span class="plan-card__flag">
                     <app-icon name="star" [size]="12" />{{ c()['mostPopular'] }}

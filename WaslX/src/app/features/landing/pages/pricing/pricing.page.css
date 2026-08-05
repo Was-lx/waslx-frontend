@@ -58,7 +58,7 @@
 /* ============ PLANS ============ */
 .pr__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 22px;
   align-items: start;
 }
@@ -323,6 +323,13 @@
 }
 
 /* ============ RESPONSIVE ============ */
+@media (max-width: 1180px) {
+  .pr__grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 720px;
+    margin-inline: auto;
+  }
+}
 @media (max-width: 940px) {
   .pr__grid {
     grid-template-columns: 1fr;
