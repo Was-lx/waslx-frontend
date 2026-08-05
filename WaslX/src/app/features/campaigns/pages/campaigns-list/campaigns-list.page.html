@@ -1,0 +1,173 @@
+<section class="feature-page cmp" [attr.dir]="direction()">
+  <header class="feature-page__header">
+    <div class="cmp-hd">
+      <span class="feature-page__eyebrow">{{ t('cmpEyebrow') }}</span>
+      <h1>{{ t('cmpTitle') }}</h1>
+      <p class="cmp-hd__lead">{{ t('cmpLead') }}</p>
+      @if (!loading() && !error() && campaigns().length > 0) {
+        <span class="cmp-hd__count">
+          <span class="cmp-hd__count-dot" aria-hidden="true"></span>
+          <strong>{{ campaigns().length }}</strong> {{ t('cmpCount') }}
+        </span>
+      }
+    </div>
+    <div class="feature-page__actions">
+      <label class="feature-page__search">
+        <app-icon name="search" [size]="17" />
+        <input
+          type="text"
+          [value]="search()"
+          (input)="onSearchChange($any($event.target).value)"
+          [placeholder]="t('cmpSearch')"
+        />
+      </label>
+      <a routerLink="new" class="feature-page__btn">
+        <app-icon name="plus" [size]="17" />
+        {{ t('cmpNew') }}
+      </a>
+    </div>
+  </header>
+
+  @if (!loading() && !error() && campaigns().length > 0) {
+    <div class="ui-seg cmp-seg" role="tablist">
+      @for (f of statusFilters; track f.value) {
+        <button
+          type="button"
+          class="ui-seg__btn"
+          [class.is-active]="statusFilter() === f.value"
+          (click)="setStatusFilter(f.value)"
+        >
+          {{ t(f.key) }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="feature-page__table-container" aria-hidden="true">
+      <table class="feature-page__table cmp-table">
+        <tbody>
+          @for (row of skeletonRows; track $index) {
+            <tr>
+              <td><span class="cmp-skel sk-shimmer" style="width: 160px"></span></td>
+              <td><span class="cmp-skel sk-shimmer" style="width: 78px; height: 22px; border-radius: 999px"></span></td>
+              <td><span class="cmp-skel sk-shimmer" style="width: 64px"></span></td>
+              <td><span class="cmp-skel sk-shimmer" style="width: 120px; height: 10px; border-radius: 999px"></span></td>
+              <td><span class="cmp-skel sk-shimmer" style="width: 44px"></span></td>
+              <td><span class="cmp-skel sk-shimmer" style="width: 92px"></span></td>
+              <td><span class="cmp-skel sk-shimmer" style="width: 60px; height: 30px; border-radius: 9px"></span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('cmpErrorTitle') }}</h3>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="load()">{{ t('cmpRetry') }}</button>
+    </div>
+  } @else if (campaigns().length === 0) {
+    <div class="feature-page__empty cmp-empty">
+      <span class="cmp-empty__ico" aria-hidden="true"><app-icon name="megaphone" [size]="26" /></span>
+      <h3>{{ t('cmpEmptyTitle') }}</h3>
+      <p>{{ t('cmpEmptyDesc') }}</p>
+      <a routerLink="new" class="ui-btn ui-btn--primary ui-btn--sm cmp-empty__cta">
+        <app-icon name="plus" [size]="15" /> {{ t('cmpEmptyCta') }}
+      </a>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="search" [size]="26" />
+      <h3>{{ t('cmpNoResults') }}</h3>
+    </div>
+  } @else {
+    <div class="feature-page__table-container">
+      <table class="feature-page__table cmp-table">
+        <thead>
+          <tr>
+            <th>{{ t('cmpColName') }}</th>
+            <th>{{ t('cmpColStatus') }}</th>
+            <th class="cmp-num">{{ t('cmpColAudience') }}</th>
+            <th class="cmp-delivery-col">{{ t('cmpColDelivery') }}</th>
+            <th class="cmp-num">{{ t('cmpColSent') }}</th>
+            <th>{{ t('cmpColScheduled') }}</th>
+            <th class="cmp-actions-col">{{ t('cmpColActions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of filtered(); track c.id) {
+            <tr>
+              <td>
+                <a class="cmp-name" [routerLink]="[c.id]">
+                  <span class="cmp-name__title">{{ c.name }}</span>
+                  @if (c.templateName) {
+                    <span class="cmp-name__tmpl">{{ c.templateName }}</span>
+                  }
+                </a>
+              </td>
+              <td><span [class]="statusPillClass(c.status)">{{ statusLabel(c.status) }}</span></td>
+              <td class="cmp-num">{{ c.audienceSize }}</td>
+              <td class="cmp-delivery-col">
+                @if (c.audienceSize > 0) {
+                  <div class="ui-meter ui-meter--sm cmp-row-meter" [attr.title]="c.deliveredCount + ' / ' + c.audienceSize">
+                    <span class="ui-meter__seg ui-meter__seg--read" [style.width.%]="meterShares(c).read"></span>
+                    <span class="ui-meter__seg ui-meter__seg--delivered" [style.width.%]="meterShares(c).delivered"></span>
+                    <span class="ui-meter__seg ui-meter__seg--sent" [style.width.%]="meterShares(c).sent"></span>
+                    <span class="ui-meter__seg ui-meter__seg--failed" [style.width.%]="meterShares(c).failed"></span>
+                  </div>
+                } @else {
+                  <span class="cmp-dash">—</span>
+                }
+              </td>
+              <td class="cmp-num">{{ c.sentCount }}</td>
+              <td class="cmp-sched">{{ formatSchedule(c) }}</td>
+              <td class="cmp-actions-col">
+                <div class="cmp-row-actions">
+                  <a class="ui-btn ui-btn--ghost ui-btn--sm" [routerLink]="[c.id]">{{ t('cmpView') }}</a>
+                  @if (c.status === 'Draft') {
+                    <a class="cmp-icon-btn" [routerLink]="[c.id, 'edit']" [attr.aria-label]="t('cmpEdit')">
+                      <app-icon name="settings" [size]="15" />
+                    </a>
+                    <button
+                      type="button"
+                      class="cmp-icon-btn cmp-icon-btn--danger"
+                      [attr.aria-label]="t('cmpDelete')"
+                      (click)="requestDelete(c)"
+                    >
+                      <app-icon name="trash" [size]="15" />
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (pendingDelete(); as pending) {
+  <div class="ui-overlay" (click)="cancelDelete()">
+    <div class="ui-modal ui-confirm" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+      <div class="ui-confirm__icon">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /></svg>
+      </div>
+      <h3>{{ t('cmpDeleteTitle') }}</h3>
+      <p>{{ t('cmpDeleteBody') }} <strong>{{ pending.name }}</strong></p>
+      <div class="ui-confirm__actions">
+        <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelDelete()" [disabled]="deleting()">
+          {{ t('cmpCancel') }}
+        </button>
+        <button type="button" class="ui-btn ui-btn--danger" (click)="confirmDelete()" [disabled]="deleting()">
+          @if (deleting()) {
+            <span class="ui-spinner"></span> {{ t('cmpSavingDraft') }}
+          } @else {
+            {{ t('cmpConfirmDelete') }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

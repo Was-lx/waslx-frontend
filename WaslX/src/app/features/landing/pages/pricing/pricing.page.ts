@@ -70,8 +70,8 @@ export class PricingPageComponent {
   }
 
   private mapApiPlan(p: ApiPlan, idx: number): Plan {
-    const iconByCode: Record<string, string> = { starter: 'zap', growth: 'sparkles', enterprise: 'shield' };
-    const fallbackIcons = ['zap', 'sparkles', 'shield'];
+    const iconByCode: Record<string, string> = { starter: 'zap', growth: 'sparkles', business: 'trending-up', enterprise: 'shield' };
+    const fallbackIcons = ['zap', 'sparkles', 'trending-up', 'shield'];
     const custom = p.isCustom;
     return {
       id: p.code,

@@ -1,7 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { WhatsAppApiService, readAndClearConnectOptions } from '../../../../core/api/whatsapp-api.service';
+import {
+  WhatsAppApiService,
+  readAndClearConnectOptions,
+  readAndClearConnectMode,
+  signalConnectResult,
+} from '../../../../core/api/whatsapp-api.service';
+import type { WhatsAppAccount } from '../../../../core/models/platform.models';
 import { ChannelStatusService } from '../../../../core/services/channel-status.service';
 import { FacebookSdkService } from '../../../../core/services/facebook-sdk.service';
 import { LanguageService } from '../../../../core/services/language.service';
@@ -71,7 +77,15 @@ export class MetaCallbackPageComponent implements OnInit {
   protected c = () => CONTENT[this.languageService.language()];
   protected direction = () => this.languageService.getDirection();
 
+  /** True when this callback is running in a tab the channels page opened just for the Meta hop. */
+  private viaTab = false;
+
   ngOnInit(): void {
+    // Consume the marker up front: this callback may be running in a new tab that the channels
+    // page opened, in which case we hand the result back over localStorage and close ourselves
+    // instead of navigating (navigating a throwaway tab to /app/channels would be pointless).
+    this.viaTab = readAndClearConnectMode() === 'tab';
+
     const params = this.route.snapshot.queryParamMap;
     const error = params.get('error') ?? params.get('error_code');
     const code = params.get('code');
@@ -93,17 +107,45 @@ export class MetaCallbackPageComponent implements OnInit {
 
     const options = readAndClearConnectOptions();
     this.whatsAppApi.connect(code, null, this.facebookSdk.redirectUri, options).subscribe({
-      next: (account) => {
-        this.channelStatus.set(account.status);
-        void this.router.navigate(['/app/channels']);
-      },
+      next: (account) => this.succeed(account),
       error: (err) => this.fail(this.extractError(err))
     });
   }
 
+  private succeed(account: WhatsAppAccount): void {
+    if (this.viaTab) {
+      // Tell the opener tab it can reload the connected account, then close this throwaway tab.
+      signalConnectResult('connected');
+      this.closeOrNavigate();
+      return;
+    }
+    this.channelStatus.set(account.status);
+    void this.router.navigate(['/app/channels']);
+  }
+
   private fail(message: string): void {
+    if (this.viaTab) {
+      // Hand the error to the opener tab (it shows the toast) and close this throwaway tab.
+      signalConnectResult('error', message);
+      this.closeOrNavigate();
+      return;
+    }
     this.toast.error(this.c().errorTitle, message);
     void this.router.navigate(['/app/channels']);
+  }
+
+  /** Close the new tab; if the browser refuses (rare), fall back to navigating like the normal flow. */
+  private closeOrNavigate(): void {
+    try {
+      window.close();
+    } catch {
+      /* ignore — handled by the fallback below */
+    }
+    setTimeout(() => {
+      if (!window.closed) {
+        void this.router.navigate(['/app/channels']);
+      }
+    }, 400);
   }
 
   private extractError(err: unknown): string {

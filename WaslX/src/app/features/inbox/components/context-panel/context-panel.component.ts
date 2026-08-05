@@ -47,7 +47,6 @@ import { ConversationSummaryComponent } from '../conversation-summary/conversati
           <div class="ctx__who">
             <span class="ctx__name">
               {{ d.customerName }}
-              @if (d.customerVip) { <span class="ctx__vip">{{ t('ctxVip') }}</span> }
             </span>
             <span class="ctx__phone">{{ d.customerPhone }}</span>
           </div>
@@ -203,8 +202,6 @@ import { ConversationSummaryComponent } from '../conversation-summary/conversati
     .ctx__customer { display: flex; align-items: center; gap: 12px; }
     .ctx__who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .ctx__name { font-weight: 700; color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px; }
-    .ctx__vip { font-size: 0.62rem; font-weight: 800; letter-spacing: .04em; padding: 1px 6px; border-radius: 6px;
-      background: color-mix(in srgb, #d97706 20%, transparent); color: #d97706; }
     .ctx__phone { font-size: 0.78rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
     .ctx__label { margin: 0 0 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
     .ctx__value { margin: 0; font-size: 0.88rem; color: var(--text-primary); }

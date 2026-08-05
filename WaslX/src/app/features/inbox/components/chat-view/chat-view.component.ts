@@ -19,7 +19,6 @@ import { MessageComposerComponent } from '../message-composer/message-composer.c
 import { ContextPanelComponent } from '../context-panel/context-panel.component';
 import { TemplatePickerComponent, type TemplateSendPayload } from '../template-picker/template-picker.component';
 import { AssignmentBarComponent, type AssignEvent } from '../assignment-bar/assignment-bar.component';
-import { ConversationSummaryComponent } from '../conversation-summary/conversation-summary.component';
 import { AiSkeletonComponent } from '../ai-skeleton/ai-skeleton.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { EscalationRecommendationComponent } from '../escalation-recommendation/escalation-recommendation.component';
@@ -44,7 +43,7 @@ import type { Group } from '../../../../core/api/groups-api.service';
   imports: [
     AvatarComponent, MessageBubbleComponent, MessageComposerComponent,
     ContextPanelComponent, TemplatePickerComponent, AssignmentBarComponent,
-    ConversationSummaryComponent, AiSkeletonComponent, IconComponent,
+    AiSkeletonComponent, IconComponent,
     EscalationRecommendationComponent, EscalationOwnershipTransferredComponent, EscalationOverrideDialogComponent,
     ConversationBadgesComponent, EscalationStatusChipComponent
   ],
@@ -133,6 +132,7 @@ import type { Group } from '../../../../core/api/groups-api.service';
             [isManagerOrAdmin]="isManagerOrAdmin()"
             (confirm)="escalationConfirm.emit($event)"
             (override)="escalationOverride.emit()"
+            (reject)="escalationReject.emit($event)"
           />
         </div>
 
@@ -436,6 +436,7 @@ export class ChatViewComponent implements AfterViewChecked {
   readonly escalationOverride = output<void>();
   readonly escalationOverrideSubmit = output<{ escalationId: number; assigneeId: number; reason: string }>();
   readonly escalationOverrideCancel = output<void>();
+  readonly escalationReject = output<{ escalationId: number; reason: string | null }>();
 
   protected readonly showPicker = signal(false);
   /** Whether the customer/context drawer is open (toggled by the profile button in the header toolbar). */

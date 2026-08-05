@@ -1,0 +1,81 @@
+/* ============================================================================
+   SuperAdmin — Admins (platform operators). Builds on shared .ui-* / .feature-page
+   primitives; token-driven, light/dark aware, RTL-safe (logical props).
+   ========================================================================== */
+.admins-page { animation: admins-rise var(--mo-quick, 280ms) var(--ease-out, ease) both; }
+@keyframes admins-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.admins-page__eyebrow { display: inline-flex; align-items: center; gap: 8px; }
+.admins-page__eyebrow-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--primary-deep);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-deep) 18%, transparent);
+}
+.admins-page__subtitle { margin: 8px 0 0; font-size: 0.92rem; color: var(--text-secondary); max-width: 52ch; }
+
+/* ── Stat band ── */
+.admins-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+/* ── Directory ── */
+.admins-directory { padding: 0; overflow: hidden; }
+.admins-directory__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 18px; border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary-deep) 4%, var(--surface)), var(--surface));
+}
+.admins-directory__count { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.admins-directory__scroll { overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--border-subtle) transparent; }
+.admins-directory__scroll::-webkit-scrollbar { height: 10px; }
+.admins-directory__scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-muted) 34%, transparent);
+  border-radius: 999px; border: 3px solid transparent; background-clip: padding-box;
+}
+.admins-table { min-width: 780px; }
+.admins-table__end { text-align: end; }
+.admins-table__muted { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.admins-table__end .ui-btn { gap: 6px; }
+.admins-table__end .ui-btn .ui-spinner { width: 14px; height: 14px; border-width: 2px; }
+
+.admins-cell { display: inline-flex; align-items: center; gap: 12px; }
+.admins-cell__name { font-weight: 650; color: var(--text-primary); }
+.admins-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  font-size: 0.8rem; font-weight: 750; letter-spacing: 0.02em; color: #fff; text-transform: uppercase;
+  background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary-deep) 26%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.28);
+}
+.admins-avatar.is-off { background: linear-gradient(135deg, #64748b, #94a3b8); box-shadow: 0 5px 14px rgb(100 116 139 / 0.24), inset 0 1px 0 rgb(255 255 255 / 0.2); }
+
+/* ── Skeleton ── */
+.admins-skeleton { padding: 8px 0; }
+.admins-skeleton__row { display: flex; align-items: center; gap: 14px; padding: 15px 18px; border-bottom: 1px solid var(--border-soft); }
+.admins-skeleton__row:last-child { border-bottom: 0; }
+.admins-skeleton__avatar { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; }
+.admins-skeleton__bar { height: 11px; border-radius: 999px; }
+.admins-skeleton__bar--end { margin-inline-start: auto; }
+.shimmer {
+  background: linear-gradient(100deg, var(--surface-soft) 30%, color-mix(in srgb, var(--primary) 7%, var(--surface-soft)) 50%, var(--surface-soft) 70%);
+  background-size: 200% 100%; animation: admins-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes admins-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ── Modal ── */
+.admins-modal__headline { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.admins-modal__glyph {
+  display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; border-radius: 13px; color: #fff;
+  background: linear-gradient(135deg, var(--primary-deep), var(--accent));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary-deep) 28%, transparent);
+}
+.admins-modal__glyph svg { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.admins-modal .ui-modal__body { display: flex; flex-direction: column; gap: 16px; }
+.admins-modal__hint { font-size: 0.75rem; color: var(--text-muted); }
+.ui-modal__foot .ui-btn--primary .ui-spinner {
+  width: 16px; height: 16px; border-width: 2px;
+  border-color: color-mix(in srgb, #fff 45%, transparent); border-top-color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admins-page { animation: none; }
+  .shimmer { animation: none; }
+}

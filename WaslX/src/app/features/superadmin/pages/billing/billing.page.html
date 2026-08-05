@@ -1,0 +1,138 @@
+<section class="feature-page billing-page" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header billing-page__header">
+    <div>
+      <span class="feature-page__eyebrow billing-page__eyebrow">
+        <span class="billing-page__eyebrow-dot" aria-hidden="true"></span>
+        {{ c().eyebrow }}
+      </span>
+      <h1>{{ c().title }}</h1>
+      <p class="billing-page__subtitle">{{ c().subtitle }}</p>
+    </div>
+  </header>
+
+  <!-- ── KPI band ── -->
+  <div class="billing-stats">
+    <div class="ui-stat ui-stat--read">
+      <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().mrr }}</span>
+      <span class="ui-stat__value">${{ totalMrr() | number: '1.0-0' }}</span>
+    </div>
+    <div class="ui-stat ui-stat--delivered">
+      <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().activeSubs }}</span>
+      <span class="ui-stat__value">{{ activeCount() | number }}</span>
+    </div>
+    <div class="ui-stat">
+      <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().trials }}</span>
+      <span class="ui-stat__value">{{ trialCount() | number }}</span>
+    </div>
+    <div class="ui-stat ui-stat--failed">
+      <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().pastDue }}</span>
+      <span class="ui-stat__value">{{ pastDue().length | number }}</span>
+    </div>
+  </div>
+
+  <!-- ── Body states ── -->
+  @if (loading()) {
+    <div class="ui-card billing-skeleton" aria-hidden="true">
+      @for (row of [1,2,3,4,5]; track row) {
+        <div class="billing-skeleton__row">
+          <span class="billing-skeleton__avatar shimmer"></span>
+          <span class="billing-skeleton__bar shimmer" style="width: 28%"></span>
+          <span class="billing-skeleton__bar shimmer" style="width: 18%"></span>
+          <span class="billing-skeleton__bar shimmer billing-skeleton__bar--end" style="width: 14%"></span>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <app-icon name="credit-card" [size]="30" />
+      <h3>{{ c().errorTitle }}</h3>
+      <p>{{ c().errorBody }}</p>
+      <button type="button" class="ui-btn ui-btn--ghost" (click)="load()">{{ c().retry }}</button>
+    </div>
+  } @else if (tenants().length === 0) {
+    <div class="feature-page__empty">
+      <app-icon name="credit-card" [size]="30" />
+      <h3>{{ c().emptyTitle }}</h3>
+      <p>{{ c().emptyBody }}</p>
+    </div>
+  } @else {
+    <!-- Dunning banner -->
+    @if (pastDue().length > 0) {
+      <div class="billing-dunning" role="alert">
+        <span class="billing-dunning__icon" aria-hidden="true"><app-icon name="credit-card" [size]="18" /></span>
+        <div class="billing-dunning__copy">
+          <strong>{{ pastDue().length | number }} {{ c().dunningTitle }}</strong>
+          <span>{{ c().dunningBody }}</span>
+        </div>
+        <a [routerLink]="['/app/superadmin/tenants', pastDue()[0].id]" class="ui-btn ui-btn--danger ui-btn--sm">{{ c().review }}</a>
+      </div>
+    }
+
+    <!-- Filter -->
+    <div class="ui-seg billing-filter" role="tablist">
+      <button type="button" class="ui-seg__btn" [class.is-active]="filter() === 'all'" (click)="setFilter('all')">{{ c().all }}</button>
+      <button type="button" class="ui-seg__btn" [class.is-active]="filter() === 'active'" (click)="setFilter('active')">{{ c().active }}</button>
+      <button type="button" class="ui-seg__btn" [class.is-active]="filter() === 'trial'" (click)="setFilter('trial')">{{ c().trial }}</button>
+      <button type="button" class="ui-seg__btn" [class.is-active]="filter() === 'pastdue'" (click)="setFilter('pastdue')">{{ c().pastDue }}</button>
+    </div>
+
+    <!-- Ledger -->
+    <div class="ui-card billing-ledger">
+      <div class="billing-ledger__bar">
+        <span class="ui-sectiontitle">{{ c().ledgerLabel }}</span>
+        <span class="billing-ledger__count">{{ filtered().length | number }} {{ c().ledgerUnit }}</span>
+      </div>
+      @if (filtered().length === 0) {
+        <div class="billing-ledger__empty">{{ c().filterEmpty }}</div>
+      } @else {
+        <div class="billing-ledger__scroll">
+          <table class="feature-page__table billing-table">
+            <thead>
+              <tr>
+                <th>{{ c().colTenant }}</th>
+                <th>{{ c().colPlan }}</th>
+                <th>{{ c().colBilling }}</th>
+                <th class="billing-table__num">{{ c().colMrr }}</th>
+                <th>{{ c().colRenews }}</th>
+                <th class="billing-table__end">{{ c().colActions }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of filtered(); track t.id) {
+                <tr>
+                  <td>
+                    <div class="billing-cell">
+                      <span class="billing-avatar">{{ initials(t.name) }}</span>
+                      <span class="billing-cell__meta">
+                        <span class="billing-cell__name">{{ t.name }}</span>
+                        <span class="billing-cell__sub">#{{ t.id }}</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td><span class="ui-pill ui-pill--info">{{ t.planName || c().none }}</span></td>
+                  <td>
+                    <span
+                      class="ui-pill ui-pill--dot"
+                      [class.ui-pill--success]="billTone(t.billingStatus) === 'success'"
+                      [class.ui-pill--warning]="billTone(t.billingStatus) === 'warning'"
+                      [class.ui-pill--danger]="billTone(t.billingStatus) === 'danger'"
+                    >{{ t.billingStatus || c().none }}</span>
+                  </td>
+                  <td class="billing-table__num">${{ mrrOf(t) | number: '1.0-0' }}</td>
+                  <td class="billing-table__muted">{{ t.trialEndsAt ? (t.trialEndsAt | date: 'mediumDate') : c().none }}</td>
+                  <td class="billing-table__end">
+                    <a [routerLink]="['/app/superadmin/tenants', t.id]" class="ui-btn ui-btn--ghost ui-btn--sm">
+                      <app-icon name="receipt" [size]="14" />
+                      {{ c().open }}
+                    </a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</section>

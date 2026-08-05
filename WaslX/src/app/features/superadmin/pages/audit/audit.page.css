@@ -1,0 +1,306 @@
+/* Global (cross-tenant) audit viewer — adapts the tenant audit trail to platform
+   scope with an added Tenant column. Built on .ui-log-row / .ui-drawer / .ui-pill. */
+
+.gaudit-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.gaudit-hd__lead {
+  margin: 6px 0 0;
+  max-width: 60ch;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+.gaudit-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+.gaudit-lock app-icon { color: var(--warning); }
+.gaudit-hd__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.gaudit-hd__count strong { color: var(--text-primary); font-weight: 750; }
+.gaudit-hd__count-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+/* ── Filter bar ── */
+.gaudit-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 22px 0 16px;
+  transition: opacity 140ms ease;
+}
+.gaudit-filters.is-busy { opacity: 0.6; pointer-events: none; }
+.gaudit-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.gaudit-filter__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.gaudit-filter .ui-select,
+.gaudit-filter .ui-input { min-width: 150px; }
+.gaudit-search {
+  flex: 1 1 200px;
+  min-width: 180px;
+  align-self: stretch;
+  margin-top: auto;
+}
+.gaudit-clear { align-self: flex-end; }
+
+/* ── Log list ── */
+.gaudit-list {
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+  transition: opacity 140ms ease;
+}
+.gaudit-list.is-busy { opacity: 0.6; }
+
+/* Five columns: time · actor · tenant · action · entity */
+.gaudit-row {
+  --log-row-cols: minmax(150px, 200px) minmax(120px, 1.1fr) minmax(96px, 0.9fr) auto minmax(110px, 1fr);
+}
+.gaudit-row--head {
+  cursor: default;
+  background: var(--surface-soft);
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.gaudit-row--head:hover { background: var(--surface-soft); }
+.gaudit-row--skel { cursor: default; }
+.gaudit-row__time {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.gaudit-row__actor {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.gaudit-avatar {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+  color: var(--primary);
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+.gaudit-avatar--lg { width: 44px; height: 44px; font-size: 0.95rem; }
+.gaudit-row__actor-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gaudit-tenant {
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  color: color-mix(in srgb, var(--primary) 40%, var(--text-primary));
+  font-size: 0.78rem;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gaudit-tenant--platform {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 46%, var(--text-primary));
+}
+.gaudit-entity {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+.gaudit-entity__type { font-weight: 600; color: var(--text-primary); }
+.gaudit-entity__id { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.gaudit-dash { color: var(--text-muted); }
+
+/* ── Skeleton ── */
+.gaudit-sk {
+  display: inline-block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--surface-soft), color-mix(in srgb, var(--text-muted) 12%, var(--surface-soft)), var(--surface-soft));
+  background-size: 200% 100%;
+  animation: gaudit-shimmer 1.3s ease-in-out infinite;
+}
+.gaudit-sk--avatar { width: 26px; height: 26px; border-radius: 50%; }
+@keyframes gaudit-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.gaudit-empty__ico {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 4px;
+  border-radius: 16px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+}
+.gaudit-pager { margin-top: 16px; }
+
+/* ── Drawer ── */
+.gaudit-overlay { z-index: 89; }
+.gaudit-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 22px 26px;
+}
+.gaudit-drawer__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.gaudit-drawer__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--warning);
+}
+.gaudit-drawer__head-main h2 { margin: 6px 0 0; font-size: 1.15rem; font-weight: 780; color: var(--text-primary); }
+.gaudit-drawer__close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+.gaudit-drawer__close:hover { background: var(--surface-soft); color: var(--text-primary); }
+.gaudit-drawer__hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+.gaudit-drawer__hero-text { display: flex; flex-direction: column; gap: 6px; }
+.gaudit-drawer__actor { font-size: 1rem; font-weight: 750; color: var(--text-primary); }
+.gaudit-drawer__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 0;
+}
+.gaudit-drawer__field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.gaudit-drawer__field dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.gaudit-drawer__field dd {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.gaudit-mono {
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.gaudit-drawer__details { display: flex; flex-direction: column; gap: 8px; }
+.gaudit-details {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-soft);
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.gaudit-drawer__empty { margin: 0; font-size: 0.86rem; color: var(--text-muted); }
+.gaudit-drawer__lock {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--warning) 40%, var(--border-subtle));
+  background: color-mix(in srgb, var(--warning) 7%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 60%, var(--text-primary));
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.gaudit-drawer__lock app-icon { color: var(--warning); flex: 0 0 auto; }
+
+@media (max-width: 900px) {
+  /* Drop the tenant column on narrow screens (still shown in the drawer). */
+  .gaudit-row { --log-row-cols: minmax(130px, 180px) minmax(110px, 1fr) auto minmax(100px, 1fr); }
+  .gaudit-row__tenant,
+  .gaudit-row--head > span:nth-child(3) { display: none; }
+  .gaudit-drawer__grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gaudit-sk { animation: none; }
+}

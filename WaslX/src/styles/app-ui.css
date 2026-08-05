@@ -642,6 +642,91 @@
 .ui-pill--info    { background: color-mix(in srgb, var(--primary) 12%, var(--surface)); color: var(--primary); }
 .ui-pill--dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
+/* ── Notification item (FR-NOTIF · used by the bell panel + /notifications center) ── */
+.ui-notif {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+.ui-notif:hover { background: var(--surface-soft); }
+.ui-notif--unread { background: color-mix(in srgb, var(--primary) 5%, var(--surface)); }
+.ui-notif--unread:hover { background: color-mix(in srgb, var(--primary) 9%, var(--surface)); }
+
+.ui-notif__chip {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+}
+.ui-notif__chip svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ui-notif__chip--primary { background: color-mix(in srgb, var(--primary) 12%, var(--surface)); color: var(--primary); }
+.ui-notif__chip--success { background: color-mix(in srgb, var(--success) 14%, var(--surface)); color: var(--success); }
+.ui-notif__chip--warning { background: color-mix(in srgb, var(--warning) 16%, var(--surface)); color: var(--warning); }
+.ui-notif__chip--accent  { background: color-mix(in srgb, var(--accent) 14%, var(--surface));  color: var(--accent); }
+.ui-notif__chip--danger  { background: color-mix(in srgb, var(--danger) 14%, var(--surface));  color: var(--danger); }
+
+.ui-notif__body {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ui-notif__title {
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-notif__text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ui-notif__meta {
+  margin-top: 1px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ui-notif__dot {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+  transition: opacity 150ms ease;
+}
+
 /* Segmented control */
 .ui-seg {
   display: inline-flex;
@@ -870,6 +955,22 @@
   box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 
+/* The orb above is for the empty-state HERO icon only — never for an icon inside a
+   CTA (link/button) within the empty state (e.g. the "+" on a "Create" button). */
+.feature-page__empty a svg,
+.feature-page__empty button svg,
+.dashboard__empty-state a svg,
+.dashboard__empty-state button svg {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: inherit; /* use the button's text colour (white on primary) — not the orb's blue */
+}
+
 /* ── Trend chip (for dashboards / metrics) ── */
 .ui-trend {
   display: inline-flex;
@@ -895,8 +996,633 @@
   box-shadow: var(--focus-ring);
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   SPRINT 5/6 PRIMITIVES — token-driven, RTL-safe. Added for Campaigns first;
+   reused by Reporting, Billing and the Platform console. No new palette.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Press feedback: every pressable surface reacts to the press (Craft §02.2) ── */
+.ui-btn:active:not(:disabled),
+.ui-seg__btn:active,
+.feature-page__btn:active,
+.feature-page__tab:active { transform: scale(0.97); }
+
+/* ── .ui-stat — large KPI figure, bigger sibling of .dashboard__card ── */
+.ui-stat {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  transition: transform 160ms var(--ease-out), box-shadow 160ms ease, border-color 160ms ease;
+}
+.ui-stat::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.ui-stat:hover::after { opacity: 1; }
+.ui-stat__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.ui-stat__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex: 0 0 auto; }
+.ui-stat__value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.ui-stat--queued .ui-stat__dot { background: var(--text-muted); }
+.ui-stat--sent .ui-stat__dot { background: var(--cyan, #06b6d4); }
+.ui-stat--delivered .ui-stat__dot { background: var(--primary); }
+.ui-stat--read .ui-stat__dot { background: var(--success); }
+.ui-stat--failed .ui-stat__dot { background: var(--danger); }
+.ui-stat--sent .ui-stat__value { color: color-mix(in srgb, var(--cyan, #06b6d4) 78%, var(--text-primary)); }
+.ui-stat--read .ui-stat__value { color: color-mix(in srgb, var(--success) 74%, var(--text-primary)); }
+.ui-stat--failed .ui-stat__value { color: color-mix(in srgb, var(--danger) 74%, var(--text-primary)); }
+
+/* ── .ui-meter — segmented delivery / quota bar ── */
+.ui-meter {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
+}
+.ui-meter--sm { height: 7px; }
+.ui-meter__seg {
+  height: 100%;
+  width: 0;
+  transition: width 620ms var(--ease-out);
+}
+.ui-meter__seg--read { background: var(--success); }
+.ui-meter__seg--delivered { background: var(--primary); }
+.ui-meter__seg--sent { background: var(--cyan, #06b6d4); }
+.ui-meter__seg--failed { background: var(--danger); }
+.ui-meter__seg--track { background: transparent; }
+.ui-meter-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+}
+.ui-meter-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+.ui-meter-legend__swatch { width: 9px; height: 9px; border-radius: 3px; flex: 0 0 auto; }
+.ui-meter-legend__item strong { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+/* ── .ui-stepper — horizontal wizard progress ── */
+.ui-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+}
+.ui-stepper__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+.ui-stepper__node {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-muted);
+  transition: background-color 200ms var(--ease-out), border-color 200ms ease, color 200ms ease;
+}
+.ui-stepper__node svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ui-stepper__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color 200ms ease;
+}
+.ui-stepper__line {
+  flex: 1 1 auto;
+  height: 2px;
+  margin: 0 12px;
+  border-radius: 2px;
+  background: var(--border-subtle);
+  transition: background-color 220ms var(--ease-out);
+}
+.ui-stepper__step.is-current .ui-stepper__node {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  box-shadow: var(--focus-ring);
+}
+.ui-stepper__step.is-current .ui-stepper__label { color: var(--text-primary); }
+.ui-stepper__step.is-done .ui-stepper__node {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--primary), var(--success));
+  color: #fff;
+}
+.ui-stepper__step.is-done .ui-stepper__label { color: var(--text-secondary); }
+.ui-stepper__step.is-done + .ui-stepper__line { background: var(--success); }
+
+/* ── .ui-chart — chart frame: title row, body, states ── */
+.ui-chart {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.ui-chart__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.ui-chart__title { margin: 0; font-size: 0.98rem; font-weight: 750; color: var(--text-primary); }
+.ui-chart__sub { margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted); }
+.ui-chart__body { flex: 1 1 auto; min-height: 0; }
+.ui-chart__empty {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+/* ── .ui-sparkline — inline SVG trend inside a stat / table row ── */
+.ui-sparkline {
+  display: block;
+  width: 100%;
+  height: 30px;
+  margin-top: 8px;
+}
+.ui-sparkline svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ui-sparkline path {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.ui-sparkline--row {
+  width: 96px;
+  height: 26px;
+  margin-top: 0;
+}
+.ui-sparkline--row path { stroke: color-mix(in srgb, var(--primary) 70%, var(--cyan)); }
+
+/* ── .ui-daterange — preset segment + origin-aware custom popover ── */
+.ui-daterange { position: relative; }
+.ui-daterange__pop {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 30;
+  width: min(280px, 80vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  transform-origin: top right;
+  animation: ui-daterange-pop 150ms var(--ease-out);
+}
+[dir='rtl'] .ui-daterange__pop { transform-origin: top left; }
+.ui-daterange__field { display: flex; flex-direction: column; gap: 5px; }
+.ui-daterange__field .ui-input { width: 100%; }
+@keyframes ui-daterange-pop {
+  from { opacity: 0; transform: scale(0.96) translateY(-3px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── .ui-drawer — right slide-over (details without leaving context) ── */
+.ui-drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 90;
+  width: min(440px, 92vw);
+  background: var(--surface);
+  border-inline-start: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-float);
+  transform: translateX(100%);
+  transition: transform 280ms var(--ease-out);
+  overflow-y: auto;
+}
+.ui-drawer.is-open { transform: translateX(0); }
+[dir='rtl'] .ui-drawer { transform: translateX(-100%); }
+[dir='rtl'] .ui-drawer.is-open { transform: translateX(0); }
+
+/* ── .ui-log-row — dense append-only ledger row (audit / activity trails) ── */
+/* Token-driven, RTL-safe. Columns are overridable via --log-row-cols; a leading
+   verb rail is tinted with --log-row-accent (set by callers per row). */
+.ui-log-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--log-row-cols, minmax(150px, 210px) minmax(120px, 1.1fr) auto minmax(120px, 1fr));
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  margin: 0;
+  padding: 11px 18px;
+  border: 0;
+  border-block-end: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+button.ui-log-row { appearance: none; -webkit-appearance: none; }
+.ui-log-row::before {
+  content: '';
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--log-row-accent, transparent);
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.ui-log-row:hover { background: color-mix(in srgb, var(--primary) 5%, var(--surface)); }
+.ui-log-row:hover::before { opacity: 1; }
+.ui-log-row:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.ui-log-row[data-verb='create'] { --log-row-accent: var(--success); }
+.ui-log-row[data-verb='update'] { --log-row-accent: var(--primary); }
+.ui-log-row[data-verb='delete'] { --log-row-accent: var(--danger); }
+.ui-log-row:last-child { border-block-end: 0; }
+
+/* ── .ui-invoice-row — billing line: period · amount · status · actions ──
+   Token-driven, RTL-safe (logical props). Amounts are tabular-nums so columns
+   never jitter. Status colour comes from data-status (paid/open/past-due/void).
+   Built as a cousin of .feature-page__table rows + .ui-pill. */
+.ui-invoice-row {
+  display: grid;
+  grid-template-columns: var(--invoice-row-cols, auto minmax(0, 1fr) auto auto);
+  align-items: center;
+  gap: 16px;
+  padding: 13px 18px;
+  border-block-end: 1px solid var(--border-soft);
+  transition: background-color 140ms ease;
+}
+.ui-invoice-row:last-child { border-block-end: 0; }
+.ui-invoice-row:hover { background: color-mix(in srgb, var(--primary) 4%, var(--surface)); }
+.ui-invoice-row__period {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ui-invoice-row__num {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ui-invoice-row__range {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.ui-invoice-row__meta {
+  min-width: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ui-invoice-row__amount {
+  justify-self: end;
+  font-size: 1.02rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.ui-invoice-row__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+/* Status pill tints, keyed off data-status so callers stay declarative. */
+.ui-invoice-row__status { text-transform: capitalize; }
+.ui-invoice-row[data-status='paid'] .ui-invoice-row__status {
+  background: color-mix(in srgb, var(--success) 15%, var(--surface));
+  color: color-mix(in srgb, var(--success) 72%, var(--text-primary));
+}
+.ui-invoice-row[data-status='open'] .ui-invoice-row__status,
+.ui-invoice-row[data-status='draft'] .ui-invoice-row__status {
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+}
+.ui-invoice-row[data-status='past-due'] .ui-invoice-row__status {
+  background: color-mix(in srgb, var(--warning) 18%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 72%, var(--text-primary));
+}
+.ui-invoice-row[data-status='void'] .ui-invoice-row__status {
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface));
+  color: color-mix(in srgb, var(--danger) 72%, var(--text-primary));
+}
+@media (max-width: 620px) {
+  .ui-invoice-row {
+    grid-template-columns: 1fr auto;
+    row-gap: 8px;
+  }
+  .ui-invoice-row__actions { grid-column: 1 / -1; justify-self: start; }
+}
+
+/* ── .ui-secret — masked credential field (FE-6.7 · Platform credentials) ──
+   Bullet mask + last-4 by default. Reveal is press-and-hold (NO animation —
+   security surfaces prefer honesty over flair, plan §05 Motion). Copy + rotate
+   are actions beside the value. Monospace so masked/plaintext line up 1:1.
+   Token-driven, RTL-safe (logical props). */
+.ui-secret {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 11px;
+  background: var(--surface-soft);
+}
+[dir='rtl'] .ui-secret { padding: 8px 14px 8px 10px; }
+.ui-secret__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  /* Never selectable while masked — avoids leaking the bullets/last4 to clipboard by drag. */
+  user-select: none;
+  cursor: default;
+}
+.ui-secret__value.is-revealed {
+  letter-spacing: 0;
+  user-select: text;
+  color: color-mix(in srgb, var(--accent) 30%, var(--text-primary));
+}
+.ui-secret__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+/* Press-and-hold reveal trigger. No transition on the value swap by design. */
+.ui-secret__hold {
+  touch-action: none;
+  user-select: none;
+}
+.ui-secret__hold.is-holding {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── .ui-flag — feature-flag row (FE-6.7 · label · scope · toggle · rollout) ──
+   Built from .ui-toggle + .ui-pill + .ui-meter. Token-driven, RTL-safe. */
+.ui-flag {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 15px 18px;
+  border-block-end: 1px solid var(--border-subtle);
+  transition: background-color 140ms ease;
+}
+.ui-flag:last-child { border-block-end: 0; }
+.ui-flag:hover { background: color-mix(in srgb, var(--primary) 4%, var(--surface)); }
+.ui-flag__main { min-width: 0; }
+.ui-flag__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ui-flag__name {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.ui-flag__key {
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+.ui-flag__desc {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.ui-flag__control {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: end;
+}
+.ui-flag__rollout {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  grid-column: 1 / -1;
+  max-width: 320px;
+}
+.ui-flag__rollout-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.ui-flag__rollout-head strong {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+/* Rollout meter reuses .ui-meter track; the filled segment is brand primary. */
+.ui-meter__seg--rollout { background: linear-gradient(90deg, var(--primary), var(--accent)); }
+
+/* ── .ui-health-dot — live status dot with soft pulse (plan §03 / §5.7) ──
+   ok = 2s soft opacity pulse; degraded/down = solid, no motion (motion draws
+   the eye to trouble, not to calm). Off under prefers-reduced-motion. */
+.ui-health-dot {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--text-muted);
+}
+.ui-health-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.35;
+  transform: scale(0.6);
+}
+.ui-health-dot--ok { background: var(--success); }
+.ui-health-dot--ok::after { animation: ui-health-pulse 2s var(--ease-out) infinite; }
+.ui-health-dot--degraded { background: var(--warning); }
+.ui-health-dot--down { background: var(--danger); }
+/* degraded / down do not pulse — they are steady to signal a held problem. */
+.ui-health-dot--degraded::after,
+.ui-health-dot--down::after { display: none; }
+@keyframes ui-health-pulse {
+  0% { opacity: 0.35; transform: scale(0.6); }
+  70% { opacity: 0; transform: scale(1.8); }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+
+/* ── .ui-gauge — single KPI-vs-budget radial label wrapper (AI budget) ──
+   The arc itself is drawn by ApexCharts (radialBar); this just centres the
+   read-out and colours it by threshold via data-tone. */
+.ui-gauge { position: relative; }
+.ui-gauge__read {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.ui-gauge__val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.ui-gauge[data-tone='warning'] .ui-gauge__val { color: color-mix(in srgb, var(--warning) 72%, var(--text-primary)); }
+.ui-gauge[data-tone='danger'] .ui-gauge__val { color: color-mix(in srgb, var(--danger) 74%, var(--text-primary)); }
+.ui-gauge__cap { font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 620px) {
+  .ui-flag { grid-template-columns: 1fr; }
+  .ui-flag__control { justify-self: start; }
+}
+
+/* ── .ui-banner — full-width contextual bar (plan §03 / §5.6) ──────────────────
+   Danger variant is the non-dismissible impersonation banner pinned atop every
+   page; info/warning/critical variants back announcement previews + degraded
+   mode. Token-driven, RTL-safe (logical props; flex order flips naturally).
+   Slides down ONCE on enter (200ms) then stays put — no repeated motion. */
+.ui-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px clamp(16px, 3vw, 26px);
+  border-block-end: 1px solid var(--ui-banner-edge, color-mix(in srgb, var(--primary) 22%, transparent));
+  background: var(--ui-banner-bg, color-mix(in srgb, var(--primary) 10%, var(--surface)));
+  color: var(--ui-banner-fg, var(--text-primary));
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+.ui-banner__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--ui-banner-accent, var(--primary));
+}
+.ui-banner__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px 12px;
+  flex-wrap: wrap;
+}
+.ui-banner__title { font-weight: 750; }
+.ui-banner__title strong { font-weight: 800; }
+.ui-banner__meta {
+  color: color-mix(in srgb, var(--ui-banner-fg, var(--text-primary)) 62%, transparent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ui-banner__sep { color: color-mix(in srgb, var(--ui-banner-fg, var(--text-primary)) 40%, transparent); }
+.ui-banner__actions { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; }
+/* Variants — accent, tint + edge derived from one semantic token each. */
+.ui-banner--info {
+  --ui-banner-accent: var(--primary);
+  --ui-banner-bg: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  --ui-banner-edge: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.ui-banner--warning {
+  --ui-banner-accent: color-mix(in srgb, var(--warning) 78%, var(--text-primary));
+  --ui-banner-bg: color-mix(in srgb, var(--warning) 15%, var(--surface));
+  --ui-banner-edge: color-mix(in srgb, var(--warning) 32%, transparent);
+}
+.ui-banner--danger,
+.ui-banner--critical {
+  --ui-banner-accent: color-mix(in srgb, var(--danger) 74%, var(--text-primary));
+  --ui-banner-fg: color-mix(in srgb, var(--danger) 30%, var(--text-primary));
+  --ui-banner-bg: color-mix(in srgb, var(--danger) 13%, var(--surface));
+  --ui-banner-edge: color-mix(in srgb, var(--danger) 32%, transparent);
+}
+/* Slide-down-once entrance for the pinned impersonation banner. */
+.ui-banner--enter { animation: ui-banner-in 200ms var(--ease-out); }
+@keyframes ui-banner-in {
+  from { opacity: 0; transform: translateY(-100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .ui-banner--enter { animation: none; }
   .feature-page > *, .dashboard > * { animation: none !important; }
   .ui-btn--primary::after, .feature-page__btn::after { display: none; }
+  .ui-btn:active:not(:disabled), .ui-seg__btn:active,
+  .feature-page__btn:active, .feature-page__tab:active { transform: none; }
+  .ui-meter__seg, .ui-stepper__node, .ui-stepper__line, .ui-drawer { transition: none; }
+  .ui-daterange__pop { animation: none; }
+  .ui-log-row, .ui-log-row::before { transition: none; }
+  .ui-invoice-row { transition: none; }
+  .ui-flag { transition: none; }
+  .ui-health-dot--ok::after { animation: none; opacity: 0; }
 }
 

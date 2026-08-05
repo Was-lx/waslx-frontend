@@ -271,3 +271,65 @@
 @media (prefers-reduced-motion: reduce) {
   .side, .side__toggle, .side__toggle svg, .side__item { transition: none; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SIDEBAR THEME — deep-navy chrome, shared by BOTH the tenant app and the
+   SuperAdmin console (the tenant sidebar used to be light; unified here at the
+   user's request). We re-point the design tokens ONLY within the sidebar subtree,
+   so every child recolours coherently without new hexes or a rebrand. RTL-safe
+   (logical props inherited). No new palette. Same in the app's light + dark theme.
+   The platform console adds only its own PLATFORM eyebrow (further down).
+   ════════════════════════════════════════════════════════════════════════════ */
+.side {
+  --surface: #16306b;               /* deep navy that sits under --primary-deep */
+  --surface-soft: rgb(255 255 255 / 0.07);
+  --text-primary: #f1f5ff;
+  --text-secondary: #c3d0ee;
+  --text-muted: #8ba0cc;
+  --border-subtle: rgb(255 255 255 / 0.12);
+  --border-soft: rgb(255 255 255 / 0.08);
+  background:
+    linear-gradient(180deg, var(--primary-deep) 0%, #16306b 46%, #122a5f 100%);
+  border-inline-end-color: rgb(255 255 255 / 0.10);
+}
+
+/* Active item reads on the dark ground: brighter fill + light label. */
+.side__item.is-active {
+  background: linear-gradient(100deg, rgb(37 99 235 / 0.42), rgb(139 92 246 / 0.28));
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+.side__item.is-active .side__ico { color: #ffffff; }
+.side__item.is-active::before {
+  background: linear-gradient(var(--cyan), var(--accent-soft, #c4b5fd));
+}
+.side__toggle {
+  background: var(--primary-deep);
+  border-color: rgb(255 255 255 / 0.18);
+  color: #c3d0ee;
+}
+.side__toggle:hover {
+  color: #ffffff;
+  border-color: rgb(255 255 255 / 0.34);
+}
+
+/* Platform console only: brand subtitle → a PLATFORM eyebrow (bar + track). */
+:host-context(.is-platform-console) .side__brandcopy span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+:host-context(.is-platform-console) .side__brandcopy span::before {
+  content: '';
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+:host-context(.is-platform-console) .side__brandcopy strong { color: #ffffff; }

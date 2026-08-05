@@ -1,0 +1,79 @@
+<section class="feature-page health" [attr.dir]="direction()">
+  <header class="feature-page__header health-hd">
+    <div class="health-hd__intro">
+      <span class="feature-page__eyebrow">{{ t('hlEyebrow') }}</span>
+      <h1>{{ t('hlTitle') }}</h1>
+      <p class="health-hd__lead">{{ t('hlLead') }}</p>
+    </div>
+    <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm health-refresh" [disabled]="refreshing()" (click)="load(false)">
+      @if (refreshing()) { <span class="ui-spinner" aria-hidden="true"></span> }
+      {{ t('hlRefresh') }}
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="health-hero health-hero--skel" aria-hidden="true"></div>
+    <div class="health-grid">
+      @for (s of skeletons; track $index) {
+        <div class="health-card health-card--skel"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>
+      <h3>{{ t('hlErrorTitle') }}</h3>
+      <p>{{ t('hlErrorBody') }}</p>
+      <button class="ui-btn ui-btn--ghost ui-btn--sm" (click)="load(true)">{{ t('hlRetry') }}</button>
+    </div>
+  } @else {
+    <!-- Overall roll-up -->
+    <div class="health-hero" [attr.data-status]="overallStatus()">
+      <span [class]="dotClass(overallStatus())" aria-hidden="true"></span>
+      <div class="health-hero__text">
+        <span class="health-hero__status">{{ overallLabel() }}</span>
+        <span class="health-hero__meta">{{ checkedLabel() }} · {{ t('hlPolling') }}</span>
+      </div>
+      <div class="health-hero__counts">
+        <span class="ui-stat ui-stat--read health-count">
+          <span class="ui-stat__label"><span class="ui-stat__dot"></span> {{ t('hlOk') }}</span>
+          <span class="ui-stat__value">{{ counts().ok }}</span>
+        </span>
+        <span class="ui-stat health-count health-count--degraded">
+          <span class="ui-stat__label"><span class="ui-stat__dot"></span> {{ t('hlDegraded') }}</span>
+          <span class="ui-stat__value">{{ counts().degraded }}</span>
+        </span>
+        <span class="ui-stat health-count health-count--down">
+          <span class="ui-stat__label"><span class="ui-stat__dot"></span> {{ t('hlDown') }}</span>
+          <span class="ui-stat__value">{{ counts().down }}</span>
+        </span>
+      </div>
+    </div>
+
+    <span class="ui-sectiontitle health-section">{{ t('hlComponentsTitle') }}</span>
+
+    <div class="health-grid" [class.is-busy]="refreshing()">
+      @for (c of health()?.components ?? []; track c.key) {
+        <article class="health-card" [attr.data-status]="c.status">
+          <div class="health-card__head">
+            <span class="health-card__icon" aria-hidden="true"><app-icon [name]="componentIcon(c)" [size]="18" /></span>
+            <span class="health-card__name">{{ componentName(c) }}</span>
+            <span [class]="dotClass(c.status)" [attr.aria-label]="statusLabel(c.status)"></span>
+          </div>
+          <div class="health-card__foot">
+            <span class="health-card__status">{{ statusLabel(c.status) }}</span>
+            <span class="health-card__latency">
+              @if (c.latencyMs != null) {
+                <strong>{{ c.latencyMs }}</strong> {{ t('hlMs') }}
+              } @else {
+                —
+              }
+            </span>
+          </div>
+          @if (c.message && c.message.trim()) {
+            <p class="health-card__msg">{{ c.message }}</p>
+          }
+        </article>
+      }
+    </div>
+  }
+</section>

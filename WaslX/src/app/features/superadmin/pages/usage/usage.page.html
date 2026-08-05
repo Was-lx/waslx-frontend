@@ -1,0 +1,162 @@
+<section class="feature-page usage-page" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow usage-page__eyebrow">
+        <span class="usage-page__eyebrow-dot" aria-hidden="true"></span>
+        {{ c().eyebrow }}
+      </span>
+      <h1>{{ c().title }}</h1>
+      <p class="usage-page__subtitle">{{ c().subtitle }}</p>
+    </div>
+  </header>
+
+  <!-- ── Loading ── -->
+  @if (loading()) {
+    <div class="usage-stats" aria-hidden="true">
+      @for (t of skeletonTiles; track t) {
+        <div class="ui-stat usage-skel-stat">
+          <span class="usage-skel shimmer" style="width: 52%; height: 12px"></span>
+          <span class="usage-skel shimmer" style="width: 38%; height: 26px; margin-top: 10px"></span>
+        </div>
+      }
+    </div>
+    <div class="ui-chart usage-skel-chart" aria-hidden="true">
+      <span class="usage-skel shimmer" style="width: 30%; height: 14px"></span>
+      <div class="usage-skel shimmer" style="width: 100%; height: 240px; margin-top: 16px; border-radius: 12px"></div>
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <app-icon name="chart" [size]="30" />
+      <h3>{{ c().errorTitle }}</h3>
+      <p>{{ c().errorBody }}</p>
+      <button type="button" class="ui-btn ui-btn--ghost" (click)="load()">{{ c().retry }}</button>
+    </div>
+  } @else if (isEmpty()) {
+    <div class="feature-page__empty">
+      <app-icon name="chart" [size]="30" />
+      <h3>{{ c().emptyTitle }}</h3>
+      <p>{{ c().emptyBody }}</p>
+    </div>
+  } @else if (data(); as d) {
+    <!-- ── KPI band ── -->
+    <div class="usage-stats">
+      <div class="ui-stat">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().activeTenants }}</span>
+        <span class="ui-stat__value">{{ num(d.activeTenants) }}</span>
+        <span [class]="trendClass(d.activeTenantsDeltaPct)" [attr.aria-label]="c().vsPrev">
+          {{ trendArrow(d.activeTenantsDeltaPct) }} {{ trendText(d.activeTenantsDeltaPct) }}
+        </span>
+      </div>
+      <div class="ui-stat ui-stat--delivered">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().conversations }}</span>
+        <span class="ui-stat__value">{{ num(d.totalConversations) }}</span>
+        <span [class]="trendClass(d.conversationsDeltaPct)" [attr.aria-label]="c().vsPrev">
+          {{ trendArrow(d.conversationsDeltaPct) }} {{ trendText(d.conversationsDeltaPct) }}
+        </span>
+      </div>
+      <div class="ui-stat ui-stat--sent">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().messages }}</span>
+        <span class="ui-stat__value">{{ num(d.totalMessages) }}</span>
+        <span [class]="trendClass(d.messagesDeltaPct)" [attr.aria-label]="c().vsPrev">
+          {{ trendArrow(d.messagesDeltaPct) }} {{ trendText(d.messagesDeltaPct) }}
+        </span>
+      </div>
+      <div class="ui-stat ui-stat--read">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().activeAgents }}</span>
+        <span class="ui-stat__value">{{ num(d.activeAgents) }}</span>
+        <span [class]="trendClass(d.activeAgentsDeltaPct)" [attr.aria-label]="c().vsPrev">
+          {{ trendArrow(d.activeAgentsDeltaPct) }} {{ trendText(d.activeAgentsDeltaPct) }}
+        </span>
+      </div>
+    </div>
+
+    <!-- ── Charts ── -->
+    <div class="usage-grid">
+      <!-- Volume over time -->
+      <div class="ui-chart usage-tile usage-tile--wide">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ c().volumeTitle }}</h2>
+            <p class="ui-chart__sub">{{ c().volumeSub }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasSeries()) {
+            <apx-chart
+              [series]="volumeSeries()"
+              [chart]="volumeChart"
+              [colors]="volumeColors"
+              [stroke]="volumeStroke"
+              [fill]="volumeFill"
+              [xaxis]="volumeXaxis()"
+              [yaxis]="volumeYaxis"
+              [grid]="volumeGrid"
+              [dataLabels]="volumeDataLabels"
+              [legend]="volumeLegend"
+              [tooltip]="volumeTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ c().noData }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Active tenants trend -->
+      <div class="ui-chart usage-tile">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ c().tenantsTrendTitle }}</h2>
+            <p class="ui-chart__sub">{{ c().tenantsTrendSub }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasSeries()) {
+            <apx-chart
+              [series]="tenantsSeries()"
+              [chart]="tenantsChart"
+              [colors]="tenantsColors"
+              [stroke]="tenantsStroke"
+              [xaxis]="tenantsXaxis()"
+              [yaxis]="tenantsYaxis"
+              [grid]="tenantsGrid"
+              [dataLabels]="tenantsDataLabels"
+              [legend]="tenantsLegend"
+              [tooltip]="tenantsTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ c().noData }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Per-tenant ranking -->
+      <div class="ui-chart usage-tile usage-tile--wide">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ c().perTenantTitle }}</h2>
+            <p class="ui-chart__sub">{{ c().perTenantSub }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasPerTenant()) {
+            <apx-chart
+              [series]="perTenantSeries()"
+              [chart]="perTenantChart()"
+              [colors]="perTenantColors"
+              [plotOptions]="perTenantPlot"
+              [xaxis]="perTenantXaxis()"
+              [yaxis]="perTenantYaxis"
+              [grid]="perTenantGrid"
+              [dataLabels]="perTenantDataLabels"
+              [legend]="perTenantLegend"
+              [tooltip]="perTenantTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ c().noData }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</section>

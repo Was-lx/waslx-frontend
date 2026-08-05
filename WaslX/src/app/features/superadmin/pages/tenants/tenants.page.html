@@ -212,21 +212,39 @@
               <td class="tenants-table__muted">{{ tenant.adminEmail || c().none }}</td>
               <td class="tenants-table__muted">{{ tenant.createdAt | date: 'mediumDate' }}</td>
               <td class="tenants-table__end">
-                <button
-                  type="button"
-                  class="ui-btn ui-btn--sm"
-                  [class.ui-btn--danger]="isActive(tenant.status)"
-                  [class.ui-btn--ghost]="!isActive(tenant.status)"
-                  [disabled]="busyId() === tenant.id"
-                  (click)="toggleStatus(tenant)"
-                >
-                  @if (busyId() === tenant.id) {
-                    <span class="ui-spinner" aria-hidden="true"></span>
-                  } @else {
-                    <app-icon [name]="isActive(tenant.status) ? 'eye-off' : 'check-circle'" [size]="14" />
-                  }
-                  {{ isActive(tenant.status) ? c().suspend : c().activate }}
-                </button>
+                <div class="tenants-row-actions">
+                  <a
+                    class="ui-btn ui-btn--ghost ui-btn--sm"
+                    [routerLink]="['/app/superadmin/tenants', tenant.id]"
+                  >
+                    <app-icon name="sliders" [size]="14" />
+                    {{ c().view }}
+                  </a>
+                  <button
+                    type="button"
+                    class="ui-btn ui-btn--ghost ui-btn--sm tenants-impersonate"
+                    [attr.title]="impT('impStart')"
+                    [attr.aria-label]="impT('impStart')"
+                    (click)="askImpersonate(tenant)"
+                  >
+                    <app-icon name="eye" [size]="14" />
+                  </button>
+                  <button
+                    type="button"
+                    class="ui-btn ui-btn--sm"
+                    [class.ui-btn--danger]="isActive(tenant.status)"
+                    [class.ui-btn--ghost]="!isActive(tenant.status)"
+                    [disabled]="busyId() === tenant.id"
+                    (click)="toggleStatus(tenant)"
+                  >
+                    @if (busyId() === tenant.id) {
+                      <span class="ui-spinner" aria-hidden="true"></span>
+                    } @else {
+                      <app-icon [name]="isActive(tenant.status) ? 'eye-off' : 'check-circle'" [size]="14" />
+                    }
+                    {{ isActive(tenant.status) ? c().suspend : c().activate }}
+                  </button>
+                </div>
               </td>
             </tr>
           }
@@ -359,6 +377,47 @@
             </button>
           </footer>
         </form>
+      </div>
+    </div>
+  }
+
+  <!-- ── Impersonation confirm (FE-6.8) — reason required, session is logged ── -->
+  @if (impTarget(); as target) {
+    <div class="ui-overlay" (click)="cancelImpersonate()">
+      <div class="ui-modal ui-confirm tenants-imp-confirm" role="dialog" aria-modal="true" [attr.dir]="direction()" (click)="$event.stopPropagation()">
+        <div class="ui-confirm__icon tenants-imp-confirm__icon">
+          <app-icon name="eye" [size]="22" />
+        </div>
+        <h3>{{ impConfirmTitle() }}</h3>
+        <p>{{ impT('impConfirmBody') }}</p>
+
+        <div class="ui-field tenants-imp-confirm__field">
+          <label class="ui-label" for="tImpReason">{{ impT('impReasonLabel') }}</label>
+          <textarea
+            id="tImpReason"
+            class="ui-input tenants-imp-confirm__reason"
+            rows="2"
+            autocomplete="off"
+            [value]="impReason()"
+            (input)="impReason.set($any($event.target).value)"
+            [placeholder]="impT('impReasonPlaceholder')"
+          ></textarea>
+          @if (impSubmitted() && !impReason().trim()) {
+            <span class="ui-error">{{ impT('impReasonRequired') }}</span>
+          }
+        </div>
+
+        <p class="tenants-imp-confirm__note">
+          <app-icon name="lock" [size]="13" /> {{ impT('impLoggedNote') }}
+        </p>
+
+        <div class="ui-confirm__actions">
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="cancelImpersonate()">{{ impT('impCancel') }}</button>
+          <button type="button" class="ui-btn ui-btn--primary" [disabled]="impStarting() || !impReason().trim()" (click)="confirmImpersonate()">
+            @if (impStarting()) { <span class="ui-spinner" aria-hidden="true"></span> {{ impT('impStarting') }} }
+            @else { {{ impT('impConfirmCta') }} }
+          </button>
+        </div>
       </div>
     </div>
   }

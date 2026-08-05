@@ -1,0 +1,405 @@
+<section class="feature-page cmpb" [attr.dir]="direction()">
+  <header class="feature-page__header">
+    <div class="cmpb-hd">
+      <a routerLink="/app/campaigns" class="cmpb-hd__back">
+        <app-icon name="chevron-left" [size]="16" /> {{ t('cmpBackToList') }}
+      </a>
+      <span class="feature-page__eyebrow">{{ t('cmpBuilderEyebrow') }}</span>
+      <h1>{{ editingId() ? t('cmpBuilderTitleEdit') : t('cmpBuilderTitleNew') }}</h1>
+    </div>
+    <div class="feature-page__actions">
+      <button type="button" class="ui-btn ui-btn--ghost" (click)="saveDraft()" [disabled]="savingDraft() || launching()">
+        @if (savingDraft()) {
+          <span class="ui-spinner"></span> {{ t('cmpSavingDraft') }}
+        } @else {
+          {{ t('cmpSaveDraft') }}
+        }
+      </button>
+    </div>
+  </header>
+
+  @if (notFound()) {
+    <div class="feature-page__empty">
+      <app-icon name="megaphone" [size]="26" />
+      <h3>{{ t('cmpNotFound') }}</h3>
+      <a routerLink="/app/campaigns" class="ui-btn ui-btn--ghost ui-btn--sm">{{ t('cmpNotFoundBack') }}</a>
+    </div>
+  } @else {
+    <!-- ── Stepper ── -->
+    <div class="ui-stepper cmpb-stepper">
+      @for (s of steps; track $index; let i = $index; let last = $last) {
+        <div
+          class="ui-stepper__step"
+          [class.is-current]="step() === i"
+          [class.is-done]="step() > i"
+          [class.cmpb-step--clickable]="i <= step()"
+          (click)="goToStep(i)"
+        >
+          <span class="ui-stepper__node">
+            @if (step() > i) {
+              <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></svg>
+            } @else {
+              {{ i + 1 }}
+            }
+          </span>
+          <span class="ui-stepper__label">{{ t(s.key) }}</span>
+        </div>
+        @if (!last) {
+          <span class="ui-stepper__line"></span>
+        }
+      }
+    </div>
+
+    <div class="cmpb-grid">
+      <!-- ── Step content ── -->
+      <div class="cmpb-main ui-card">
+        <!-- Campaign name (persistent across steps) -->
+        <div class="ui-field cmpb-name">
+          <label class="ui-label" for="cmp-name">{{ t('cmpNameLabel') }}</label>
+          <input
+            id="cmp-name"
+            type="text"
+            class="ui-input"
+            [value]="name()"
+            (input)="name.set($any($event.target).value); formError.set(null)"
+            [placeholder]="t('cmpNamePlaceholder')"
+            maxlength="120"
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- STEP 1 · Recipients (upload a file, or pick from existing contacts) -->
+        @if (step() === 0) {
+          <div class="cmpb-step">
+            <h2 class="cmpb-step__title">{{ t('cmpRecipientsTitle') }}</h2>
+            <p class="cmpb-step__lead">{{ t('cmpRecipientsLead') }}</p>
+
+            <div class="ui-seg cmpb-modeseg">
+              <button type="button" class="ui-seg__btn" [class.is-active]="audienceMode() === 'upload'" (click)="setAudienceMode('upload')">
+                {{ t('cmpModeUpload') }}
+              </button>
+              <button type="button" class="ui-seg__btn" [class.is-active]="audienceMode() === 'contacts'" (click)="setAudienceMode('contacts')">
+                {{ t('cmpModeContacts') }}
+              </button>
+            </div>
+
+            @if (audienceMode() === 'upload') {
+              @if (recipients().length === 0) {
+                <label class="cmpb-upload">
+                  <input
+                    type="file"
+                    class="cmpb-upload__input"
+                    accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                    (change)="onFileSelected($event)"
+                  />
+                  <span class="cmpb-upload__icon"><app-icon name="paperclip" [size]="24" /></span>
+                  <span class="cmpb-upload__title">{{ t('cmpUploadCta') }}</span>
+                  <span class="cmpb-hint">{{ t('cmpUploadHint') }}</span>
+                </label>
+              } @else {
+                <div class="cmpb-file">
+                  <span class="cmpb-file__icon"><app-icon name="check-circle" [size]="20" /></span>
+                  <div class="cmpb-file__info">
+                    <strong>{{ fileName() || t('cmpRecipientsLoaded') }}</strong>
+                    <span class="cmpb-file__count">{{ recipients().length }} {{ t('cmpRecipientsUnit') }}</span>
+                  </div>
+                  <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm" (click)="clearRecipients()">
+                    {{ t('cmpRemoveFile') }}
+                  </button>
+                </div>
+              }
+
+              @if (parsing()) {
+                <span class="cmpb-muted"><span class="ui-spinner"></span> {{ t('cmpFileParsing') }}</span>
+              }
+              @if (parseError()) {
+                <span class="ui-error cmpb-error">{{ parseError() }}</span>
+              }
+
+              <button type="button" class="ui-btn ui-btn--ghost ui-btn--sm cmpb-sample" (click)="downloadSampleFile()">
+                <app-icon name="download" [size]="15" /> {{ t('cmpDownloadSample') }}
+              </button>
+            } @else {
+              <div class="cmpb-cfilters">
+                <div class="ui-field">
+                  <label class="ui-label" for="cmp-ctag">{{ t('cmpFilterTags') }}</label>
+                  <select id="cmp-ctag" class="ui-select" [value]="filterTagId() ?? ''" (change)="onFilterTagChange($any($event.target).value)">
+                    <option value="">{{ t('cmpAllTags') }}</option>
+                    @for (tag of tags(); track tag.id) {
+                      <option [value]="tag.id">{{ tag.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="ui-field">
+                  <label class="ui-label" for="cmp-cfrom">{{ t('cmpDateFrom') }}</label>
+                  <input
+                    id="cmp-cfrom"
+                    type="date"
+                    class="ui-input"
+                    [value]="filterDateFrom() ?? ''"
+                    (change)="onFilterDateFromChange($any($event.target).value)"
+                  />
+                </div>
+                <div class="ui-field">
+                  <label class="ui-label" for="cmp-cto">{{ t('cmpDateTo') }}</label>
+                  <input
+                    id="cmp-cto"
+                    type="date"
+                    class="ui-input"
+                    [value]="filterDateTo() ?? ''"
+                    (change)="onFilterDateToChange($any($event.target).value)"
+                  />
+                </div>
+              </div>
+
+              @if (contactsLoading()) {
+                <span class="cmpb-muted"><span class="ui-spinner"></span> {{ t('cmpContactsLoading') }}</span>
+              } @else if (contacts().length === 0) {
+                <span class="cmpb-muted">{{ t('cmpContactsEmpty') }}</span>
+              } @else {
+                <div class="cmpb-clist-head">
+                  <button type="button" class="cmpb-selall" (click)="toggleSelectAll()">
+                    {{ allVisibleSelected() ? t('cmpDeselectAll') : t('cmpSelectAll') }}
+                  </button>
+                  <span class="cmpb-muted">{{ selectedContactIds().length }} / {{ contacts().length }}</span>
+                </div>
+                <div class="cmpb-clist">
+                  @for (c of contacts(); track c.id) {
+                    <button type="button" class="cmpb-crow" [class.is-on]="isContactSelected(c.id)" (click)="toggleContact(c.id)">
+                      <span class="cmpb-crow__check"><app-icon name="check" [size]="13" /></span>
+                      <span class="cmpb-crow__info">
+                        <strong>{{ c.name || c.phone }}</strong>
+                        <span dir="ltr">+{{ c.phone }}</span>
+                      </span>
+                    </button>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <!-- STEP 2 · Message -->
+        @if (step() === 1) {
+          <div class="cmpb-step">
+            <h2 class="cmpb-step__title">{{ t('cmpMessageTitle') }}</h2>
+            <p class="cmpb-step__lead">{{ t('cmpMessageLead') }}</p>
+
+            <div class="ui-field cmpb-field-block">
+              <label class="ui-label" for="cmp-account">{{ t('cmpChannelLabel') }}</label>
+              @if (accounts().length === 0 && !refLoading()) {
+                <span class="cmpb-muted cmpb-muted--warn">{{ t('cmpNoChannels') }}</span>
+              } @else {
+                <select
+                  id="cmp-account"
+                  class="ui-select"
+                  [value]="waAccountId() ?? ''"
+                  (change)="onAccountChange($any($event.target).value)"
+                >
+                  <option value="" disabled>{{ t('cmpChannelLabel') }}</option>
+                  @for (acc of accounts(); track acc.id) {
+                    <option [value]="acc.id">{{ acc.platformName || acc.phoneNumber }} · {{ acc.phoneNumber }}</option>
+                  }
+                </select>
+                <span class="cmpb-hint">{{ t('cmpChannelHint') }}</span>
+              }
+            </div>
+
+            <div class="ui-field cmpb-field-block">
+              <label class="ui-label" for="cmp-template">
+                {{ t('cmpTemplateLabel') }}
+                <span class="ui-pill ui-pill--info cmpb-approved">{{ t('cmpTemplateApprovedOnly') }}</span>
+              </label>
+              @if (refLoading()) {
+                <span class="cmpb-muted">{{ t('cmpTemplateLoading') }}</span>
+              } @else if (templates().length === 0) {
+                <span class="cmpb-muted cmpb-muted--warn">{{ t('cmpNoTemplates') }}</span>
+              } @else {
+                <select
+                  id="cmp-template"
+                  class="ui-select"
+                  [value]="templateName() ?? ''"
+                  (change)="onTemplateChange($any($event.target).value)"
+                >
+                  <option value="" disabled>{{ t('cmpTemplatePlaceholder') }}</option>
+                  @for (tpl of templates(); track tpl.id) {
+                    <option [value]="tpl.name">{{ tpl.name }} ({{ tpl.language }})</option>
+                  }
+                </select>
+                <span class="cmpb-hint">{{ t('cmpTemplateHint') }}</span>
+              }
+            </div>
+
+            <div class="ui-field cmpb-field-block">
+              <label class="ui-label" for="cmp-body">{{ t('cmpMessageBodyLabel') }}</label>
+              <textarea
+                id="cmp-body"
+                class="ui-textarea"
+                [value]="messageBody()"
+                (input)="messageBody.set($any($event.target).value); formError.set(null)"
+                [placeholder]="t('cmpMessageBodyPlaceholder')"
+                rows="5"
+                maxlength="1024"
+              ></textarea>
+              <span class="cmpb-hint">{{ t('cmpMessageBodyHint') }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- STEP 3 · Schedule -->
+        @if (step() === 2) {
+          <div class="cmpb-step">
+            <h2 class="cmpb-step__title">{{ t('cmpScheduleTitle') }}</h2>
+            <p class="cmpb-step__lead">{{ t('cmpScheduleLead') }}</p>
+
+            <div class="cmpb-radio-grid">
+              <button
+                type="button"
+                class="cmpb-radio"
+                [class.is-on]="scheduleMode() === 'now'"
+                (click)="scheduleMode.set('now')"
+              >
+                <span class="cmpb-radio__mark" aria-hidden="true"></span>
+                <span class="cmpb-radio__text">
+                  <span class="cmpb-radio__title">{{ t('cmpSendNow') }}</span>
+                  <span class="cmpb-hint">{{ t('cmpSendNowHint') }}</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                class="cmpb-radio"
+                [class.is-on]="scheduleMode() === 'later'"
+                (click)="scheduleMode.set('later')"
+              >
+                <span class="cmpb-radio__mark" aria-hidden="true"></span>
+                <span class="cmpb-radio__text">
+                  <span class="cmpb-radio__title">{{ t('cmpScheduleLater') }}</span>
+                  <span class="cmpb-hint">{{ t('cmpScheduleLaterHint') }}</span>
+                </span>
+              </button>
+            </div>
+
+            @if (scheduleMode() === 'later') {
+              <div class="ui-field cmpb-field-block cmpb-field-block--sm">
+                <label class="ui-label" for="cmp-when">{{ t('cmpScheduleDate') }}</label>
+                <input
+                  id="cmp-when"
+                  type="datetime-local"
+                  class="ui-input"
+                  [value]="scheduledAt()"
+                  (input)="scheduledAt.set($any($event.target).value); formError.set(null)"
+                />
+                <span class="cmpb-hint">{{ t('cmpScheduleTimezoneHint') }}</span>
+              </div>
+            }
+
+            <div class="cmpb-estimate">
+              <app-icon name="send" [size]="16" />
+              <span>{{ t('cmpEstimateLabel') }}:</span>
+              <strong>{{ audienceCount() }}</strong>
+              <span>{{ t('cmpMessagesUnit') }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- STEP 4 · Review -->
+        @if (step() === 3) {
+          <div class="cmpb-step">
+            <h2 class="cmpb-step__title">{{ t('cmpReviewTitle') }}</h2>
+            <p class="cmpb-step__lead">{{ t('cmpReviewLead') }}</p>
+
+            <dl class="cmpb-review">
+              <div class="cmpb-review__row">
+                <dt>{{ t('cmpReviewName') }}</dt>
+                <dd>{{ name() || '—' }}</dd>
+              </div>
+              <div class="cmpb-review__row">
+                <dt>{{ t('cmpReviewAudience') }}</dt>
+                <dd>
+                  <strong class="cmpb-review__num">{{ audienceCount() }}</strong> {{ t('cmpRecipientsUnit') }}
+                  @if (audienceSummary()) {
+                    <span class="cmpb-review__meta">{{ audienceSummary() }}</span>
+                  }
+                </dd>
+              </div>
+              <div class="cmpb-review__row">
+                <dt>{{ t('cmpReviewChannel') }}</dt>
+                <dd>{{ selectedAccount()?.phoneNumber || '—' }}</dd>
+              </div>
+              <div class="cmpb-review__row">
+                <dt>{{ t('cmpReviewTemplate') }}</dt>
+                <dd>{{ templateName() || '—' }}</dd>
+              </div>
+              <div class="cmpb-review__row">
+                <dt>{{ t('cmpReviewSchedule') }}</dt>
+                <dd>{{ scheduleSummary() }}</dd>
+              </div>
+            </dl>
+
+            <div class="cmpb-ready">
+              <span class="cmpb-ready__ico" aria-hidden="true"><app-icon name="check-circle" [size]="18" /></span>
+              <div>
+                <span class="cmpb-ready__title">{{ t('cmpReviewReady') }}</span>
+                <span class="cmpb-hint">{{ t('cmpReviewReadyHint') }}</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (formError()) {
+          <span class="ui-error cmpb-error">{{ formError() }}</span>
+        }
+
+        <!-- Footer nav -->
+        <div class="cmpb-foot">
+          <button type="button" class="ui-btn ui-btn--ghost" (click)="back()" [disabled]="step() === 0">
+            <app-icon name="chevron-left" [size]="16" /> {{ t('cmpBack') }}
+          </button>
+          @if (step() < 3) {
+            <button type="button" class="ui-btn ui-btn--primary" (click)="next()">
+              {{ t('cmpNext') }} <app-icon name="arrow-right" [size]="16" />
+            </button>
+          } @else {
+            <button type="button" class="ui-btn ui-btn--primary" (click)="launch()" [disabled]="launching()">
+              @if (launching()) {
+                <span class="ui-spinner"></span> {{ t('cmpLaunching') }}
+              } @else {
+                <app-icon name="send" [size]="16" /> {{ t('cmpLaunch') }}
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- ── Side rail: live audience count + phone preview ── -->
+      <aside class="cmpb-side">
+        <div class="ui-stat cmpb-count">
+          <span class="ui-stat__label">
+            <app-icon name="users" [size]="14" /> {{ t('cmpAudienceCountLabel') }}
+          </span>
+          <span class="cmpb-count__value">{{ audienceCount() }}</span>
+          <span class="cmpb-count__unit">{{ t('cmpRecipientsUnit') }}</span>
+          @if (audienceCount() === 0) {
+            <span class="cmpb-hint cmpb-count__hint">{{ t('cmpAudienceEmptyHint') }}</span>
+          }
+        </div>
+
+        <div class="cmpb-phone">
+          <div class="cmpb-phone__head">
+            <span class="cmpb-phone__title">{{ t('cmpPreviewTitle') }}</span>
+          </div>
+          <div class="cmpb-phone__screen">
+            @if (messageBody().trim()) {
+              <div class="cmpb-bubble">
+                <p class="cmpb-bubble__text">{{ messageBody() }}</p>
+                <span class="cmpb-bubble__time">12:00 <app-icon name="check-check" [size]="13" /></span>
+              </div>
+            } @else {
+              <div class="cmpb-phone__empty">{{ t('cmpPreviewEmpty') }}</div>
+            }
+          </div>
+        </div>
+      </aside>
+    </div>
+  }
+</section>

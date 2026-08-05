@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { ApiClientService } from './api-client.service';
+import type { EscalationRecommendation } from '../../features/inbox/models/escalation-recommendation.model';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AI Agent control + oversight API (FE-4.1) and escalation recommendation (FE-4.2).
@@ -40,17 +41,6 @@ export interface AiHandledConversation {
   customerPhone: string;
   status: string;
   lastMessageAt: string | null;
-}
-
-/** AI escalation recommendation for a conversation (FE-4.2). */
-export interface EscalationRecommendation {
-  conversationId: number;
-  recommended: boolean;
-  suggestedUserId: number | null;
-  suggestedUserName: string | null;
-  reason: string;
-  /** 'recommend' = needs human confirmation before ownership changes; 'auto' = already applied. */
-  mode: 'recommend' | 'auto';
 }
 
 @Injectable({ providedIn: 'root' })

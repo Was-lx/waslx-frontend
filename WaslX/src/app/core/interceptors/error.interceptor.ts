@@ -27,6 +27,13 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
 
         const refreshToken = authSessionService.getRefreshToken();
 
+        // Already signed out (no tokens left) — this 401 is a background/in-flight request that
+        // resolved *after* the user logged out. Don't redirect or toast; the user deliberately
+        // left. Propagate silently so nothing stacks a "session expired" toast they didn't cause.
+        if (!authSessionService.getAccessToken() && !refreshToken) {
+          return throwError(() => error);
+        }
+
         if (refreshToken && !request.url.includes('/auth/refresh')) {
           return from(authSessionService.refreshSession(refreshToken)).pipe(
             switchMap((refreshed) => {

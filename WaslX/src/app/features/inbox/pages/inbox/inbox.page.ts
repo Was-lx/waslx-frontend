@@ -29,6 +29,9 @@ import type { ConversationClassificationBadgeData } from '../../models/conversat
 import type { ConversationDetail, ConversationListItem, ConversationNote, ConversationSummary } from '../../models/conversation.model';
 import type { ConversationMessage } from '../../models/message.model';
 import type { TemplateSendPayload } from '../../components/template-picker/template-picker.component';
+import { NewConversationDialogComponent, type NewConversationSend } from '../../components/new-conversation-dialog/new-conversation-dialog.component';
+import { TemplatesApiService } from '../../../../core/api/templates-api.service';
+import type { Template } from '../../../templates/models/template.model';
 
 // SignalR pushes changes live; this slow sweep only backstops a missed event / dropped connection.
 const FALLBACK_REFRESH_MS = 60_000;
@@ -46,7 +49,7 @@ interface OpenConversation {
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [ConversationCardComponent, ChatViewComponent, NumberRailComponent, InboxFiltersComponent, IconComponent],
+  imports: [ConversationCardComponent, ChatViewComponent, NumberRailComponent, InboxFiltersComponent, IconComponent, NewConversationDialogComponent],
   templateUrl: './inbox.page.html',
   styleUrl: './inbox.page.css'
 })
@@ -57,7 +60,7 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   private readonly tagsApi = inject(TagsApiService);
   private readonly groupsApi = inject(GroupsApiService);
   private readonly usersApi = inject(UsersApiService);
-  private readonly aiApi = inject(AiAgentApiService);
+  private readonly templatesApi = inject(TemplatesApiService);
   private readonly realtime = inject(InboxRealtimeService);
   private readonly language = inject(LanguageService);
   private readonly toast = inject(ToastService);
@@ -139,6 +142,13 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   protected readonly assignments = signal<Assignment[]>([]);
   protected readonly assigning = signal(false);
   protected readonly loadingAssignments = signal(false);
+
+  // ── New-conversation dialog (message a brand-new number) ────────────────────
+  protected readonly templates = signal<Template[]>([]);
+  protected readonly newConvOpen = signal(false);
+  protected readonly newConvSending = signal(false);
+  // After a "+" send, remember the number so the reloaded list auto-opens that new conversation.
+  private pendingSelectPhone: string | null = null;
 
   // ── Team routing / cross-team handoff ───────────────────────────────────────
   // The detail endpoint doesn't carry the current group, so we track the last team the
@@ -616,6 +626,21 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.showOverrideDialog.set(false);
   }
 
+  protected onEscalationReject(event: { escalationId: number; reason: string | null }): void {
+    this.escalationConfirming.set(true);
+    this.escalationApi.reject(event.escalationId, event.reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (rec) => {
+        this.escalationConfirming.set(false);
+        this.escalationStore.setRecommendation(this.selectedId()!, rec);
+        this.loadList(false);
+      },
+      error: (err) => {
+        this.escalationConfirming.set(false);
+        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
+      }
+    });
+  }
+
   private onRealtimeNote(n: RealtimeNote): void {
     if (n.conversationId !== this.selectedId()) return;
     this.appendNote({ id: n.id, conversationId: n.conversationId, content: n.content, authorName: n.authorName, createdAt: n.createdAt });
@@ -631,8 +656,49 @@ export class InboxPageComponent implements OnInit, OnDestroy {
         const openId = this.selectedId();
         if (openId != null) this.zeroUnread(openId);
         this.listLoading.set(false);
+        // Auto-open the conversation a "+" send just created (best-effort match on the number).
+        if (this.pendingSelectPhone) {
+          const wanted = this.pendingSelectPhone.replace(/\D/g, '');
+          const target = page.items.find((c) => c.customerPhone.replace(/\D/g, '') === wanted);
+          this.pendingSelectPhone = null;
+          if (target) this.selectCard(target.id);
+        }
       },
       error: () => this.listLoading.set(false)
+    });
+  }
+
+  // ── New-conversation dialog (message a brand-new number) ────────────────────
+  protected openNewConversation(): void {
+    this.newConvOpen.set(true);
+  }
+
+  protected closeNewConversation(): void {
+    this.newConvOpen.set(false);
+  }
+
+  protected onSendNewConversation(payload: NewConversationSend): void {
+    if (this.newConvSending()) return;
+    this.newConvSending.set(true);
+
+    this.whatsapp.sendTemplate({
+      toPhone: payload.toPhone,
+      templateName: payload.templateName,
+      languageCode: payload.languageCode,
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.newConvSending.set(false);
+        this.newConvOpen.set(false);
+        this.toast.success(this.t('newConvSuccessTitle'), this.t('newConvSuccessMsg'));
+        // Make sure we're on the inbox view, then reload so the new conversation surfaces and opens.
+        if (this.view() !== 'inbox') this.view.set('inbox');
+        this.pendingSelectPhone = payload.toPhone;
+        this.loadList(true);
+      },
+      error: (err) => {
+        this.newConvSending.set(false);
+        this.toast.error(this.t('newConvErrorTitle'), apiErrorMessage(err, this.t('newConvErrorTitle')));
+      },
     });
   }
 
@@ -655,6 +721,10 @@ export class InboxPageComponent implements OnInit, OnDestroy {
     this.groupsApi.getGroups().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (g) => this.groups.set(g), error: () => {} });
     this.tagsApi.getTags().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (tg) => this.tags.set(tg), error: () => {} });
     this.usersApi.getUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (u) => this.users.set(u.filter((x) => x.isActive)), error: () => {} });
+    this.templatesApi.list('APPROVED').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (tpls) => this.templates.set((tpls ?? []).filter((t) => (t.status ?? '').toUpperCase() === 'APPROVED')),
+      error: () => {},
+    });
   }
 
   private loadMessages(id: number): void {

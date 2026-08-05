@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { AuthSessionService } from './auth-session.service';
+import type { MessageClassificationPayload } from '../../features/inbox/models/conversation-classification.model';
 
 // Realtime payloads (camelCase — see SignalR JSON protocol config on the backend).
 export interface RealtimeMessage {
@@ -55,6 +56,24 @@ export interface RealtimePresence {
 }
 
 /**
+ * A per-user notification push (FR-NOTIF). Broadcast to the tenant group with the recipient's
+ * domain user id, so every client must filter on `userId` before acting on it.
+ */
+export interface RealtimeNotification {
+  userId: number;
+  notification: {
+    id: number;
+    type: string;
+    title: string;
+    body: string;
+    entityType: string | null;
+    entityId: number | null;
+    isRead: boolean;
+    createdAt: string;
+  };
+}
+
+/**
  * SignalR client for the shared inbox. Connects to /hubs/inbox with the JWT, auto-reconnects,
  * and fans hub events out as RxJS subjects the inbox page subscribes to. One shared connection
  * per app (providedIn: root).
@@ -71,7 +90,8 @@ export class InboxRealtimeService {
   readonly conversationAiModeChanged = new Subject<RealtimeAiModeChanged>();
   readonly noteAdded = new Subject<RealtimeNote>();
   readonly presenceChanged = new Subject<RealtimePresence>();
-  readonly messageClassificationUpdated = new Subject<any>();
+  readonly notificationCreated = new Subject<RealtimeNotification>();
+  readonly messageClassificationUpdated = new Subject<MessageClassificationPayload>();
 
   private hubUrl(): string {
     // environment.apiUrl ends with "/api"; the hub is served at the host root under /hubs/inbox.
@@ -93,7 +113,8 @@ export class InboxRealtimeService {
     this.hub.on('ConversationAiModeChanged', (payload: RealtimeAiModeChanged) => this.conversationAiModeChanged.next(payload));
     this.hub.on('NoteAdded', (n: RealtimeNote) => this.noteAdded.next(n));
     this.hub.on('PresenceChanged', (p: RealtimePresence) => this.presenceChanged.next(p));
-    this.hub.on('MessageClassificationUpdated', (p: any) => this.messageClassificationUpdated.next(p));
+    this.hub.on('NotificationCreated', (n: RealtimeNotification) => this.notificationCreated.next(n));
+    this.hub.on('MessageClassificationUpdated', (p: MessageClassificationPayload) => this.messageClassificationUpdated.next(p));
 
     this.hub.onreconnected(() => this.connected.set(true));
     this.hub.onclose(() => this.connected.set(false));

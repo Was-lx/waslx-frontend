@@ -1,0 +1,242 @@
+<section class="feature-page aicost-page" [attr.dir]="direction()">
+  <!-- ── Header ── -->
+  <header class="feature-page__header">
+    <div>
+      <span class="feature-page__eyebrow aicost-page__eyebrow">
+        <span class="aicost-page__eyebrow-dot" aria-hidden="true"></span>
+        {{ c().eyebrow }}
+      </span>
+      <h1>{{ c().title }}</h1>
+      <p class="aicost-page__subtitle">{{ c().subtitle }}</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="aicost-stats" aria-hidden="true">
+      @for (t of skeletonTiles; track t) {
+        <div class="ui-stat aicost-skel-stat">
+          <span class="aicost-skel shimmer" style="width: 52%; height: 12px"></span>
+          <span class="aicost-skel shimmer" style="width: 40%; height: 26px; margin-top: 10px"></span>
+        </div>
+      }
+    </div>
+    <div class="ui-chart aicost-skel-chart" aria-hidden="true">
+      <span class="aicost-skel shimmer" style="width: 30%; height: 14px"></span>
+      <div class="aicost-skel shimmer" style="width: 100%; height: 240px; margin-top: 16px; border-radius: 12px"></div>
+    </div>
+  } @else if (error()) {
+    <div class="feature-page__empty">
+      <app-icon name="cpu" [size]="30" />
+      <h3>{{ c().errorTitle }}</h3>
+      <p>{{ c().errorBody }}</p>
+      <button type="button" class="ui-btn ui-btn--ghost" (click)="load()">{{ c().retry }}</button>
+    </div>
+  } @else if (isEmpty()) {
+    <div class="feature-page__empty">
+      <app-icon name="cpu" [size]="30" />
+      <h3>{{ c().emptyTitle }}</h3>
+      <p>{{ c().emptyBody }}</p>
+    </div>
+  } @else if (data(); as d) {
+    <!-- ── KPI band ── -->
+    <div class="aicost-stats">
+      <div class="ui-stat">
+        <span class="ui-stat__label"><span class="ui-stat__dot" style="background: var(--accent)"></span>{{ c().totalCost }}</span>
+        <span class="ui-stat__value">${{ money(d.totalCost) }}</span>
+        <span [class]="trendClass(d.costDeltaPct)" [attr.aria-label]="c().vsPrev">
+          {{ trendArrow(d.costDeltaPct) }} {{ trendText(d.costDeltaPct) }}
+        </span>
+      </div>
+      <div class="ui-stat">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().costPer1k }}</span>
+        <span class="ui-stat__value">${{ money(d.costPerThousand) }}</span>
+      </div>
+      <div class="ui-stat ui-stat--sent">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().mtd }}</span>
+        <span class="ui-stat__value">${{ money(d.monthToDateCost) }}</span>
+      </div>
+      <div class="ui-stat">
+        <span class="ui-stat__label"><span class="ui-stat__dot"></span>{{ c().projected }}</span>
+        <span class="ui-stat__value">${{ money(d.projectedCost) }}</span>
+      </div>
+    </div>
+
+    <!-- ── Charts ── -->
+    <div class="aicost-grid">
+      <!-- Cost over time -->
+      <div class="ui-chart aicost-tile aicost-tile--wide">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ c().costTitle }}</h2>
+            <p class="ui-chart__sub">{{ c().costSub }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasSeries()) {
+            <apx-chart
+              [series]="costSeries()"
+              [chart]="costChart"
+              [colors]="costColors"
+              [stroke]="costStroke"
+              [fill]="costFill"
+              [xaxis]="costXaxis()"
+              [yaxis]="costYaxis"
+              [grid]="costGrid"
+              [dataLabels]="costDataLabels"
+              [legend]="costLegend"
+              [tooltip]="costTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ c().noData }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Budget gauge -->
+      <div class="ui-chart aicost-tile">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ c().budgetTitle }}</h2>
+            <p class="ui-chart__sub">{{ c().budgetSub }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body aicost-gauge-body ui-gauge" [attr.data-tone]="gaugeTone()">
+          <apx-chart
+            [series]="gaugeSeries()"
+            [chart]="gaugeChart"
+            [colors]="gaugeColors()"
+            [plotOptions]="gaugePlot()"
+            [labels]="[c().ofBudget]"
+          ></apx-chart>
+          <div class="aicost-gauge-legend" aria-live="polite">
+            <span>{{ c().spent }} <strong>${{ money(d.monthToDateCost) }}</strong></span>
+            <span>{{ c().budget }} <strong>${{ money(d.monthlyBudget) }}</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost per tenant -->
+      <div class="ui-chart aicost-tile">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ c().perTenantTitle }}</h2>
+            <p class="ui-chart__sub">{{ c().perTenantSub }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body">
+          @if (hasPerTenant()) {
+            <apx-chart
+              [series]="perTenantSeries()"
+              [chart]="perTenantChart()"
+              [colors]="perTenantColors"
+              [plotOptions]="perTenantPlot"
+              [xaxis]="perTenantXaxis()"
+              [yaxis]="perTenantYaxis"
+              [grid]="perTenantGrid"
+              [dataLabels]="perTenantDataLabels"
+              [legend]="perTenantLegend"
+              [tooltip]="perTenantTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ c().noData }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Model mix -->
+      <div class="ui-chart aicost-tile">
+        <div class="ui-chart__head">
+          <div>
+            <h2 class="ui-chart__title">{{ c().modelMixTitle }}</h2>
+            <p class="ui-chart__sub">{{ c().modelMixSub }}</p>
+          </div>
+        </div>
+        <div class="ui-chart__body aicost-donut-body">
+          @if (hasModelMix()) {
+            <apx-chart
+              [series]="modelSeries()"
+              [chart]="modelChart"
+              [labels]="modelLabels()"
+              [colors]="modelColors()"
+              [legend]="modelLegend"
+              [plotOptions]="modelPlot"
+              [dataLabels]="modelDataLabels"
+              [tooltip]="modelTooltip"
+            ></apx-chart>
+          } @else {
+            <div class="ui-chart__empty">{{ c().noData }}</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Budget-alert config ── -->
+    <div class="ui-card aicost-alerts">
+      <div class="aicost-alerts__head">
+        <div>
+          <h2 class="ui-chart__title">{{ c().alertsTitle }}</h2>
+          <p class="ui-chart__sub">{{ c().alertsSub }}</p>
+        </div>
+      </div>
+
+      <form class="aicost-alert-form" [formGroup]="form" (ngSubmit)="submitAlert()" novalidate>
+        <div class="ui-field ui-field--sm">
+          <label class="ui-label" for="al-scope">{{ c().scope }}</label>
+          <select id="al-scope" class="ui-input ui-select" formControlName="scope">
+            <option value="Platform">{{ c().scopePlatform }}</option>
+            <option value="Tenant">{{ c().scopeTenant }}</option>
+          </select>
+        </div>
+        <div class="ui-field ui-field--sm">
+          <label class="ui-label" for="al-limit">{{ c().monthlyLimit }}</label>
+          <input id="al-limit" class="ui-input" type="number" min="1" formControlName="monthlyLimit" inputmode="numeric" />
+          @if (invalid('monthlyLimit')) { <span class="ui-error">{{ c().required }}</span> }
+        </div>
+        <div class="ui-field ui-field--sm">
+          <label class="ui-label" for="al-warn">{{ c().warnAt }}</label>
+          <input id="al-warn" class="ui-input" type="number" min="1" max="100" formControlName="warnAtPct" inputmode="numeric" />
+          @if (invalid('warnAtPct')) { <span class="ui-error">{{ c().required }}</span> }
+        </div>
+        <button type="submit" class="ui-btn ui-btn--primary aicost-alert-form__submit" [disabled]="submitting()">
+          @if (submitting()) { <span class="ui-spinner"></span> {{ c().saving }} }
+          @else { {{ c().addAlert }} }
+        </button>
+      </form>
+
+      @if (alerts().length === 0) {
+        <p class="aicost-alerts__empty">{{ c().noAlerts }}</p>
+      } @else {
+        <ul class="aicost-alert-list">
+          @for (a of alerts(); track a.id) {
+            <li class="aicost-alert-row" [class.is-off]="!a.isActive">
+              <span class="ui-pill ui-pill--info">{{ scopeLabel(a.scope) }}</span>
+              <span class="aicost-alert-row__name">
+                @if (a.scope === 'Tenant' && a.tenantName) { {{ a.tenantName }} }
+                @else { {{ c().scopePlatform }} }
+              </span>
+              <span class="aicost-alert-row__limit">${{ money(a.monthlyLimit) }}</span>
+              <span class="aicost-alert-row__warn">{{ c().warnAtShort }} {{ warnPctLabel(a) }}</span>
+              <button
+                type="button"
+                class="ui-toggle"
+                role="switch"
+                [attr.aria-checked]="a.isActive"
+                [attr.aria-label]="c().activeLabel"
+                [disabled]="busyAlertId() === a.id"
+                (click)="toggleAlert(a)"
+              ></button>
+              <button
+                type="button"
+                class="ui-btn ui-btn--ghost ui-btn--sm aicost-alert-row__del"
+                [disabled]="busyAlertId() === a.id"
+                (click)="removeAlert(a)"
+              >
+                <app-icon name="trash" [size]="15" /> {{ c().remove }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</section>

@@ -58,7 +58,8 @@ export class ManagerLayoutComponent {
           { id: 'knowledge-base', label: t('kbNav'), description: t('kbNavDesc'), icon: 'bot', routerLink: '/app/knowledge-base' },
           { id: 'ai-agent', label: t('aiAgentNav'), description: t('aiAgentNavDesc'), icon: 'sparkles', routerLink: '/app/ai-agent' },
           { id: 'tags', label: t('tagsNav'), description: t('tagsNavDesc'), icon: 'tag', routerLink: '/app/tags' },
-          { id: 'analytics', label: t('analytics'), description: t('analyticsDesc'), icon: 'chart', routerLink: '/app/analytics' }
+          { id: 'campaigns', label: t('campaignsNav'), description: t('campaignsNavDesc'), icon: 'megaphone', routerLink: '/app/campaigns' },
+          { id: 'reports', label: t('reports'), description: t('reportsDesc'), icon: 'trending-up', routerLink: '/app/reports' }
         ]
       },
       {
@@ -73,6 +74,7 @@ export class ManagerLayoutComponent {
         id: 'system',
         label: t('system'),
         items: [
+          { id: 'audit', label: t('auditNav'), description: t('auditNavDesc'), icon: 'history', routerLink: '/app/audit' },
           { id: 'settings', label: t('settings'), description: t('settingsDesc'), icon: 'sliders', routerLink: '/app/settings' }
         ]
       }

@@ -36,6 +36,13 @@ export class ChannelStatusService {
       return;
     }
 
+    // Platform (SuperAdmin) accounts have no tenant / WhatsApp channel — skip the tenant-scoped
+    // request entirely; it would 400 (NoTenantContext) and retry-loop every few seconds.
+    if (this.auth.getPrimaryRole() === 'SuperAdmin') {
+      this.status.set('none');
+      return;
+    }
+
     this.whatsAppApi.getAccount().subscribe({
       next: (account) => this.status.set(account.status),
       error: (err: HttpErrorResponse) => {
@@ -44,11 +51,10 @@ export class ChannelStatusService {
           this.status.set('none');
           return;
         }
-        if (err.status === 401 || err.status === 403) {
-          // Not authenticated (session expired or logged out) — not a transient failure.
-          // Stop here instead of retrying, otherwise this loops every few seconds on the
-          // login page, spamming 401s and session-expired toasts.
-          this.status.set('unknown');
+        if (err.status === 400 || err.status === 401 || err.status === 403) {
+          // 400 = no tenant context (e.g. a platform account); 401/403 = not authenticated.
+          // Neither is a transient failure — stop instead of retry-looping every few seconds.
+          this.status.set(err.status === 400 ? 'none' : 'unknown');
           return;
         }
         // Transient failure (backend restarting, network blip, auth still loading, etc.) —

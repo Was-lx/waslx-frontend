@@ -59,7 +59,8 @@ export class AdminLayoutComponent {
           { id: 'knowledge-base', label: t('kbNav'), description: t('kbNavDesc'), icon: 'bot', routerLink: '/app/knowledge-base', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'ai-agent', label: t('aiAgentNav'), description: t('aiAgentNavDesc'), icon: 'sparkles', routerLink: '/app/ai-agent', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'tags', label: t('tagsNav'), description: t('tagsNavDesc'), icon: 'tag', routerLink: '/app/tags', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
-          { id: 'analytics', label: t('analytics'), description: t('analyticsDesc'), icon: 'chart', routerLink: '/app/analytics', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] }
+          { id: 'campaigns', label: t('campaignsNav'), description: t('campaignsNavDesc'), icon: 'megaphone', routerLink: '/app/campaigns', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
+          { id: 'reports', label: t('reports'), description: t('reportsDesc'), icon: 'trending-up', routerLink: '/app/reports', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] }
         ]
       },
       {
@@ -74,6 +75,7 @@ export class AdminLayoutComponent {
         id: 'system',
         label: t('system'),
         items: [
+          { id: 'audit', label: t('auditNav'), description: t('auditNavDesc'), icon: 'history', routerLink: '/app/audit', roles: ['Admin', 'Manager', 'SuperAdmin'] as AppRole[] },
           { id: 'permissions', label: t('permissions'), description: t('permissionsDesc'), icon: 'lock', routerLink: '/app/permissions', roles: ['Admin', 'SuperAdmin'] as AppRole[] },
           { id: 'subscription', label: t('subscription'), description: t('subscriptionDesc'), icon: 'credit-card', routerLink: '/app/subscription', roles: ['Admin', 'SuperAdmin'] as AppRole[] },
           { id: 'settings', label: t('settings'), description: t('settingsDesc'), icon: 'sliders', routerLink: '/app/settings', roles: ['Admin', 'SuperAdmin'] as AppRole[] }

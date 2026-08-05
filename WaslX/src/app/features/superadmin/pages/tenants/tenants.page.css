@@ -348,6 +348,8 @@
   stroke-linejoin: round;
 }
 
+/* Row actions — manage link + status toggle, kept on one line. */
+.tenants-row-actions { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
 /* Row action button — keep icon + spinner tidy. */
 .tenants-table__end .ui-btn { gap: 6px; }
 .tenants-table__end .ui-btn .ui-spinner {
@@ -528,3 +530,32 @@
     animation: none;
   }
 }
+
+/* Impersonation confirm (FE-6.8) */
+.tenants-impersonate { padding-inline: 9px; color: var(--text-muted); }
+.tenants-impersonate:hover {
+  color: color-mix(in srgb, var(--warning) 70%, var(--text-primary));
+  border-color: color-mix(in srgb, var(--warning) 34%, var(--border-subtle));
+}
+.tenants-imp-confirm { width: min(430px, 100%); }
+.tenants-imp-confirm__icon {
+  background: color-mix(in srgb, var(--warning) 15%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 72%, var(--text-primary));
+}
+.tenants-imp-confirm__field { text-align: start; margin-bottom: 14px; }
+.tenants-imp-confirm__reason { resize: vertical; min-height: 56px; line-height: 1.5; text-align: start; }
+.tenants-imp-confirm__note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 18px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warning) 26%, transparent);
+  color: color-mix(in srgb, var(--warning) 58%, var(--text-primary));
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: start;
+}
+.tenants-imp-confirm__note app-icon { flex: 0 0 auto; }

@@ -59,19 +59,112 @@
     }
 
     <div class="topbar__slot">
-      <button class="topbar__icon" type="button" (click)="toggleNotif()" [class.is-open]="notifOpen()" [attr.aria-label]="c().notifications" aria-haspopup="true">
+      <button
+        class="topbar__icon"
+        type="button"
+        (click)="toggleNotif()"
+        [class.is-open]="notifOpen()"
+        [attr.aria-label]="t('notifBell')"
+        aria-haspopup="true"
+      >
         <app-icon name="bell" [size]="18" />
-        <span class="topbar__dot" aria-hidden="true"></span>
+        @if (unreadCount() > 0) {
+          <span class="topbar__badge" aria-hidden="true">{{ unreadLabel() }}</span>
+        }
       </button>
 
       @if (notifOpen()) {
-        <div class="menu menu--wide" role="menu">
-          <div class="menu__title">{{ c().notifications }}</div>
-          <div class="menu__empty">
-            <span class="menu__empty-ico"><app-icon name="check-circle" [size]="22" /></span>
-            <strong>{{ c().notifEmpty }}</strong>
-            <span>{{ c().notifHint }}</span>
+        <div class="menu menu--wide notif-panel" role="menu">
+          <div class="notif-panel__head">
+            <div class="menu__title">{{ t('notifPanelTitle') }}</div>
+            @if (unreadCount() > 0) {
+              <button class="notif-panel__mark" type="button" (click)="markAllRead()">
+                {{ t('notifMarkAllRead') }}
+              </button>
+            }
           </div>
+
+          @if (notifGroups().today.length === 0 && notifGroups().earlier.length === 0) {
+            <div class="menu__empty">
+              <span class="menu__empty-ico"><app-icon name="check-circle" [size]="22" /></span>
+              <strong>{{ t('notifPanelEmpty') }}</strong>
+              <span>{{ t('notifPanelEmptyHint') }}</span>
+            </div>
+          } @else {
+            <div class="notif-panel__scroll">
+              @if (notifGroups().today.length) {
+                <div class="notif-panel__group">{{ t('notifToday') }}</div>
+                @for (row of notifGroups().today; track row.n.id) {
+                  <button
+                    class="ui-notif"
+                    [class.ui-notif--unread]="!row.n.isRead"
+                    [class.notif-panel__row--escalation]="row.n.type === 'escalation'"
+                    type="button"
+                    (click)="openNotification(row)"
+                    role="menuitem"
+                  >
+                    <span class="ui-notif__chip ui-notif__chip--{{ row.tint }}">
+                      <app-icon [name]="row.icon" [size]="17" />
+                    </span>
+                    <span class="ui-notif__body">
+                      <span class="ui-notif__title">{{ row.n.title }}</span>
+                      @if (row.n.body) { <span class="ui-notif__text">{{ row.n.body }}</span> }
+                      <span class="ui-notif__meta">{{ row.timeLabel }}</span>
+                    </span>
+                    @if (!row.n.isRead) { <span class="ui-notif__dot" aria-hidden="true"></span> }
+                  </button>
+                }
+              }
+              @if (notifGroups().earlier.length) {
+                <div class="notif-panel__group">{{ t('notifEarlier') }}</div>
+                @for (row of notifGroups().earlier; track row.n.id) {
+                  <button
+                    class="ui-notif"
+                    [class.ui-notif--unread]="!row.n.isRead"
+                    [class.notif-panel__row--escalation]="row.n.type === 'escalation'"
+                    type="button"
+                    (click)="openNotification(row)"
+                    role="menuitem"
+                  >
+                    <span class="ui-notif__chip ui-notif__chip--{{ row.tint }}">
+                      <app-icon [name]="row.icon" [size]="17" />
+                    </span>
+                    <span class="ui-notif__body">
+                      <span class="ui-notif__title">{{ row.n.title }}</span>
+                      @if (row.n.body) { <span class="ui-notif__text">{{ row.n.body }}</span> }
+                      <span class="ui-notif__meta">{{ row.timeLabel }}</span>
+                    </span>
+                    @if (!row.n.isRead) { <span class="ui-notif__dot" aria-hidden="true"></span> }
+                  </button>
+                }
+              }
+            </div>
+          }
+
+          <div class="menu__sep"></div>
+
+          @if (browserState() !== 'unsupported') {
+            @if (browserState() === 'granted') {
+              <div class="notif-panel__browser is-on">
+                <app-icon name="check-circle" [size]="15" /> {{ t('notifBrowserOn') }}
+              </div>
+            } @else if (browserState() === 'denied') {
+              <div class="notif-panel__browser is-off">
+                <app-icon name="slash-circle" [size]="15" /> {{ t('notifBrowserDenied') }}
+              </div>
+            } @else {
+              <button class="notif-panel__browser" type="button" (click)="enableBrowser()">
+                <app-icon name="bell" [size]="15" /> {{ t('notifEnableBrowser') }}
+              </button>
+            }
+          }
+
+          @if (!isPlatform()) {
+            <button class="notif-panel__all" type="button" (click)="seeAll()">
+              <span>{{ t('notifSeeAll') }}</span>
+              <app-icon name="arrow-right" [size]="15" />
+            </button>
+          }
         </div>
       }
     </div>

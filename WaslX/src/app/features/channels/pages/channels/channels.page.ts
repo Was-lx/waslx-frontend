@@ -3,7 +3,15 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { Subscription as RxSubscription } from 'rxjs';
 
 import { environment } from '../../../../../environments/environment';
-import { WhatsAppApiService, stashConnectOptions } from '../../../../core/api/whatsapp-api.service';
+import {
+  WhatsAppApiService,
+  stashConnectOptions,
+  markConnectViaTab,
+  clearConnectViaTab,
+  readAndClearConnectResult,
+  readAndClearConnectError,
+  WA_CONNECT_RESULT_KEY,
+} from '../../../../core/api/whatsapp-api.service';
 import type { ConnectWhatsAppOptions, DistributionMode } from '../../../../core/api/whatsapp-api.service';
 import { GroupsApiService } from '../../../../core/api/groups-api.service';
 import type { Group } from '../../../../core/api/groups-api.service';
@@ -31,12 +39,8 @@ const CONTENT = {
     wizTag: 'Setup',
     wizTitle: 'Set up your number',
     wizText: 'Name this number and choose how incoming chats reach your team. You’ll link the number itself with Meta in the next step.',
-    idHint: 'For your reference only — the authoritative number is confirmed by Meta.',
     platformNameLabel: 'Platform name',
     platformNamePh: 'e.g. Sales · Cairo store',
-    countryLabel: 'Country code',
-    phoneLabel: 'Phone number',
-    phonePh: '10 1234 5678',
     distTitle: 'Distribution',
     distText: 'Decide how new conversations on this number are handed to agents.',
     modeLabel: 'Assignment mode',
@@ -55,6 +59,7 @@ const CONTENT = {
     startingGroupHint: 'New conversations start in this team’s pipeline.',
     next: 'Next',
     back: 'Back',
+    cancel: 'Cancel',
     errNeedPlatform: 'Please enter a platform name for this number.',
     errNeedOffline: 'Please choose whether to distribute to offline agents.',
     pending: 'Verification pending',
@@ -83,6 +88,9 @@ const CONTENT = {
     expiredStatus: 'Token expired',
     disconnect: 'Disconnect',
     connectErrorTitle: 'Connection failed',
+    connectErrorFallback: 'Something went wrong while connecting. Please try again.',
+    connectedToastTitle: 'Number connected',
+    connectedToastMsg: 'Your WhatsApp number is now connected.',
     disconnectErrorTitle: 'Disconnect failed',
     disconnectedToastTitle: 'Number disconnected',
     disconnectedToastMsg: 'Your WhatsApp number has been disconnected.',
@@ -103,12 +111,8 @@ const CONTENT = {
     wizTag: 'إعداد',
     wizTitle: 'جهّز رقمك',
     wizText: 'سمّي الرقم ده واختار إزاي المحادثات الجديدة توصل لفريقك. هتربط الرقم نفسه مع Meta في الخطوة اللي بعدها.',
-    idHint: 'للعرض فقط — الرقم المعتمد بيتأكد من Meta.',
     platformNameLabel: 'اسم المنصة',
     platformNamePh: 'مثال: المبيعات · فرع القاهرة',
-    countryLabel: 'كود الدولة',
-    phoneLabel: 'رقم الهاتف',
-    phonePh: '10 1234 5678',
     distTitle: 'التوزيع',
     distText: 'حدد إزاي المحادثات الجديدة على الرقم ده تتوزّع على الموظفين.',
     modeLabel: 'طريقة التعيين',
@@ -127,6 +131,7 @@ const CONTENT = {
     startingGroupHint: 'المحادثات الجديدة بتبدأ في مسار الفريق ده.',
     next: 'التالي',
     back: 'رجوع',
+    cancel: 'إلغاء',
     errNeedPlatform: 'من فضلك اكتب اسم منصة للرقم ده.',
     errNeedOffline: 'من فضلك اختار إذا كنت عايز توزّع على الموظفين غير المتصلين.',
     pending: 'في انتظار التحقق',
@@ -155,6 +160,9 @@ const CONTENT = {
     expiredStatus: 'انتهت صلاحية الاتصال',
     disconnect: 'قطع الاتصال',
     connectErrorTitle: 'فشل الربط',
+    connectErrorFallback: 'حصل خطأ أثناء الربط. حاول تاني.',
+    connectedToastTitle: 'تم ربط الرقم',
+    connectedToastMsg: 'رقم الواتساب بتاعك اتربط بنجاح.',
     disconnectErrorTitle: 'فشل قطع الاتصال',
     disconnectedToastTitle: 'تم فصل الرقم',
     disconnectedToastMsg: 'تم قطع اتصال رقم الواتساب بنجاح.',
@@ -173,13 +181,15 @@ const CONTENT = {
           <h1>{{ c().title }}</h1>
           <p class="channels__lead">{{ c().lead }}</p>
         </div>
-        <button class="feature-page__btn" type="button" [disabled]="connecting() || !!account()" (click)="advance()">
-          <app-icon name="link" [size]="17" /> {{ connecting() ? c().connecting : c().connect }}
+        @if (!account() && !showWizard()) {
+        <button class="feature-page__btn" type="button" (click)="startWizard()">
+          <app-icon name="link" [size]="17" /> {{ c().connect }}
         </button>
+        }
       </header>
 
-      <!-- 2-step connect wizard (only while no number is connected yet) -->
-      @if (!account()) {
+      <!-- 2-step connect wizard (shown only after the user starts a connection) -->
+      @if (!account() && showWizard()) {
 
       <!-- Stepper -->
       <ol class="channels__stepper" [attr.aria-label]="c().stepsEyebrow">
@@ -198,7 +208,7 @@ const CONTENT = {
       }
 
       <!-- Step 1 — configuration form (in-page, NOT a popup) -->
-      @if (!account() && step() === 1) {
+      @if (!account() && showWizard() && step() === 1) {
       <div class="ui-card channels__wizard">
         <div class="channels__wizard-head">
           <span class="channels__wa-badge"><app-icon name="sliders" [size]="13" /> {{ c().wizTag }}</span>
@@ -220,29 +230,7 @@ const CONTENT = {
               autocomplete="off"
             />
           </div>
-          <div class="ui-field">
-            <label class="ui-label" for="wa-cc">{{ c().countryLabel }}</label>
-            <select id="wa-cc" class="ui-select" [value]="countryCode()" (change)="onCountryChange($event)">
-              @for (cc of countryCodes; track cc.dial) {
-                <option [value]="cc.dial">{{ cc.dial }} · {{ cc.label }}</option>
-              }
-            </select>
-          </div>
-          <div class="ui-field">
-            <label class="ui-label" for="wa-phone">{{ c().phoneLabel }}</label>
-            <input
-              id="wa-phone"
-              class="ui-input"
-              type="tel"
-              inputmode="tel"
-              [value]="phone()"
-              (input)="onPhoneInput($event)"
-              [placeholder]="c().phonePh"
-              autocomplete="off"
-            />
-          </div>
         </div>
-        <p class="channels__id-hint"><app-icon name="lock" [size]="13" /> {{ c().idHint }}</p>
 
         <hr class="channels__divider" />
 
@@ -334,6 +322,9 @@ const CONTENT = {
         }
 
         <div class="channels__wizard-actions">
+          <button class="ui-btn ui-btn--ghost" type="button" (click)="cancelWizard()">
+            {{ c().cancel }}
+          </button>
           <button class="ui-btn ui-btn--primary channels__connect-btn" type="button" (click)="next()">
             {{ c().next }} <app-icon name="arrow-right" [size]="16" />
           </button>
@@ -342,7 +333,7 @@ const CONTENT = {
       }
 
       <!-- Step 2 — EXISTING Meta connect action (unchanged), gated behind step 1 -->
-      @if (!account() && step() === 2) {
+      @if (!account() && showWizard() && step() === 2) {
       <div class="ui-card channels__hero">
         <div class="channels__hero-glow" aria-hidden="true"></div>
         <div class="channels__hero-grid" aria-hidden="true"></div>
@@ -389,7 +380,8 @@ const CONTENT = {
       </div>
       }
 
-      <!-- How it works — 3-step strip -->
+      <!-- How it works — 3-step strip (shown during the Meta-connect step only) -->
+      @if (!account() && showWizard() && step() === 2) {
       <div class="channels__steps">
         <span class="ui-sectiontitle">{{ c().stepsEyebrow }}</span>
         <div class="channels__steps-grid">
@@ -413,8 +405,10 @@ const CONTENT = {
           </div>
         </div>
       </div>
+      }
 
-      <!-- Connected numbers -->
+      <!-- Connected numbers — hidden while the connect wizard is open; shown at rest or once a number exists -->
+      @if (account() || !showWizard()) {
       <div class="channels__list">
         <span class="ui-sectiontitle">{{ c().listTitle }}</span>
 
@@ -446,12 +440,13 @@ const CONTENT = {
           <app-icon name="phone" [size]="26" />
           <h3>{{ c().emptyTitle }}</h3>
           <p>{{ c().emptyText }}</p>
-          <button class="ui-btn ui-btn--ghost ui-btn--sm channels__empty-cta" type="button" [disabled]="connecting()" (click)="connect()">
-            <app-icon name="link" [size]="15" /> {{ connecting() ? c().connecting : c().emptyCta }}
+          <button class="ui-btn ui-btn--ghost ui-btn--sm channels__empty-cta" type="button" (click)="startWizard()">
+            <app-icon name="link" [size]="15" /> {{ c().emptyCta }}
           </button>
         </div>
         }
       </div>
+      }
     </section>
   `,
   styles: [`
@@ -522,7 +517,7 @@ const CONTENT = {
     .channels__form-error { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
     .channels__form-error svg { flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    .channels__wizard-actions { display: flex; justify-content: flex-end; margin-top: 2px; }
+    .channels__wizard-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 2px; }
     .channels__wizard-actions .channels__connect-btn svg,
     .channels__back-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     [dir='rtl'] .channels__wizard-actions .channels__connect-btn svg,
@@ -709,36 +704,21 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
 
   // ── 2-step connect wizard state ──
   readonly step = signal<1 | 2>(1);
+  // The wizard is hidden until the user actively starts a connection (Connect button / empty-state CTA).
+  readonly showWizard = signal(false);
   readonly groups = signal<Group[]>([]);
   readonly step1Error = signal<string | null>(null);
 
   readonly platformName = signal('');
-  readonly countryCode = signal('+20');
-  readonly phone = signal('');
   readonly distributionMode = signal<DistributionMode>('RoundRobin');
   readonly distributeToOffline = signal<boolean | null>(null);
   readonly reassignOnOffline = signal(false);
   readonly startingGroupId = signal<number | null>(null);
 
-  /** Country codes shown in the display-only phone field (MENA-first). */
-  readonly countryCodes: ReadonlyArray<{ dial: string; label: string }> = [
-    { dial: '+20', label: 'EG' },
-    { dial: '+966', label: 'SA' },
-    { dial: '+971', label: 'AE' },
-    { dial: '+965', label: 'KW' },
-    { dial: '+974', label: 'QA' },
-    { dial: '+973', label: 'BH' },
-    { dial: '+968', label: 'OM' },
-    { dial: '+962', label: 'JO' },
-    { dial: '+961', label: 'LB' },
-    { dial: '+212', label: 'MA' },
-    { dial: '+216', label: 'TN' },
-    { dial: '+213', label: 'DZ' },
-    { dial: '+970', label: 'PS' },
-    { dial: '+964', label: 'IQ' },
-  ];
-
   private subs: RxSubscription[] = [];
+  // Handle for the transient-failure reload retry, so ngOnDestroy can cancel it (an uncancelled
+  // setTimeout survives navigation/logout and would loop getAccount → 401 forever off-screen).
+  private reloadTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     this.loading.set(true);
@@ -762,14 +742,6 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
     this.step1Error.set(null);
   }
 
-  onCountryChange(event: Event): void {
-    this.countryCode.set((event.target as HTMLSelectElement).value);
-  }
-
-  onPhoneInput(event: Event): void {
-    this.phone.set((event.target as HTMLInputElement).value);
-  }
-
   onModeChange(event: Event): void {
     this.distributionMode.set((event.target as HTMLSelectElement).value as DistributionMode);
     this.step1Error.set(null);
@@ -783,18 +755,6 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
   onGroupChange(event: Event): void {
     const raw = (event.target as HTMLSelectElement).value;
     this.startingGroupId.set(raw ? Number(raw) : null);
-  }
-
-  /** Header CTA — mirrors the current step's primary action. */
-  advance(): void {
-    if (this.connecting() || this.account()) {
-      return;
-    }
-    if (this.step() === 1) {
-      this.next();
-    } else {
-      this.connect();
-    }
   }
 
   /** Validate step 1, then reveal the (unchanged) Meta connect action in step 2. */
@@ -818,6 +778,20 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
     this.step.set(1);
   }
 
+  /** Connect CTA (header + empty state) — reveal the guided setup at step 1 (never skip config). */
+  startWizard(): void {
+    this.showWizard.set(true);
+    this.step.set(1);
+    this.step1Error.set(null);
+  }
+
+  /** Collapse the wizard back to the resting Channels view (the Connected numbers section). */
+  cancelWizard(): void {
+    this.showWizard.set(false);
+    this.step.set(1);
+    this.step1Error.set(null);
+  }
+
   private loadAccount(): void {
     this.subs.push(
       this.whatsAppApi.getAccount().subscribe({
@@ -832,9 +806,15 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
             this.loading.set(false);
             return;
           }
-          // Transient failure (backend restarting, network blip) — keep showing the
-          // loading state and retry shortly instead of flashing a false "disconnected".
-          setTimeout(() => this.loadAccount(), 3000);
+          if (err.status === 400 || err.status === 401 || err.status === 403) {
+            // Auth/tenant failure (e.g. the user logged out) — never retry-loop. The error
+            // interceptor owns the session; here we just stop so we don't hammer 401s off-screen.
+            this.loading.set(false);
+            return;
+          }
+          // Transient failure (backend restarting, network blip) — retry shortly. Keep the timer
+          // handle so ngOnDestroy can cancel it.
+          this.reloadTimer = setTimeout(() => this.loadAccount(), 3000);
         }
       })
     );
@@ -842,10 +822,17 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.forEach((sub) => sub.unsubscribe());
+    this.detachConnectListener();
+    if (this.reloadTimer) {
+      clearTimeout(this.reloadTimer);
+      this.reloadTimer = null;
+    }
   }
 
-  /** Navigates the whole page to Meta's OAuth dialog; the flow completes on /auth/meta-callback.
-   *  Step-1 config is stashed first so the callback page can pass it into the connect call. */
+  /** Opens Meta's OAuth dialog in a NEW TAB so the app stays put, then auto-listens for the
+   *  connection to finish and reflects it here — no manual refresh. Step-1 config is stashed first
+   *  so the callback tab can pass it into the connect call. Falls back to the original full-page
+   *  redirect if a popup blocker prevents the new tab. */
   connect(): void {
     if (this.connecting()) {
       return;
@@ -862,11 +849,109 @@ export class ChannelsPageComponent implements OnInit, OnDestroy {
     };
     stashConnectOptions(options);
 
-    this.facebookSdk.beginWhatsAppEmbeddedSignupRedirect(
+    // Mark the flow as new-tab so the callback tab closes itself and hands the result back here.
+    markConnectViaTab();
+    const metaTab = this.facebookSdk.openWhatsAppEmbeddedSignupTab(
       environment.facebookAppId,
       environment.whatsAppEmbeddedSignupConfigId,
       environment.facebookApiVersion
     );
+
+    if (!metaTab) {
+      // A popup blocker stopped the new tab — fall back to the original full-page redirect.
+      clearConnectViaTab();
+      this.facebookSdk.beginWhatsAppEmbeddedSignupRedirect(
+        environment.facebookAppId,
+        environment.whatsAppEmbeddedSignupConfigId,
+        environment.facebookApiVersion
+      );
+      return;
+    }
+
+    this.attachConnectListener();
+  }
+
+  // ── New-tab connect: auto-listen for the callback tab to finish, then reflect it here ──
+
+  private connectStorageHandler: ((e: StorageEvent) => void) | null = null;
+  private connectFocusHandler: (() => void) | null = null;
+
+  /** Listens for the connect outcome: primarily the cross-tab `storage` signal the callback writes,
+   *  with a `focus` backup for when the user returns before (or without) that signal firing. */
+  private attachConnectListener(): void {
+    if (this.connectStorageHandler) {
+      return;
+    }
+    this.connectStorageHandler = (e: StorageEvent) => {
+      if (e.key === WA_CONNECT_RESULT_KEY && e.newValue) {
+        this.consumeConnectResult(false);
+      }
+    };
+    this.connectFocusHandler = () => this.consumeConnectResult(true);
+    window.addEventListener('storage', this.connectStorageHandler);
+    window.addEventListener('focus', this.connectFocusHandler);
+  }
+
+  private detachConnectListener(): void {
+    if (this.connectStorageHandler) {
+      window.removeEventListener('storage', this.connectStorageHandler);
+      this.connectStorageHandler = null;
+    }
+    if (this.connectFocusHandler) {
+      window.removeEventListener('focus', this.connectFocusHandler);
+      this.connectFocusHandler = null;
+    }
+  }
+
+  /** Acts on the connect outcome handed over by the callback tab. */
+  private consumeConnectResult(fromFocus: boolean): void {
+    const result = readAndClearConnectResult();
+    if (result === 'connected') {
+      this.reloadAfterConnect();
+      return;
+    }
+    if (result === 'error') {
+      this.connecting.set(false);
+      this.detachConnectListener();
+      this.toast.error(
+        this.c().connectErrorTitle,
+        readAndClearConnectError() ?? this.c().connectErrorFallback,
+      );
+      return;
+    }
+    // No explicit signal yet. On a focus backup, free the button and re-probe the account in case
+    // the connect already succeeded but the signal was missed; keep listening for a later finish.
+    if (fromFocus) {
+      this.connecting.set(false);
+      this.whatsAppApi.getAccount().subscribe({
+        next: (account) => this.applyConnected(account),
+        error: () => {
+          /* still not connected — leave the listener in place for a later completion */
+        },
+      });
+    }
+  }
+
+  private reloadAfterConnect(): void {
+    this.subs.push(
+      this.whatsAppApi.getAccount().subscribe({
+        next: (account) => this.applyConnected(account),
+        error: () => {
+          this.connecting.set(false);
+          this.detachConnectListener();
+        },
+      })
+    );
+  }
+
+  /** Reflects a freshly connected number in the UI and tears the listener down. */
+  private applyConnected(account: WhatsAppAccount): void {
+    this.account.set(account);
+    this.channelStatus.set(account.status);
+    this.connecting.set(false);
+    this.showWizard.set(false);
+    this.detachConnectListener();
+    this.toast.success(this.c().connectedToastTitle, this.c().connectedToastMsg);
   }
 
   disconnect(): void {

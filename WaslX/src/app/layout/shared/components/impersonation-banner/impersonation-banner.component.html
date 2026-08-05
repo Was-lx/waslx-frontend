@@ -1,0 +1,32 @@
+@if (session(); as s) {
+  <div
+    class="ui-banner ui-banner--danger ui-banner--enter"
+    role="alert"
+    [attr.aria-label]="t('impBannerLabel')"
+    [attr.dir]="direction()"
+  >
+    <span class="ui-banner__icon" aria-hidden="true">
+      <app-icon name="eye" [size]="17" />
+    </span>
+    <div class="ui-banner__body">
+      <span class="ui-banner__title">{{ viewingText() }}</span>
+      <span class="ui-banner__sep" aria-hidden="true">·</span>
+      <span class="ui-banner__meta">{{ startedText() }}</span>
+      <span class="ui-banner__sep" aria-hidden="true">·</span>
+      @if (expired()) {
+        <span class="ui-banner__meta">{{ t('impBannerExpired') }}</span>
+      } @else {
+        <span class="ui-banner__meta">{{ expiresText() }}</span>
+      }
+    </div>
+    <div class="ui-banner__actions">
+      <button type="button" class="ui-btn ui-btn--danger ui-btn--sm" [disabled]="exiting()" (click)="exit()">
+        @if (exiting()) {
+          <span class="ui-spinner" aria-hidden="true"></span> {{ t('impBannerExiting') }}
+        } @else {
+          <app-icon name="log-out" [size]="15" /> {{ t('impBannerExit') }}
+        }
+      </button>
+    </div>
+  </div>
+}

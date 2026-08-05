@@ -1,51 +1,105 @@
 import type { AppLanguage } from './language.types';
 
-// ─── Contacts page translations ───────────────────────────────────────────────
+// ─── Contacts directory translations ──────────────────────────────────────────
 
 export type ContactsKey =
   | 'contactList'
-  | 'addContact'
-  // Empty / preview state
   | 'contactsEyebrow'
+  | 'contactsCount'
+  | 'contactsSearchPh'
+  | 'contactsExport'
+  | 'contactsExporting'
+  | 'contactsExportCsv'
+  | 'contactsExportExcel'
+  | 'contactsAllTags'
+  | 'contactsAllAssignees'
+  | 'contactsDateFrom'
+  | 'contactsDateTo'
+  | 'contactsClear'
+  | 'contactsColName'
+  | 'contactsColPhone'
+  | 'contactsColConv'
+  | 'contactsColLast'
+  | 'contactsColAssigned'
+  | 'contactsColTags'
+  | 'contactsUnassigned'
+  | 'contactsLoading'
+  | 'contactsNoResults'
   | 'contactsEmptyTitle'
   | 'contactsEmptyDesc'
-  | 'contactsImportCta'
-  | 'contactsFeatSegments'
-  | 'contactsFeatSegmentsDesc'
-  | 'contactsFeatHistory'
-  | 'contactsFeatHistoryDesc'
-  | 'contactsFeatVip'
-  | 'contactsFeatVipDesc';
+  | 'contactsOf'
+  | 'contactsPrev'
+  | 'contactsNext'
+  | 'contactsLoadErrorTitle'
+  | 'contactsLoadErrorMsg'
+  | 'contactsExportErrorTitle'
+  | 'contactsExportErrorMsg';
 
 export const contactsTranslations: Record<AppLanguage, Record<ContactsKey, string>> = {
   en: {
-    contactList: 'Contact List',
-    addContact: 'Add Contact',
+    contactList: 'Contacts',
     contactsEyebrow: 'Customer directory',
-    contactsEmptyTitle: 'Your customer directory starts here',
-    contactsEmptyDesc:
-      'Every person who messages your WhatsApp number becomes a rich contact — with tags, tiers, and full conversation history. Add your first one or import a list to begin.',
-    contactsImportCta: 'Import contacts',
-    contactsFeatSegments: 'Smart segments',
-    contactsFeatSegmentsDesc: 'Group by tier, tag, or activity',
-    contactsFeatHistory: 'Full history',
-    contactsFeatHistoryDesc: 'Every chat in one profile',
-    contactsFeatVip: 'VIP tiers',
-    contactsFeatVipDesc: 'Flag and prioritize key accounts',
+    contactsCount: 'contacts',
+    contactsSearchPh: 'Search name or number…',
+    contactsExport: 'Export',
+    contactsExporting: 'Exporting…',
+    contactsExportCsv: 'CSV (.csv)',
+    contactsExportExcel: 'Excel (.xlsx)',
+    contactsAllTags: 'All tags',
+    contactsAllAssignees: 'All assignees',
+    contactsDateFrom: 'Contacted from',
+    contactsDateTo: 'To',
+    contactsClear: 'Clear',
+    contactsColName: 'Name',
+    contactsColPhone: 'Phone',
+    contactsColConv: 'Chats',
+    contactsColLast: 'Last contact',
+    contactsColAssigned: 'Assigned to',
+    contactsColTags: 'Tags',
+    contactsUnassigned: 'Unassigned',
+    contactsLoading: 'Loading contacts…',
+    contactsNoResults: 'No contacts match your filters.',
+    contactsEmptyTitle: 'No contacts yet',
+    contactsEmptyDesc: 'Everyone who messages your WhatsApp number appears here automatically.',
+    contactsOf: 'of',
+    contactsPrev: 'Previous',
+    contactsNext: 'Next',
+    contactsLoadErrorTitle: 'Could not load contacts',
+    contactsLoadErrorMsg: 'Please try again in a moment.',
+    contactsExportErrorTitle: 'Export failed',
+    contactsExportErrorMsg: 'Could not export the contacts. Please try again.',
   },
   ar: {
-    contactList: 'قائمة جهات الاتصال',
-    addContact: 'إضافة جهة اتصال',
+    contactList: 'جهات الاتصال',
     contactsEyebrow: 'دليل العملاء',
-    contactsEmptyTitle: 'دليل عملائك يبدأ من هنا',
-    contactsEmptyDesc:
-      'كل شخص يراسل رقم واتساب يصبح جهة اتصال غنية — مع الوسوم والفئات وسجل المحادثات الكامل. أضف أول جهة اتصال أو استورد قائمة للبدء.',
-    contactsImportCta: 'استيراد جهات الاتصال',
-    contactsFeatSegments: 'شرائح ذكية',
-    contactsFeatSegmentsDesc: 'التجميع حسب الفئة أو الوسم أو النشاط',
-    contactsFeatHistory: 'سجل كامل',
-    contactsFeatHistoryDesc: 'كل المحادثات في ملف واحد',
-    contactsFeatVip: 'فئات VIP',
-    contactsFeatVipDesc: 'ميّز وأعطِ الأولوية للحسابات المهمة',
+    contactsCount: 'جهة اتصال',
+    contactsSearchPh: 'ابحث بالاسم أو الرقم…',
+    contactsExport: 'تصدير',
+    contactsExporting: 'جارٍ التصدير…',
+    contactsExportCsv: 'CSV (.csv)',
+    contactsExportExcel: 'Excel (.xlsx)',
+    contactsAllTags: 'كل الوسوم',
+    contactsAllAssignees: 'كل المعيّنين',
+    contactsDateFrom: 'تم التواصل من',
+    contactsDateTo: 'إلى',
+    contactsClear: 'مسح',
+    contactsColName: 'الاسم',
+    contactsColPhone: 'الهاتف',
+    contactsColConv: 'المحادثات',
+    contactsColLast: 'آخر تواصل',
+    contactsColAssigned: 'معيّن إلى',
+    contactsColTags: 'الوسوم',
+    contactsUnassigned: 'غير معيّن',
+    contactsLoading: 'جارٍ تحميل جهات الاتصال…',
+    contactsNoResults: 'لا توجد جهات اتصال تطابق الفلاتر.',
+    contactsEmptyTitle: 'لا توجد جهات اتصال بعد',
+    contactsEmptyDesc: 'كل من يراسل رقم واتساب بتاعك بيظهر هنا تلقائيًا.',
+    contactsOf: 'من',
+    contactsPrev: 'السابق',
+    contactsNext: 'التالي',
+    contactsLoadErrorTitle: 'تعذّر تحميل جهات الاتصال',
+    contactsLoadErrorMsg: 'حاول تاني بعد لحظة.',
+    contactsExportErrorTitle: 'فشل التصدير',
+    contactsExportErrorMsg: 'تعذّر تصدير جهات الاتصال. حاول تاني.',
   },
 };

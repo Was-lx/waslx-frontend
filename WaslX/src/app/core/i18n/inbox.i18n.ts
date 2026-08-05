@@ -64,6 +64,24 @@ export type InboxKey =
   // Views + filters bar
   | 'inboxViewInbox'
   | 'inboxViewQueue'
+  | 'newConvButton'
+  | 'newConvTitle'
+  | 'newConvSubtitle'
+  | 'newConvCountry'
+  | 'newConvPhone'
+  | 'newConvPhonePh'
+  | 'newConvHint'
+  | 'newConvTemplate'
+  | 'newConvTemplatePh'
+  | 'newConvNoTemplates'
+  | 'newConvSend'
+  | 'newConvSending'
+  | 'newConvCancel'
+  | 'newConvNeedPhone'
+  | 'newConvNeedTemplate'
+  | 'newConvSuccessTitle'
+  | 'newConvSuccessMsg'
+  | 'newConvErrorTitle'
   | 'filterStatus'
   | 'filterGroup'
   | 'filterTag'
@@ -117,6 +135,12 @@ export type InboxKey =
   | 'escalationEnterDetails'
   | 'escalationCancel'
   | 'escalationAutoAssigned'
+  | 'escalationReject'
+  | 'escalationRejected'
+  | 'escalationScore'
+  | 'escalationCandidates'
+  | 'escalationRankedCandidates'
+  | 'escalationActiveChats'
   // Badges (FE-4.4)
   | 'sentimentPositive'
   | 'sentimentNeutral'
@@ -189,7 +213,25 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxAllNumbers: 'All numbers',
     inboxNumbersTitle: 'WhatsApp numbers',
     inboxViewInbox: 'Inbox',
-    inboxViewQueue: 'Unassigned queue',
+    inboxViewQueue: 'Unassigned',
+    newConvButton: 'New conversation',
+    newConvTitle: 'New conversation',
+    newConvSubtitle: 'Message a new number. WhatsApp requires the first message to be an approved template.',
+    newConvCountry: 'Country code',
+    newConvPhone: 'Phone number',
+    newConvPhonePh: 'e.g. 1001234567',
+    newConvHint: 'Will send to',
+    newConvTemplate: 'Template',
+    newConvTemplatePh: 'Select an approved template',
+    newConvNoTemplates: 'No approved templates yet. Create and get one approved first.',
+    newConvSend: 'Send',
+    newConvSending: 'Sending…',
+    newConvCancel: 'Cancel',
+    newConvNeedPhone: 'Enter a valid phone number.',
+    newConvNeedTemplate: 'Choose a template to send.',
+    newConvSuccessTitle: 'Message sent',
+    newConvSuccessMsg: 'The conversation now appears in your inbox.',
+    newConvErrorTitle: 'Could not send',
     filterStatus: 'Status',
     filterGroup: 'Group',
     filterTag: 'Tag',
@@ -239,6 +281,12 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     escalationEnterDetails: 'Enter details...',
     escalationCancel: 'Cancel',
     escalationAutoAssigned: 'Auto-assigned',
+    escalationReject: 'Reject',
+    escalationRejected: 'Recommendation rejected',
+    escalationScore: 'Score',
+    escalationCandidates: 'Candidates',
+    escalationRankedCandidates: 'Ranked candidates',
+    escalationActiveChats: 'active chats',
     sentimentPositive: 'Positive',
     sentimentNeutral: 'Neutral',
     sentimentNegative: 'Negative',
@@ -309,7 +357,25 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     inboxAllNumbers: 'كل الأرقام',
     inboxNumbersTitle: 'أرقام واتساب',
     inboxViewInbox: 'الوارد',
-    inboxViewQueue: 'طابور غير المعيّنة',
+    inboxViewQueue: 'غير المعيّنة',
+    newConvButton: 'محادثة جديدة',
+    newConvTitle: 'محادثة جديدة',
+    newConvSubtitle: 'ابعت لرقم جديد. واتساب بيطلب إن أول رسالة تكون قالب معتمد.',
+    newConvCountry: 'كود الدولة',
+    newConvPhone: 'رقم الهاتف',
+    newConvPhonePh: 'مثال: 1001234567',
+    newConvHint: 'هيتبعت إلى',
+    newConvTemplate: 'القالب',
+    newConvTemplatePh: 'اختر قالباً معتمداً',
+    newConvNoTemplates: 'لا توجد قوالب معتمدة بعد. أنشئ قالباً واعتمده أولاً.',
+    newConvSend: 'إرسال',
+    newConvSending: 'جارٍ الإرسال…',
+    newConvCancel: 'إلغاء',
+    newConvNeedPhone: 'اكتب رقم هاتف صحيح.',
+    newConvNeedTemplate: 'اختر قالباً للإرسال.',
+    newConvSuccessTitle: 'تم الإرسال',
+    newConvSuccessMsg: 'المحادثة ظهرت في صندوقك الآن.',
+    newConvErrorTitle: 'تعذّر الإرسال',
     filterStatus: 'الحالة',
     filterGroup: 'المجموعة',
     filterTag: 'الوسم',
@@ -359,6 +425,12 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     escalationEnterDetails: 'أدخل التفاصيل...',
     escalationCancel: 'إلغاء',
     escalationAutoAssigned: 'تعيين تلقائي',
+    escalationReject: 'رفض',
+    escalationRejected: 'تم رفض الاقتراح',
+    escalationScore: 'النتيجة',
+    escalationCandidates: 'المرشحون',
+    escalationRankedCandidates: 'المرشحون حسب الترتيب',
+    escalationActiveChats: 'محادثات نشطة',
     sentimentPositive: 'إيجابي',
     sentimentNeutral: 'حيادي',
     sentimentNegative: 'سلبي',

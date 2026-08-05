@@ -13,6 +13,7 @@ export class EscalationRealtimeService {
   readonly escalationAssignmentConfirmed = new Subject<EscalationRecommendation>();
   readonly escalationAutoAssigned = new Subject<EscalationRecommendation>();
   readonly escalationOverrideApplied = new Subject<EscalationRecommendation>();
+  readonly escalationRejected = new Subject<EscalationRecommendation>();
   readonly conversationOwnershipTransferred = new Subject<OwnershipTransferredPayload>();
   readonly conversationEscalated = new Subject<ConversationEscalatedPayload>();
 
@@ -30,6 +31,8 @@ export class EscalationRealtimeService {
       this.escalationAutoAssigned.next(r));
     this.realtime['hub']?.on('EscalationOverrideApplied', (r: EscalationRecommendation) =>
       this.escalationOverrideApplied.next(r));
+    this.realtime['hub']?.on('EscalationRejected', (r: EscalationRecommendation) =>
+      this.escalationRejected.next(r));
     this.realtime['hub']?.on('ConversationOwnershipTransferred', (p: OwnershipTransferredPayload) =>
       this.conversationOwnershipTransferred.next(p));
     this.realtime['hub']?.on('ConversationEscalated', (p: ConversationEscalatedPayload) =>

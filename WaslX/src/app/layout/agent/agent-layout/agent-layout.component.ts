@@ -43,7 +43,8 @@ export class AgentLayoutComponent {
         items: [
           { id: 'dashboard', label: t('dashboard'), description: t('dashboardDesc'), icon: 'grid', routerLink: '/app/dashboard' },
           { id: 'inbox', label: t('inbox'), description: t('inboxDesc'), icon: 'message', routerLink: '/app/inbox' },
-          { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' }
+          { id: 'contacts', label: t('contacts'), description: t('contactsDesc'), icon: 'folder', routerLink: '/app/contacts' },
+          { id: 'reports', label: t('reports'), description: t('reportsDesc'), icon: 'trending-up', routerLink: '/app/reports' }
         ]
       },
       {

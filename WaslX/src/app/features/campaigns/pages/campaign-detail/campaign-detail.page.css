@@ -1,0 +1,69 @@
+/* ============================================================================
+   WaslX — Campaign detail / analytics. Component-specific only.
+   ========================================================================== */
+
+:host { display: block; }
+
+.cmpd-hd { display: flex; flex-direction: column; gap: 4px; }
+.cmpd-hd__back {
+  display: inline-flex; align-items: center; gap: 5px; margin-bottom: 6px;
+  font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-decoration: none;
+  transition: color 140ms ease, transform 140ms var(--ease-out);
+}
+.cmpd-hd__back:hover { color: var(--primary); }
+.cmpd-hd__back:active { transform: scale(0.97); }
+.cmpd-hd__back svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+[dir='rtl'] .cmpd-hd__back svg { transform: scaleX(-1); }
+.cmpd-hd__titlerow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cmpd-hd__meta { margin-top: 4px; font-size: 0.84rem; color: var(--text-muted); }
+
+.cmpd-controls { align-items: center; }
+.cmpd-controls svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── KPI row ── */
+.cmpd-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+/* ── Delivery meter card ── */
+.cmpd-meter-card { padding: 20px 22px; }
+.cmpd-meter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.cmpd-meter-pct { font-size: 0.82rem; color: var(--text-muted); }
+.cmpd-meter-pct strong { font-size: 1.05rem; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.cmpd-big-meter { height: 14px; }
+
+/* ── Charts ── */
+.cmpd-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ── Recipients ── */
+.cmpd-recipients { display: flex; flex-direction: column; gap: 14px; }
+.cmpd-recipients__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.cmpd-recip-seg { flex-wrap: wrap; }
+.cmpd-phone { font-variant-numeric: tabular-nums; color: var(--text-secondary); white-space: nowrap; }
+.cmpd-time { color: var(--text-secondary); font-size: 0.84rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cmpd-detail { color: var(--text-muted); font-size: 0.84rem; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmpd-recip-empty { min-height: 180px; }
+
+/* ── Skeleton ── */
+.cmpd-skel-hd { margin-bottom: 4px; }
+.cmp-skel { display: inline-block; height: 14px; border-radius: 7px; }
+.sk-shimmer {
+  background: linear-gradient(100deg, var(--surface-soft) 30%, color-mix(in srgb, var(--text-primary) 6%, var(--surface-soft)) 50%, var(--surface-soft) 70%);
+  background-size: 200% 100%;
+  animation: cmpd-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes cmpd-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (max-width: 1000px) {
+  .cmpd-kpis { grid-template-columns: repeat(2, 1fr); }
+  .cmpd-charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .cmpd-kpis { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk-shimmer { animation: none; }
+  .cmpd-hd__back:active { transform: none; }
+}

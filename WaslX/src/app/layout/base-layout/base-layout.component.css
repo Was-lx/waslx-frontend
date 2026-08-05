@@ -1,0 +1,20 @@
+/* Base layout owns the full viewport; the impersonation banner (when present)
+   takes its natural height at the top and the role shell fills the remainder. */
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.base-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* When impersonating, the shell shrinks by the banner height so nothing is
+   hidden behind the pinned bar. The shell itself is height:100% (see shell CSS). */
+.base-shell--imp {
+  height: auto;
+}
