@@ -13,8 +13,6 @@ import {
   type AiHandledConversation,
   type AiKnowledgeFile,
 } from '../../../../core/api/ai-agent-api.service';
-import { EscalationApiService } from '../../../inbox/services/escalation-api.service';
-import type { EscalationMode } from '../../../inbox/models/escalation-recommendation.model';
 
 const DEFAULT_SETTINGS: AiAgentSettings = {
   enabled: false,
@@ -143,19 +141,6 @@ const DEFAULT_SETTINGS: AiAgentSettings = {
         </div>
       </div>
 
-      <!-- Escalation mode (US-4.4) -->
-      <div class="aip__card">
-        <div class="aip__card-head">
-          <h2 class="aip__card-title">{{ t('aiEscMode') }}</h2>
-          <label class="aip__switch">
-            <input type="checkbox" [checked]="escalationMode() === 'autoAssign'"
-                   (change)="setEscalationMode($any($event.target).checked)" />
-            <span class="aip__switch-track"><span class="aip__switch-thumb"></span></span>
-          </label>
-        </div>
-        <p class="aip__muted">{{ escalationMode() === 'autoAssign' ? t('aiEscAutoDesc') : t('aiEscRecDesc') }}</p>
-      </div>
-
       <!-- Monitoring -->
       <div class="aip__card">
         <h2 class="aip__card-title">{{ t('aiMonitorTitle') }}</h2>
@@ -259,7 +244,6 @@ export class AiAgentPageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly aiApi = inject(AiAgentApiService);
   private readonly whatsapp = inject(WhatsAppApiService);
-  private readonly escalationApi = inject(EscalationApiService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly settings = signal<AiAgentSettings>({ ...DEFAULT_SETTINGS });
@@ -268,7 +252,6 @@ export class AiAgentPageComponent implements OnInit {
   protected readonly accounts = signal<WhatsAppAccountSummary[]>([]);
   protected readonly saving = signal(false);
   protected readonly unavailable = signal(false);
-  protected readonly escalationMode = signal<EscalationMode>('recommend');
 
   protected readonly thresholdPct = computed(() => Math.round(this.settings().handoffThreshold * 100));
 
@@ -312,14 +295,6 @@ export class AiAgentPageComponent implements OnInit {
 
   protected setThreshold(pct: string): void {
     this.patch({ handoffThreshold: Math.max(0, Math.min(100, Number(pct))) / 100 });
-  }
-
-  protected setEscalationMode(autoAssign: boolean): void {
-    const mode: EscalationMode = autoAssign ? 'autoAssign' : 'recommend';
-    this.escalationMode.set(mode);
-    this.escalationApi.updateSettings(mode).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      error: () => this.escalationMode.set(mode === 'autoAssign' ? 'recommend' : 'autoAssign')
-    });
   }
 
   protected isNumberEnabled(accountId: number): boolean {

@@ -1,6 +1,6 @@
 export type SentimentLabel = 'positive' | 'neutral' | 'negative' | 'angry';
 export type PriorityLabel = 'low' | 'normal' | 'high' | 'urgent';
-export type EscalationStatus = 'none' | 'open' | 'recommended' | 'assigned' | 'resolved';
+export type EscalationStatus = 'none' | 'open' | 'assigned' | 'resolved';
 
 export interface ConversationClassificationBadgeData {
   conversationId: number;

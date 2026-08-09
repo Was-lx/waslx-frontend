@@ -47,7 +47,7 @@ export class EscalationStatusChipComponent {
   protected readonly visible = computed(() => {
     if (this.escalate()) return true;
     const s = this.status();
-    return s === 'open' || s === 'recommended' || s === 'assigned';
+    return s === 'open' || s === 'assigned';
   });
 
   protected readonly isActive = computed(() => {
@@ -57,7 +57,6 @@ export class EscalationStatusChipComponent {
 
   protected readonly label = computed(() => {
     const s = this.status();
-    if (s === 'recommended') return this.t('badgePending');
     if (s === 'assigned') return this.t('badgeAssigned');
     return this.t('badgeEscalated');
   });

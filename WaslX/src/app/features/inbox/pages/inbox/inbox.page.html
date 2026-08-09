@@ -124,12 +124,7 @@
           [aiMode]="detail()?.aiMode"
           [aiModeChanging]="aiModeChanging()"
           [badgeData]="badgeData()"
-          [escalationRecommendation]="escalationRecommendation()"
           [escalationOwnershipTransfer]="escalationOwnershipTransfer()"
-          [isManagerOrAdmin]="isManagerOrAdmin()"
-          [escalationAgents]="escalationAgents()"
-          [escalationConfirming]="escalationConfirming()"
-          [showOverrideDialog]="showOverrideDialog()"
           (send)="onSend($event)"
           (sendMedia)="onSendMedia($event)"
           (attachError)="onAttachError($event)"
@@ -149,10 +144,6 @@
           (retrySummary)="onRefreshSummary()"
           (takeOver)="onChangeAiMode('Paused')"
           (changeAiMode)="onChangeAiMode($event)"
-          (escalationConfirm)="onEscalationConfirm($event)"
-          (escalationOverride)="onEscalationOverrideOpen()"
-          (escalationOverrideSubmit)="onEscalationOverrideSubmit($event)"
-          (escalationOverrideCancel)="onEscalationOverrideCancel()"
         />
       } @else {
         <div class="inbox__placeholder">

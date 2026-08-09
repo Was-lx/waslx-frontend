@@ -14,9 +14,7 @@ import { AiAgentApiService } from '../../../../core/api/ai-agent-api.service';
 import { EscalationStore } from '../../store/escalation.store';
 import { ConversationBadgesStore } from '../../store/conversation-badges.store';
 import { EscalationRealtimeService } from '../../services/escalation-realtime.service';
-import { EscalationApiService } from '../../services/escalation-api.service';
 import type { OwnershipTransferredPayload } from '../../models/escalation-recommendation.model';
-import type { AgentOption } from '../../components/escalation-override-dialog/escalation-override-dialog.component';
 import { apiError, apiErrorMessage } from '../../../../core/utils/api-error';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ConversationCardComponent } from '../../components/conversation-card/conversation-card.component';
@@ -99,24 +97,10 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   private readonly escalationStore = inject(EscalationStore);
   private readonly badgesStore = inject(ConversationBadgesStore);
   private readonly escalationRealtime = inject(EscalationRealtimeService);
-  private readonly escalationApi = inject(EscalationApiService);
-  protected readonly escalationRecommendation = computed(() => {
-    const id = this.selectedId();
-    return id != null ? this.escalationStore.getRecommendation(id) ?? null : null;
-  });
   protected readonly escalationOwnershipTransfer = computed<OwnershipTransferredPayload | null>(() => {
     const id = this.selectedId();
     return id != null ? this.escalationStore.getOwnershipTransfer(id) ?? null : null;
   });
-  protected readonly isManagerOrAdmin = computed(() => {
-    const role = this.auth.userProfile()?.role;
-    return role === 'Admin' || role === 'Manager';
-  });
-  protected readonly escalationAgents = computed<AgentOption[]>(() =>
-    this.users().map((u) => ({ id: Number(u.id), name: u.name }))
-  );
-  protected readonly escalationConfirming = signal(false);
-  protected readonly showOverrideDialog = signal(false);
 
   // Badges (FE-4.4)
   protected readonly badgeData = computed(() => {
@@ -182,8 +166,6 @@ export class InboxPageComponent implements OnInit, OnDestroy {
 
     this.escalationStore.init();
     this.badgesStore.init();
-    void this.escalationStore.loadSettings();
-    this.escalationRealtime.escalationRecommendationUpdated.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((r) => this.onEscalationRecommendation(r));
     this.escalationRealtime.escalationAutoAssigned.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((r) => this.onEscalationAutoAssigned(r));
     this.escalationRealtime.conversationOwnershipTransferred.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => this.onOwnershipTransferred(p));
 
@@ -566,10 +548,6 @@ export class InboxPageComponent implements OnInit, OnDestroy {
   }
 
   // ── Escalation realtime handlers (FE-4.2) ────────────────────────────────────
-  private onEscalationRecommendation(r: import('../../models/escalation-recommendation.model').EscalationRecommendation): void {
-    this.loadList(false);
-  }
-
   private onEscalationAutoAssigned(r: import('../../models/escalation-recommendation.model').EscalationRecommendation): void {
     this.loadList(false);
     if (this.auth.userProfile() && Number(this.auth.userProfile()!.id) === r.assignedToId) {
@@ -585,45 +563,6 @@ export class InboxPageComponent implements OnInit, OnDestroy {
       this.loadAssignments();
     }
     if (this.view() === 'queue') this.loadQueue();
-  }
-
-  // ── Escalation actions (FE-4.2) ──────────────────────────────────────────────
-  protected onEscalationConfirm(event: { escalationId: number; assigneeId: number }): void {
-    this.escalationConfirming.set(true);
-    this.escalationApi.confirm(event.escalationId, event.assigneeId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (rec) => {
-        this.escalationConfirming.set(false);
-        this.escalationStore.setRecommendation(this.selectedId()!, rec);
-        this.loadDetail(this.selectedId()!);
-        this.loadList(false);
-      },
-      error: (err) => {
-        this.escalationConfirming.set(false);
-        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
-      }
-    });
-  }
-
-  protected onEscalationOverrideOpen(): void {
-    this.showOverrideDialog.set(true);
-  }
-
-  protected onEscalationOverrideSubmit(event: { escalationId: number; assigneeId: number; reason: string }): void {
-    this.showOverrideDialog.set(false);
-    this.escalationApi.override(event.escalationId, event.assigneeId, event.reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (rec) => {
-        this.escalationStore.setRecommendation(this.selectedId()!, rec);
-        this.loadDetail(this.selectedId()!);
-        this.loadList(false);
-      },
-      error: (err) => {
-        this.toast.error(this.t('assignErrorTitle'), apiErrorMessage(err, this.t('assignErrorMsg')));
-      }
-    });
-  }
-
-  protected onEscalationOverrideCancel(): void {
-    this.showOverrideDialog.set(false);
   }
 
   private onRealtimeNote(n: RealtimeNote): void {

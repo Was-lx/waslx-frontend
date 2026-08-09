@@ -67,13 +67,5 @@ export class ConversationBadgesStore {
         updatedAtUtc: p.occurredAtUtc,
       });
     });
-
-    this.escalationRealtime.escalationRecommendationUpdated.subscribe(r => {
-      this.setBadgeData(r.conversationId, {
-        escalate: true,
-        escalationStatus: r.status as EscalationStatus,
-        updatedAtUtc: r.createdAtUtc,
-      });
-    });
   }
 }

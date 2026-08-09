@@ -64,20 +64,6 @@ export type AiKey =
   | 'aiSettingsSaved'
   | 'aiSettingsError'
   | 'aiUnavailableHint'
-  // Escalation recommendation (FE-4.2)
-  | 'aiEscTitle'
-  | 'aiEscReasonLabel'
-  | 'aiEscSuggestedLabel'
-  | 'aiEscConfirm'
-  | 'aiEscOverride'
-  | 'aiEscConfirmed'
-  | 'aiEscOverridden'
-  | 'aiEscError'
-  | 'aiEscSelectAgent'
-  // Escalation mode toggle (US-4.4)
-  | 'aiEscMode'
-  | 'aiEscRecDesc'
-  | 'aiEscAutoDesc'
   // Badges (FE-4.4)
   | 'aiBadgeVip'
   | 'aiBadgeUrgent'
@@ -155,19 +141,7 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiSettingsError: 'Could not save the AI Agent settings',
     aiUnavailableHint: 'The AI Agent service is not connected yet.',
     // Escalation
-    aiEscTitle: 'Escalation recommended',
-    aiEscReasonLabel: 'Reason',
-    aiEscSuggestedLabel: 'Suggested senior agent',
-    aiEscConfirm: 'Confirm escalation',
-    aiEscOverride: 'Override',
-    aiEscConfirmed: 'Escalation confirmed',
-    aiEscOverridden: 'Recommendation overridden',
-    aiEscError: 'Could not update the escalation',
-    aiEscSelectAgent: 'Choose a different agent',
     // Escalation mode
-    aiEscMode: 'Escalation mode',
-    aiEscRecDesc: 'Recommend — Manager/Admin must confirm before assignment.',
-    aiEscAutoDesc: 'Auto-assign — Best agent is assigned automatically.',
     // Badges
     aiBadgeVip: 'VIP',
     aiBadgeUrgent: 'Urgent',
@@ -244,19 +218,7 @@ export const aiTranslations: Record<AppLanguage, Record<AiKey, string>> = {
     aiSettingsError: 'تعذّر حفظ إعدادات الوكيل الذكي',
     aiUnavailableHint: 'خدمة الوكيل الذكي غير متصلة بعد.',
     // Escalation
-    aiEscTitle: 'يُوصى بالتصعيد',
-    aiEscReasonLabel: 'السبب',
-    aiEscSuggestedLabel: 'الموظف الأقدم المقترح',
-    aiEscConfirm: 'تأكيد التصعيد',
-    aiEscOverride: 'تجاوز',
-    aiEscConfirmed: 'تم تأكيد التصعيد',
-    aiEscOverridden: 'تم تجاوز التوصية',
-    aiEscError: 'تعذّر تحديث التصعيد',
-    aiEscSelectAgent: 'اختر موظفًا آخر',
     // Escalation mode
-    aiEscMode: 'وضع التصعيد',
-    aiEscRecDesc: 'توصية — يجب على المدير/المشرف تأكيد التعيين.',
-    aiEscAutoDesc: 'تعيين تلقائي — يتم تعيين أفضل موظف تلقائيًا.',
     // Badges
     aiBadgeVip: 'VIP',
     aiBadgeUrgent: 'عاجل',

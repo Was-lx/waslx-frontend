@@ -1,5 +1,6 @@
-export type EscalationMode = 'recommend' | 'autoAssign';
-export type EscalationStatus = 'open' | 'recommended' | 'confirmed' | 'assigned' | 'resolved' | 'cancelled';
+// Escalations now always auto-assign (no more AI-suggests / Manager-confirms step), so this model
+// only carries what the "conversation was transferred" UI needs — never a pending recommendation.
+export type EscalationStatus = 'open' | 'assigned' | 'resolved' | 'cancelled';
 
 export interface EscalationRecommendation {
   escalationId: number;
@@ -8,21 +9,14 @@ export interface EscalationRecommendation {
   suggestedAssigneeName: string | null;
   reason: string;
   score?: number;
-  mode: EscalationMode;
   status: EscalationStatus;
   assignedToId: number | null;
   assignedToName: string | null;
   previousOwnerId: number | null;
   previousOwnerName: string | null;
-  overrideReason: string | null;
   ownershipTransferredAtUtc: string | null;
-  confirmedAtUtc: string | null;
   assignedAtUtc: string | null;
   createdAtUtc: string;
-}
-
-export interface EscalationModeSettings {
-  mode: EscalationMode;
 }
 
 export interface OwnershipTransferredPayload {
@@ -32,13 +26,4 @@ export interface OwnershipTransferredPayload {
   transitionType: string;
   occurredAtUtc: string;
   ownershipTransferredAtUtc: string | null;
-}
-
-export interface ConfirmRequest {
-  assigneeId: number;
-}
-
-export interface OverrideRequest {
-  assigneeId: number;
-  reason: string;
 }

@@ -120,21 +120,9 @@ export type InboxKey =
   | 'tagApplyError'
   | 'tagRemoveError'
   | 'tagNoneAvailable'
-  // Escalation screening (FE-4.2)
-  | 'escalationAiSuggestion'
-  | 'escalationSuggestedAgent'
-  | 'escalationReasonLabel'
-  | 'escalationConfirm'
-  | 'escalationOverride'
-  | 'escalationNoTarget'
-  | 'escalationWaitingApproval'
+  // Escalation (transfers now happen automatically — only the outcome is ever shown)
   | 'escalationTransferred'
   | 'escalationAssignedToast'
-  | 'escalationSelectAgent'
-  | 'escalationOverrideReason'
-  | 'escalationEnterDetails'
-  | 'escalationCancel'
-  | 'escalationAutoAssigned'
   // Badges (FE-4.4)
   | 'sentimentPositive'
   | 'sentimentNeutral'
@@ -145,7 +133,6 @@ export type InboxKey =
   | 'priorityHigh'
   | 'priorityUrgent'
   | 'badgeEscalated'
-  | 'badgePending'
   | 'badgeAssigned';
 
 export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = {
@@ -261,20 +248,8 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     tagApplyError: 'Could not add the tag. Please try again.',
     tagRemoveError: 'Could not remove the tag. Please try again.',
     tagNoneAvailable: 'No more tags to add.',
-    escalationAiSuggestion: 'AI Suggestion',
-    escalationSuggestedAgent: 'Suggested Agent',
-    escalationReasonLabel: 'Reason',
-    escalationConfirm: 'Confirm',
-    escalationOverride: 'Override',
-    escalationNoTarget: 'No target available',
-    escalationWaitingApproval: 'Waiting for Manager approval.',
     escalationTransferred: 'Conversation transferred.',
     escalationAssignedToast: 'Conversation assigned to you.',
-    escalationSelectAgent: 'Select Agent',
-    escalationOverrideReason: 'Reason for override',
-    escalationEnterDetails: 'Enter details...',
-    escalationCancel: 'Cancel',
-    escalationAutoAssigned: 'Auto-assigned',
     sentimentPositive: 'Positive',
     sentimentNeutral: 'Neutral',
     sentimentNegative: 'Negative',
@@ -284,7 +259,6 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     priorityHigh: 'High',
     priorityUrgent: 'Urgent',
     badgeEscalated: 'Escalated',
-    badgePending: 'Pending',
     badgeAssigned: 'Assigned',
   },
   ar: {
@@ -399,20 +373,8 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     tagApplyError: 'تعذّر إضافة الوسم. حاول مرة أخرى.',
     tagRemoveError: 'تعذّر إزالة الوسم. حاول مرة أخرى.',
     tagNoneAvailable: 'لا مزيد من الوسوم للإضافة.',
-    escalationAiSuggestion: 'اقتراح الذكاء الاصطناعي',
-    escalationSuggestedAgent: 'العميل المقترح',
-    escalationReasonLabel: 'السبب',
-    escalationConfirm: 'تأكيد',
-    escalationOverride: 'تعديل',
-    escalationNoTarget: 'لا يوجد مستهدف متاح',
-    escalationWaitingApproval: 'بانتظار موافقة المدير.',
     escalationTransferred: 'تم تحويل المحادثة.',
     escalationAssignedToast: 'تم تعيين المحادثة لك.',
-    escalationSelectAgent: 'اختر العميل',
-    escalationOverrideReason: 'سبب التعديل',
-    escalationEnterDetails: 'أدخل التفاصيل...',
-    escalationCancel: 'إلغاء',
-    escalationAutoAssigned: 'تعيين تلقائي',
     sentimentPositive: 'إيجابي',
     sentimentNeutral: 'حيادي',
     sentimentNegative: 'سلبي',
@@ -422,7 +384,6 @@ export const inboxTranslations: Record<AppLanguage, Record<InboxKey, string>> = 
     priorityHigh: 'مرتفع',
     priorityUrgent: 'عاجل',
     badgeEscalated: 'تم تصعيدها',
-    badgePending: 'معلق',
     badgeAssigned: 'تم التعيين',
   },
 };

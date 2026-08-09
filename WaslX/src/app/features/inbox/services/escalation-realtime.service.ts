@@ -9,10 +9,9 @@ import type { EscalationRecommendation, OwnershipTransferredPayload } from '../m
 export class EscalationRealtimeService {
   private readonly realtime = inject(InboxRealtimeService);
 
-  readonly escalationRecommendationUpdated = new Subject<EscalationRecommendation>();
-  readonly escalationAssignmentConfirmed = new Subject<EscalationRecommendation>();
+  // Escalations now always auto-assign — there's no more "recommended, awaiting Manager confirm/
+  // override" state, so those events are no longer emitted by the backend and aren't listened for here.
   readonly escalationAutoAssigned = new Subject<EscalationRecommendation>();
-  readonly escalationOverrideApplied = new Subject<EscalationRecommendation>();
   readonly conversationOwnershipTransferred = new Subject<OwnershipTransferredPayload>();
   readonly conversationEscalated = new Subject<ConversationEscalatedPayload>();
 
@@ -22,14 +21,8 @@ export class EscalationRealtimeService {
     if (this.initialized()) return;
     this.initialized.set(true);
 
-    this.realtime['hub']?.on('EscalationRecommendationUpdated', (r: EscalationRecommendation) =>
-      this.escalationRecommendationUpdated.next(r));
-    this.realtime['hub']?.on('EscalationAssignmentConfirmed', (r: EscalationRecommendation) =>
-      this.escalationAssignmentConfirmed.next(r));
     this.realtime['hub']?.on('EscalationAutoAssigned', (r: EscalationRecommendation) =>
       this.escalationAutoAssigned.next(r));
-    this.realtime['hub']?.on('EscalationOverrideApplied', (r: EscalationRecommendation) =>
-      this.escalationOverrideApplied.next(r));
     this.realtime['hub']?.on('ConversationOwnershipTransferred', (p: OwnershipTransferredPayload) =>
       this.conversationOwnershipTransferred.next(p));
     this.realtime['hub']?.on('ConversationEscalated', (p: ConversationEscalatedPayload) =>

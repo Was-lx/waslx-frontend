@@ -156,7 +156,7 @@ export class ConversationCardComponent {
     if (!d) return false;
     if (d.escalate) return true;
     const s = d.escalationStatus;
-    return s === 'open' || s === 'recommended' || s === 'assigned';
+    return s === 'open' || s === 'assigned';
   });
   protected readonly unreadLabel = computed(() => `${this.item().unreadCount} ${this.language.text('inboxUnread')}`);
   protected readonly deleteLabel = computed(() => this.language.text('inboxDeleteChat'));

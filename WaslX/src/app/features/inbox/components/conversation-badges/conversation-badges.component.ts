@@ -56,7 +56,7 @@ export class ConversationBadgesComponent {
     if (!d) return false;
     if (d.escalate) return true;
     const status = d.escalationStatus;
-    return status === 'open' || status === 'recommended' || status === 'assigned';
+    return status === 'open' || status === 'assigned';
   });
 
   protected readonly visibleBadges = computed(() => {
