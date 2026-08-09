@@ -98,6 +98,7 @@
                   <button
                     class="ui-notif"
                     [class.ui-notif--unread]="!row.n.isRead"
+                    [class.notif-panel__row--escalation]="row.n.type === 'escalation'"
                     type="button"
                     (click)="openNotification(row)"
                     role="menuitem"
@@ -120,6 +121,7 @@
                   <button
                     class="ui-notif"
                     [class.ui-notif--unread]="!row.n.isRead"
+                    [class.notif-panel__row--escalation]="row.n.type === 'escalation'"
                     type="button"
                     (click)="openNotification(row)"
                     role="menuitem"

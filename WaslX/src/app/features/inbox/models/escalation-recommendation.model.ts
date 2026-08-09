@@ -2,6 +2,19 @@
 // only carries what the "conversation was transferred" UI needs — never a pending recommendation.
 export type EscalationStatus = 'open' | 'assigned' | 'resolved' | 'cancelled';
 
+export interface EscalationCandidateSnapshot {
+  agentId: number;
+  agentName: string;
+  overallScore: number;
+  performanceScore: number;
+  responseSpeedScore: number;
+  workloadScore: number;
+  activeChats: number;
+  rankingOrder: number;
+  status: string;
+  reason: string;
+}
+
 export interface EscalationRecommendation {
   escalationId: number;
   conversationId: number;
@@ -17,6 +30,10 @@ export interface EscalationRecommendation {
   ownershipTransferredAtUtc: string | null;
   assignedAtUtc: string | null;
   createdAtUtc: string;
+  priority: string | null;
+  topic: string | null;
+  sentiment: string | null;
+  candidates: EscalationCandidateSnapshot[];
 }
 
 export interface OwnershipTransferredPayload {

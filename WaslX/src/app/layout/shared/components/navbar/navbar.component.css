@@ -603,6 +603,17 @@ button.notif-panel__browser:hover {
   background: color-mix(in srgb, var(--primary) 8%, var(--surface));
 }
 
+.notif-panel__row--escalation.ui-notif--unread {
+  background: color-mix(in srgb, var(--danger) 6%, var(--surface));
+}
+.notif-panel__row--escalation.ui-notif--unread:hover {
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+}
+.notif-panel__row--escalation .ui-notif__text {
+  white-space: pre-line;
+  -webkit-line-clamp: 4;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .notif-panel {
     animation-name: menu-in;

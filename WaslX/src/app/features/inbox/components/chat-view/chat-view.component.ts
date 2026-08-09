@@ -19,7 +19,6 @@ import { MessageComposerComponent } from '../message-composer/message-composer.c
 import { ContextPanelComponent } from '../context-panel/context-panel.component';
 import { TemplatePickerComponent, type TemplateSendPayload } from '../template-picker/template-picker.component';
 import { AssignmentBarComponent, type AssignEvent } from '../assignment-bar/assignment-bar.component';
-import { ConversationSummaryComponent } from '../conversation-summary/conversation-summary.component';
 import { AiSkeletonComponent } from '../ai-skeleton/ai-skeleton.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { EscalationOwnershipTransferredComponent } from '../escalation-ownership-transferred/escalation-ownership-transferred.component';
@@ -42,7 +41,7 @@ import type { Group } from '../../../../core/api/groups-api.service';
   imports: [
     AvatarComponent, MessageBubbleComponent, MessageComposerComponent,
     ContextPanelComponent, TemplatePickerComponent, AssignmentBarComponent,
-    ConversationSummaryComponent, AiSkeletonComponent, IconComponent,
+    AiSkeletonComponent, IconComponent,
     EscalationOwnershipTransferredComponent,
     ConversationBadgesComponent, EscalationStatusChipComponent
   ],
